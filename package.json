@@ -6,7 +6,9 @@
   "scripts": {
     "test": "jest",
     "npm:g:dev": "sudo npm i rimraf tslint typescript nodemon tslint-config-airbnb -g -D",
+    "npm:g:dev:r": "sudo npm i rimraf tslint typescript nodemon tslint-config-airbnb -g -D",
     "npm:g:dev:win": "npm i rimraf tslint typescript nodemon tslint-config-airbnb -g -D",
+    "npm:g:dev:r:win": "npm i rimraf tslint typescript nodemon tslint-config-airbnb -g -D",
     "build": "rimraf ./dist && tsc",
     "start": "node ./dist",
     "start:b": "npm run build && node ./dist",
