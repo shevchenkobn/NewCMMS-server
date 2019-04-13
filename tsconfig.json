@@ -35,6 +35,9 @@
     "noImplicitThis": true,
     "noStrictGenericChecks": false,
     "outDir": "./dist",
+    "plugins": [
+      {"transform": "ts-optchain/transform"}
+    ],
     "preserveConstEnums": true,
     "pretty": true,
     "removeComments": false,
