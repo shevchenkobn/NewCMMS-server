@@ -81,7 +81,7 @@ export function bindOnExitHandler(handler: Function, unshift = false) {
 
 export function unbindOnExitHandler(handler: Function) {
   list.remove(handler);
-  if (onSignalHandler) {
+  if (list.length === 0) {
     removeListeners();
   }
 }
@@ -131,6 +131,11 @@ function removeListeners() {
 }
 
 async function execHandlers() {
+  setTimeout(() => {
+    logger.error('The process exited due to too long wait for exit handlers!');
+    process.exit(1);
+  }, 1000);
+  logger.info('The process is running exit handlers...');
   for (const handler of list) {
     await handler();
   }
