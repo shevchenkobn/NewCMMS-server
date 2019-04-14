@@ -128,6 +128,8 @@ function removeListeners() {
     process.off('uncaughtException', errorHandler);
     process.off('unhandledRejection', errorHandler);
   }
+  onSignalHandler = null;
+  errorHandler = null;
 }
 
 async function execHandlers() {

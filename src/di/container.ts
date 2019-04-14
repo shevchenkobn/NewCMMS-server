@@ -16,26 +16,33 @@ export function getContainer() {
   return container;
 }
 
-export function createContainer(dependencies: symbol[], forceNew = false) {
+export function createContainer(
+  dependencies: Maybe<symbol[]>,
+  forceNew = false,
+) {
   if (container && !forceNew) {
     throw new TypeError('Container is already instantiated. Call with `forceNew === true` to override');
   }
-  const possibleDependencies = Object.values(TYPES);
-  const actualDependencies = dependencies
-    .filter(dep => possibleDependencies.includes(dep));
-  if (actualDependencies.length === 0) {
-    throw new TypeError('No type ids were specified. Please, specify them from the `TYPES` object from the `types.ts` file.');
-  }
-  if (actualDependencies.length !== dependencies.length) {
-    throw new TypeError('Bad type ids were specified. Please, specify them from the `TYPES` object from the `types.ts` file.');
+  if (!dependencies) {
+    containedDependencies = [...typeMap.keys()];
+  } else {
+    const possibleDependencies = Object.values(TYPES);
+    const actualDependencies = dependencies
+      .filter(dep => possibleDependencies.includes(dep));
+    if (actualDependencies.length === 0) {
+      throw new TypeError('No type ids were specified. Please, specify them from the `TYPES` object from the `types.ts` file.');
+    }
+    if (actualDependencies.length !== dependencies.length) {
+      throw new TypeError('Bad type ids were specified. Please, specify them from the `TYPES` object from the `types.ts` file.');
+    }
+    containedDependencies = actualDependencies;
   }
   initPromise = null;
-  containedDependencies = actualDependencies;
   container = new Container({
     defaultScope: 'Singleton',
   });
   for (const [typeId, type] of typeMap) {
-    if (actualDependencies.includes(typeId)) {
+    if (containedDependencies.includes(typeId)) {
       container.bind<any>(typeId).to(type);
     }
   }
