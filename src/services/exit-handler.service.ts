@@ -1,29 +1,29 @@
-import { Maybe } from '../@types';
+import { Maybe, Nullable } from '../@types';
 import { oc } from 'ts-optchain';
 import { logger } from './logger.service';
 
 class ListNode {
   // prev: Maybe<Node>;
-  next: Maybe<ListNode>;
+  next: Nullable<ListNode>;
   handler: Function;
 
-  constructor(handler: Function/*, prev?: Node*/, next?: ListNode) {
+  constructor(handler: Function/*, prev?: Node*/, next: Nullable<ListNode> = null) {
     this.handler = handler;
     this.next = next;
   }
 }
 
 class List {
-  head: Maybe<ListNode>;
-  tail: Maybe<ListNode>;
+  head: Nullable<ListNode>;
+  tail: Nullable<ListNode>;
   private _length: number;
 
   get length() {
     return this._length;
   }
 
-  constructor(head?: Maybe<ListNode>) {
-    this.head = head;
+  constructor(head: Nullable<ListNode> = null) {
+    this.head = this.tail = head;
     this._length = head ? 1 : 0;
   }
 
@@ -69,8 +69,8 @@ class List {
 }
 
 const list = new List();
-let onSignalHandler: Maybe<NodeJS.SignalsListener> = null;
-let errorHandler: Maybe<(err: any, p?: Promise<any>) => void> = null;
+let onSignalHandler: Nullable<NodeJS.SignalsListener> = null;
+let errorHandler: Nullable<(err: any, p?: Promise<any>) => void> = null;
 
 export function bindOnExitHandler(handler: Function, unshift = false) {
   list.add(new ListNode(handler), unshift);

@@ -4,7 +4,7 @@ import {
   Container,
   interfaces,
 } from 'inversify';
-import { Maybe } from '../@types';
+import { Maybe, Nullable, Optional } from '../@types';
 import { DbConnection } from '../services/db-connection.class';
 import ServiceIdentifier = interfaces.ServiceIdentifier;
 import Request = interfaces.Request;
@@ -35,8 +35,8 @@ function bindDependency<T>(
     .whenNoAncestorMatches(noDependencyHandler);
 }
 
-let container: Maybe<Container> = null;
-let containedDependencies: Maybe<ServiceIdentifier<any>[]> = null;
+let container: Nullable<Container> = null;
+let containedDependencies: Nullable<ServiceIdentifier<any>[]> = null;
 
 export function getContainer() {
   if (!container) {
@@ -57,7 +57,7 @@ export function getContainedDependencies() {
 }
 
 export function createContainer(
-  dependencies: Maybe<ServiceIdentifier<any>[]> | 'all',
+  dependencies: Nullable<ServiceIdentifier<any>[]> | 'all' = null,
   forceNew = false,
 ) {
   if (container && !forceNew) {
@@ -68,7 +68,8 @@ export function createContainer(
   } else {
     const possibleDependencies = Object.values(TYPES);
     const actualDependencies = new Set(
-      dependencies.filter(dep => possibleDependencies.includes(dep)),
+      dependencies
+        .filter(dep => possibleDependencies.includes(dep as any)),
     );
     if (actualDependencies.size === 0) {
       throw new TypeError('No type ids were specified. Please, specify them from the `TYPES` object from the `types.ts` file.');
