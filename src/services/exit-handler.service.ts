@@ -1,6 +1,6 @@
 import { Maybe } from '../@types';
 import { oc } from 'ts-optchain';
-import { logger } from '../services/logger.service';
+import { logger } from './logger.service';
 
 class ListNode {
   // prev: Maybe<Node>;
