@@ -13,7 +13,7 @@ export interface IDBConfig {
 }
 
 @injectable()
-class DbConnection {
+export class DbConnection {
   readonly config: Readonly<Knex.Config>;
   readonly knex: Knex;
 

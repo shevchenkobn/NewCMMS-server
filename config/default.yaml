@@ -3,6 +3,7 @@ server:
   port: 3000
   swaggerDocsPrefix: /
   admin:
+    id: 1
     name: Master Admin
     password: admin
     email: master.admin@local.host
