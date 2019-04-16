@@ -44,6 +44,7 @@
     "decimal.js": "^10.1.1",
     "express": "^4.16.4",
     "inversify": "^5.0.1",
+    "ix": "^2.5.3",
     "js-yaml": "^3.13.1",
     "json-refs": "^3.0.13",
     "jsonwebtoken": "^8.5.1",
