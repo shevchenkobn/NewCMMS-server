@@ -22,12 +22,16 @@ export class TableBuilders {
     this._knex = dbConnection.knex;
 
     this._tableFactories = this.getTableFactories();
-    this._columnBuilders = TableColumnTypeBuilder.getForDbmsClient(
-      typeof dbConnection.config.client === 'string'
-        ? dbConnection.config.client
-        : oc(dbConnection.config.client).name || 'default-sql', // maybe other approach is needed, no info found
-    );
-
+    let dbmsClient;
+    if (typeof dbConnection.config.client === 'string') {
+      dbmsClient = dbConnection.config.client;
+    } else {
+      // maybe other approach is needed, no info found
+      const defaultDbms = 'default-sql';
+      logger.warn(`The DBMS client type wasn't defined! Falling back to "${defaultDbms}"`);
+      dbmsClient = defaultDbms;
+    }
+    this._columnBuilders = TableColumnTypeBuilder.getForDbmsClient(dbmsClient);
   }
 
   getFor(tableName: TableName) {
