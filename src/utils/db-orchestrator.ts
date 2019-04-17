@@ -16,10 +16,14 @@ export function getTableNames() {
 export class TableBuilders {
   private _knex: Knex;
   private _tableFactories: Map<TableName, () => Knex.SchemaBuilder>;
-  private _columnBuilders: TableColumnTypeBuilder;
+  private readonly _columnBuilders: TableColumnTypeBuilder;
+  private readonly _n: (...args: string[]) => Knex.Raw;
+  private _tableIdColumns: Nullable<Map<TableName, string>>;
 
   constructor(dbConnection: DbConnection) {
     this._knex = dbConnection.knex;
+    this._n = (...args: string[]) => dbConnection.getIdentifier(...args);
+    this._tableIdColumns = null;
 
     this._tableFactories = this.getTableFactories();
     let dbmsClient;
@@ -63,6 +67,16 @@ export class TableBuilders {
         TableName.ACTION_DEVICES,
         table => {
           table.increments('actionDeviceId').primary().notNullable();
+          c.addColumn(table, SpecificDBDataTypes.MAC_ADDRESS, 'physicalAddress');
+          table.string('name', 75).unique().notNullable();
+          table.string('type', 75).notNullable();
+        },
+      )],
+      [TableName.TRIGGER_ACTIONS, () => this._knex.schema.createTable(
+        TableName.TRIGGER_ACTIONS,
+        table => {
+          table.increments('triggerActionId').primary().notNullable();
+          table.increments('triggerDeviceId').references(this._n(TableName.TRIGGER_DEVICES, 'trigger'));
         },
       )],
     ]);

@@ -11,7 +11,7 @@ export enum TableName {
   USERS = 'users',
   USER_STATISTICS = 'userStatistics',
   TRIGGER_DEVICES = 'triggerDevices',
-  ACTION_DEVICES = 'triggerDevices',
+  ACTION_DEVICES = 'actionDevices',
   TRIGGER_ACTIONS = 'triggerActions',
   BILLS = 'bills',
 }

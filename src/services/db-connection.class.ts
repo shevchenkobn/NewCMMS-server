@@ -50,4 +50,8 @@ export class DbConnection {
       this.knex.destroy(() => logger.info(`Closed database connection for "${this.config.client}" at ${(this.config.connection as any).host} to ${(this.config.connection as any).database}`));
     });
   }
+
+  getIdentifier(...args: string[]) {
+    return this.knex.raw(`??${'.??'.repeat(args.length - 1)}`, args);
+  }
 }
