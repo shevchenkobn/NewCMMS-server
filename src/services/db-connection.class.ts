@@ -4,7 +4,7 @@ import * as config from 'config';
 import * as Knex from 'knex';
 import { bindOnExitHandler } from './exit-handler.service';
 import { logger } from './logger.service';
-import { Iterable } from 'ix';
+import * as Enumerable from 'linq';
 
 export interface IDBConfig {
   host: string;
@@ -31,9 +31,9 @@ export class DbConnection {
       }
       client = dbTypeChoices[0];
     } else {
-      client = Iterable.from(dbTypePriority).first(
+      client = Enumerable.from(dbTypePriority).first(
         type => type in dbConfig,
-      ) || null;
+      );
       if (!client) {
         throw new TypeError('No supported DB types! Check your configs to correct the issue.');
       }

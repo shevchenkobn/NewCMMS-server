@@ -9,11 +9,12 @@ import { Nullable } from '../@types';
 
 export enum TableName {
   USERS = 'users',
-  USER_STATISTICS = 'userStatistics',
   TRIGGER_DEVICES = 'triggerDevices',
   ACTION_DEVICES = 'actionDevices',
   TRIGGER_ACTIONS = 'triggerActions',
   BILLS = 'bills',
+  BILL_RATES = 'billRates',
+  USER_STATISTICS = 'userStatistics',
 }
 
 export type CreateTableCallback = {
