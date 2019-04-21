@@ -39,10 +39,14 @@ export class DbConnection {
       }
       logger.warn(`Several DB configs found. The DB "${client}" is selected according to priority ${JSON.stringify(dbTypePriority)}.`);
     }
+    // A stub condition to be changed in future
+    if (client !== 'pg') {
+      throw new TypeError('Postgres only supported by now');
+    }
 
     this.config = {
       client,
-      connection: dbConfig,
+      connection: dbConfig[client],
     };
     this.knex = Knex(this.config);
     bindOnExitHandler(() => {
@@ -51,7 +55,10 @@ export class DbConnection {
     });
   }
 
-  getIdentifier(...args: string[]) {
-    return this.knex.raw(`??${'.??'.repeat(args.length - 1)}`, args);
+  getIdentifier(...args: ReadonlyArray<string>) {
+    return this.knex.raw(
+      `??${'.??'.repeat(args.length - 1)}`,
+      args.slice(),
+    );
   }
 }

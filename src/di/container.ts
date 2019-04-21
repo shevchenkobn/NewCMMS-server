@@ -91,7 +91,7 @@ export function createContainer(
   return container;
 }
 
-let initPromise: Promise<any[]> | null = null;
+let initPromise: Nullable<Promise<ReadonlyArray<any>>> = null;
 
 export function initAsync() {
   if (!container) {

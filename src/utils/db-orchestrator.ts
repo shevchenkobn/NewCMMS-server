@@ -9,18 +9,16 @@ export function getTableNames() {
   if (!tableNames) {
     tableNames = Object.values(TableName);
   }
-  return tableNames;
+  return tableNames.slice();
 }
 
 export class TableBuilders {
   private _knex: Knex;
   private _tableFactories: Map<TableName, () => Knex.SchemaBuilder>;
   private readonly _columnBuilders: TableColumnTypeBuilder;
-  private readonly _n: (...args: string[]) => Knex.Raw;
 
   constructor(dbConnection: DbConnection) {
     this._knex = dbConnection.knex;
-    this._n = (...args: string[]) => dbConnection.getIdentifier(...args);
 
     this._tableFactories = this.getTableFactories();
     let dbmsClient;
@@ -50,6 +48,7 @@ export class TableBuilders {
             .notNullable();
           table.string('email', 90).unique().notNullable();
           table.string('passwordHash', 60).notNullable();
+          c.addColumn(table, SpecificDBDataTypes.UINT1, 'role').notNullable();
           table.string('fullName', 90).notNullable();
         },
       )],
@@ -141,6 +140,12 @@ export class TableBuilders {
           table.increments(getIdColumn(TableName.USER_STATISTICS))
             .primary()
             .notNullable();
+          const userId = getIdColumn(TableName.USERS);
+          table.integer(userId)
+            .notNullable()
+            .references(userId)
+            .inTable(TableName.USERS)
+            .onDelete('CASCADE');
           const triggerDeviceId = getIdColumn(TableName.TRIGGER_DEVICES);
           table.integer(triggerDeviceId)
             .notNullable()
@@ -152,6 +157,48 @@ export class TableBuilders {
       )],
     ]);
   }
+}
+
+let allChildTables: Nullable<Map<TableName, ReadonlyArray<TableName>>> = null;
+export function getChildTables(
+  tableNames: ReadonlyArray<TableName>,
+  includeOriginal = false,
+) {
+  if (!allChildTables) {
+    allChildTables = getAllChildTables();
+  }
+  const queue = tableNames.slice();
+  const childTables: Set<TableName> = includeOriginal
+    ? new Set(tableNames)
+    : new Set();
+  while (queue.length > 0) {
+    const tableName = queue.shift()!;
+    childTables.add(tableName);
+    queue.push(...allChildTables.get(tableName)!);
+  }
+  if (!includeOriginal) {
+    for (const tableName of tableNames) {
+      childTables.delete(tableName);
+    }
+  }
+  return childTables;
+}
+function getAllChildTables() {
+  return new Map<TableName, ReadonlyArray<TableName>>([
+    [TableName.USERS, [TableName.USER_STATISTICS]],
+    [
+      TableName.TRIGGER_DEVICES,
+      [TableName.TRIGGER_ACTIONS, TableName.BILLS, TableName.USER_STATISTICS],
+    ],
+    [
+      TableName.ACTION_DEVICES,
+      [TableName.TRIGGER_ACTIONS, TableName.BILL_RATES],
+    ],
+    [TableName.TRIGGER_ACTIONS, []],
+    [TableName.BILLS, [TableName.BILL_RATES]],
+    [TableName.BILL_RATES, []],
+    [TableName.USER_STATISTICS, []],
+  ]);
 }
 
 let tableIdColumns: Nullable<Map<TableName, string>> = null;

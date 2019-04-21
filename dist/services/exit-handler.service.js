@@ -1,6 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const logger_service_1 = require("./logger.service");
+process.on('beforeExit', () => {
+    logger_service_1.logger.info('yeeet before exit fired');
+});
 class ListNode {
     constructor(handler /*, prev?: Node*/, next = null) {
         this.handler = handler;
@@ -87,7 +90,13 @@ function initListeners() {
     process.once('SIGHUP', onSignalHandler);
     process.once('SIGBREAK', onSignalHandler);
     errorHandler = (err, p) => {
-        logger_service_1.logger.error(p ? `Unhandled promise rejection for ${p}` : 'Unhandled exception!');
+        if (p) {
+            logger_service_1.logger.error('Unhandled promise rejection for ');
+            logger_service_1.logger.error(p);
+        }
+        else {
+            logger_service_1.logger.error('Unhandled exception!');
+        }
         logger_service_1.logger.error(err);
         execHandlers().catch(err => {
             logger_service_1.logger.error('The process is not shut down gracefully! Error while error handling.');

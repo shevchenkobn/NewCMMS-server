@@ -29,9 +29,13 @@ let DbConnection = class DbConnection {
             }
             logger_service_1.logger.warn(`Several DB configs found. The DB "${client}" is selected according to priority ${JSON.stringify(dbTypePriority)}.`);
         }
+        // A stub condition to be changed in future
+        if (client !== 'pg') {
+            throw new TypeError('Postgres only supported by now');
+        }
         this.config = {
             client,
-            connection: dbConfig,
+            connection: dbConfig[client],
         };
         this.knex = Knex(this.config);
         exit_handler_service_1.bindOnExitHandler(() => {
@@ -40,7 +44,7 @@ let DbConnection = class DbConnection {
         });
     }
     getIdentifier(...args) {
-        return this.knex.raw(`??${'.??'.repeat(args.length - 1)}`, args);
+        return this.knex.raw(`??${'.??'.repeat(args.length - 1)}`, args.slice());
     }
 };
 DbConnection = tslib_1.__decorate([

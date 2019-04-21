@@ -7,13 +7,12 @@ function getTableNames() {
     if (!tableNames) {
         tableNames = Object.values(db_orchestrator_service_1.TableName);
     }
-    return tableNames;
+    return tableNames.slice();
 }
 exports.getTableNames = getTableNames;
 class TableBuilders {
     constructor(dbConnection) {
         this._knex = dbConnection.knex;
-        this._n = (...args) => dbConnection.getIdentifier(...args);
         this._tableFactories = this.getTableFactories();
         let dbmsClient;
         if (typeof dbConnection.config.client === 'string') {
@@ -39,6 +38,7 @@ class TableBuilders {
                         .notNullable();
                     table.string('email', 90).unique().notNullable();
                     table.string('passwordHash', 60).notNullable();
+                    c.addColumn(table, 0 /* UINT1 */, 'role').notNullable();
                     table.string('fullName', 90).notNullable();
                 })],
             [db_orchestrator_service_1.TableName.TRIGGER_DEVICES, () => this._knex.schema.createTable(db_orchestrator_service_1.TableName.TRIGGER_DEVICES, table => {
@@ -112,6 +112,12 @@ class TableBuilders {
                     table.increments(getIdColumn(db_orchestrator_service_1.TableName.USER_STATISTICS))
                         .primary()
                         .notNullable();
+                    const userId = getIdColumn(db_orchestrator_service_1.TableName.USERS);
+                    table.integer(userId)
+                        .notNullable()
+                        .references(userId)
+                        .inTable(db_orchestrator_service_1.TableName.USERS)
+                        .onDelete('CASCADE');
                     const triggerDeviceId = getIdColumn(db_orchestrator_service_1.TableName.TRIGGER_DEVICES);
                     table.integer(triggerDeviceId)
                         .notNullable()
@@ -124,6 +130,45 @@ class TableBuilders {
     }
 }
 exports.TableBuilders = TableBuilders;
+let allChildTables = null;
+function getChildTables(tableNames, includeOriginal = false) {
+    if (!allChildTables) {
+        allChildTables = getAllChildTables();
+    }
+    const queue = tableNames.slice();
+    const childTables = includeOriginal
+        ? new Set(tableNames)
+        : new Set();
+    while (queue.length > 0) {
+        const tableName = queue.shift();
+        childTables.add(tableName);
+        queue.push(...allChildTables.get(tableName));
+    }
+    if (!includeOriginal) {
+        for (const tableName of tableNames) {
+            childTables.delete(tableName);
+        }
+    }
+    return childTables;
+}
+exports.getChildTables = getChildTables;
+function getAllChildTables() {
+    return new Map([
+        [db_orchestrator_service_1.TableName.USERS, [db_orchestrator_service_1.TableName.USER_STATISTICS]],
+        [
+            db_orchestrator_service_1.TableName.TRIGGER_DEVICES,
+            [db_orchestrator_service_1.TableName.TRIGGER_ACTIONS, db_orchestrator_service_1.TableName.BILLS, db_orchestrator_service_1.TableName.USER_STATISTICS],
+        ],
+        [
+            db_orchestrator_service_1.TableName.ACTION_DEVICES,
+            [db_orchestrator_service_1.TableName.TRIGGER_ACTIONS, db_orchestrator_service_1.TableName.BILL_RATES],
+        ],
+        [db_orchestrator_service_1.TableName.TRIGGER_ACTIONS, []],
+        [db_orchestrator_service_1.TableName.BILLS, [db_orchestrator_service_1.TableName.BILL_RATES]],
+        [db_orchestrator_service_1.TableName.BILL_RATES, []],
+        [db_orchestrator_service_1.TableName.USER_STATISTICS, []],
+    ]);
+}
 let tableIdColumns = null;
 function getIdColumn(tableName) {
     if (!tableIdColumns) {

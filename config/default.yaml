@@ -31,7 +31,7 @@ auth:
 
 cors:
   whitelist:
-    - *
+    - '*'
   methods:
     - GET
     - POST

@@ -2,6 +2,10 @@ import { Maybe, Nullable } from '../@types';
 import { oc } from 'ts-optchain';
 import { logger } from './logger.service';
 
+process.on('beforeExit', () => {
+  logger.info('yeeet before exit fired');
+});
+
 class ListNode {
   // prev: Maybe<Node>;
   next: Nullable<ListNode>;
@@ -101,9 +105,12 @@ function initListeners() {
   process.once('SIGHUP', onSignalHandler);
   process.once('SIGBREAK', onSignalHandler);
   errorHandler = (err, p) => {
-    logger.error(
-      p ? `Unhandled promise rejection for ${p}` : 'Unhandled exception!',
-    );
+    if (p) {
+      logger.error('Unhandled promise rejection for ');
+      logger.error(p);
+    } else {
+      logger.error('Unhandled exception!');
+    }
     logger.error(err);
     execHandlers().catch(err => {
       logger.error('The process is not shut down gracefully! Error while error handling.');
