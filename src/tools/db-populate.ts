@@ -8,7 +8,8 @@ import {
 import { createContainer } from '../di/container';
 import { getTableNames } from '../utils/db-orchestrator';
 import { logger } from '../services/logger.service';
-import { dropTablesFromTheCLI } from './clear-db';
+import { dropTablesFromTheCLI } from './db-clear';
+import { gracefulExit } from '../services/exit-handler.service';
 
 const argv = yargs
   .usage('Run the script to create or recreate tables in database and seed it with initial valuess.')
@@ -38,6 +39,12 @@ const argv = yargs
     default: false,
     description: 'Don\'t add minimal necessary data to database',
   })
+  .option('clear-seed', {
+    alias: 'C',
+    boolean: true,
+    default: false,
+    description: 'Delete seeded values',
+  })
   .help('help').alias('h', 'help')
   .argv;
 
@@ -64,6 +71,11 @@ const argv = yargs
   );
   logger.info('Tables are created!');
 
+  if (argv.clearSeed) {
+    logger.info('Clearing database seed values...');
+    await dbOrchestrator.clearDatabaseSeed();
+    logger.info('Database seed values are deleted!');
+  }
   if (!argv.noSeed) {
     logger.info('Seeding database...');
     await dbOrchestrator.seedDatabase();
@@ -71,4 +83,5 @@ const argv = yargs
   }
 
   logger.info('Done. Bye :)');
+  gracefulExit();
 })();

@@ -1,3 +1,4 @@
+#!/usr/bin/node
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const db_orchestrator_service_1 = require("../services/db-orchestrator.service");
@@ -6,6 +7,7 @@ const db_orchestrator_1 = require("../utils/db-orchestrator");
 const yargs = require("yargs");
 const container_1 = require("../di/container");
 const types_1 = require("../di/types");
+const exit_handler_service_1 = require("../services/exit-handler.service");
 if (require.main === module) {
     const argv = yargs
         .usage('Run the script to drop tables in database.')
@@ -31,6 +33,7 @@ if (require.main === module) {
         await dropTablesFromTheCLI(container_1.createContainer([types_1.TYPES.DbOrchestrator])
             .get(db_orchestrator_service_1.DbOrchestrator), argv.tables, !argv.unsafe);
         logger_service_1.logger.info('Done. Bye :)');
+        exit_handler_service_1.gracefulExit();
     })();
 }
 async function dropTablesFromTheCLI(dbOrchestrator, tableNames, safe) {
@@ -46,4 +49,4 @@ async function dropTablesFromTheCLI(dbOrchestrator, tableNames, safe) {
     logger_service_1.logger.info('Tables are dropped!');
 }
 exports.dropTablesFromTheCLI = dropTablesFromTheCLI;
-//# sourceMappingURL=clear-db.js.map
+//# sourceMappingURL=db-clear.js.map

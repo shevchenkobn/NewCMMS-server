@@ -20,17 +20,18 @@ export class TableBuilders {
   constructor(dbConnection: DbConnection) {
     this._knex = dbConnection.knex;
 
-    this._tableFactories = this.getTableFactories();
     let dbmsClient;
     if (typeof dbConnection.config.client === 'string') {
       dbmsClient = dbConnection.config.client;
     } else {
-      // maybe other approach is needed, no info found
+      // maybe other approach is needed
       const defaultDbms = 'default-sql';
       logger.warn(`The DBMS client type wasn't defined! Falling back to "${defaultDbms}"`);
       dbmsClient = defaultDbms;
     }
+    // Order is important
     this._columnBuilders = TableColumnTypeBuilder.getForDbmsClient(dbmsClient);
+    this._tableFactories = this.getTableFactories();
   }
 
   getFor(tableName: TableName) {

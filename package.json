@@ -17,10 +17,10 @@
     "start:dev": "node --inspect=9229 ./dist",
     "start:b:dev": "npm run build && node --inspect=9229 ./dist",
     "watch": "nodemon -w src/ -w swagger/ -w config/ -e ts,yaml -x \"npm run start:b:dev\"",
-    "db:p": "npm run db:populate",
-    "db:populate": "node dist/tools/populate-db",
-    "db:clear": "node dist/tools/clear-db",
-    "genKeys": "node dist/tools/generate-key-pairs"
+    "db:p": "node dist/tools/db-populate",
+    "db:populate": "node dist/tools/db-populate",
+    "db:clear": "node dist/tools/db-clear",
+    "genKeys": "node dist/tools/key-pairs-generate"
   },
   "engines": {
     "node": "^10.12"

@@ -1,9 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const logger_service_1 = require("./logger.service");
-process.on('beforeExit', () => {
-    logger_service_1.logger.info('yeeet before exit fired');
-});
 class ListNode {
     constructor(handler /*, prev?: Node*/, next = null) {
         this.handler = handler;
@@ -75,13 +72,19 @@ function unbindOnExitHandler(handler) {
     }
 }
 exports.unbindOnExitHandler = unbindOnExitHandler;
+function gracefulExit() {
+    if (onSignalHandler) {
+        onSignalHandler('SIGQUIT');
+    }
+}
+exports.gracefulExit = gracefulExit;
 function initListeners() {
     onSignalHandler = signal => {
         execHandlers().catch((err) => {
             logger_service_1.logger.error(err);
             process.exit(1);
         }).then(() => {
-            process.emit(signal, signal);
+            process.exit(0);
         });
     };
     process.once('SIGINT', onSignalHandler);

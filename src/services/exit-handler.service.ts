@@ -2,10 +2,6 @@ import { Maybe, Nullable } from '../@types';
 import { oc } from 'ts-optchain';
 import { logger } from './logger.service';
 
-process.on('beforeExit', () => {
-  logger.info('yeeet before exit fired');
-});
-
 class ListNode {
   // prev: Maybe<Node>;
   next: Nullable<ListNode>;
@@ -90,13 +86,19 @@ export function unbindOnExitHandler(handler: Function) {
   }
 }
 
+export function gracefulExit() {
+  if (onSignalHandler) {
+    onSignalHandler('SIGQUIT');
+  }
+}
+
 function initListeners() {
   onSignalHandler = signal => {
     execHandlers().catch((err) => {
       logger.error(err);
       process.exit(1);
     }).then(() => {
-      process.emit(signal, signal);
+      process.exit(0);
     });
   };
   process.once('SIGINT', onSignalHandler);

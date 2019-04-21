@@ -1,9 +1,12 @@
+#!/usr/bin/node
+
 import { DbOrchestrator, TableName } from '../services/db-orchestrator.service';
 import { logger } from '../services/logger.service';
 import { getChildTables, getTableNames } from '../utils/db-orchestrator';
 import * as yargs from 'yargs';
 import { createContainer, getContainer } from '../di/container';
 import { TYPES } from '../di/types';
+import { gracefulExit } from '../services/exit-handler.service';
 
 if (require.main === module) {
   const argv = yargs
@@ -36,6 +39,7 @@ if (require.main === module) {
         !argv.unsafe,
       );
       logger.info('Done. Bye :)');
+      gracefulExit();
     }
   )();
 }

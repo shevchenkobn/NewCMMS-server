@@ -3,11 +3,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const types_1 = require("../di/types");
 const yargs = require("yargs");
-const db_orchestrator_service_1 = require("../services/db-orchestrator.service");
 const container_1 = require("../di/container");
 const db_orchestrator_1 = require("../utils/db-orchestrator");
 const logger_service_1 = require("../services/logger.service");
-const clear_db_1 = require("./clear-db");
+const db_clear_1 = require("./db-clear");
+const exit_handler_service_1 = require("../services/exit-handler.service");
 const argv = yargs
     .usage('Run the script to create or recreate tables in database and seed it with initial valuess.')
     .version().alias('v', 'version')
@@ -36,13 +36,19 @@ const argv = yargs
     default: false,
     description: 'Don\'t add minimal necessary data to database',
 })
+    .option('clear-seed', {
+    alias: 'C',
+    boolean: true,
+    default: false,
+    description: 'Delete seeded values',
+})
     .help('help').alias('h', 'help')
     .argv;
 (async () => {
-    const dbOrchestrator = container_1.createContainer([types_1.TYPES.DbOrchestrator]).get(db_orchestrator_service_1.DbOrchestrator);
+    const dbOrchestrator = container_1.createContainer([types_1.TYPES.DbConnection]).get(types_1.TYPES.DbOrchestrator);
     logger_service_1.logger.info(`Tables to be created: ${JSON.stringify(argv.tables)}`);
     if (argv.drop) {
-        await clear_db_1.dropTablesFromTheCLI(dbOrchestrator, argv.tables, !argv.unsafe);
+        await db_clear_1.dropTablesFromTheCLI(dbOrchestrator, argv.tables, !argv.unsafe);
     }
     logger_service_1.logger.info('Creating tables...');
     await dbOrchestrator.createTables(argv.tables, !argv.unsafe, (tableName, existed, sqlQuery) => {
@@ -54,11 +60,17 @@ const argv = yargs
         }
     });
     logger_service_1.logger.info('Tables are created!');
+    if (argv.clearSeed) {
+        logger_service_1.logger.info('Clearing database seed values...');
+        await dbOrchestrator.clearDatabaseSeed();
+        logger_service_1.logger.info('Database seed values are deleted!');
+    }
     if (!argv.noSeed) {
         logger_service_1.logger.info('Seeding database...');
         await dbOrchestrator.seedDatabase();
         logger_service_1.logger.info('Database is seeded!');
     }
     logger_service_1.logger.info('Done. Bye :)');
+    exit_handler_service_1.gracefulExit();
 })();
-//# sourceMappingURL=populate-db.js.map
+//# sourceMappingURL=db-populate.js.map

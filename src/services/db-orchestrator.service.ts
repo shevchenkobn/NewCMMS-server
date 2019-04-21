@@ -10,6 +10,7 @@ import { Maybe, Nullable } from '../@types';
 import * as config from 'config';
 import { IUserCreate, UserRole, UsersModel } from '../models/users.model';
 import { getContainer } from '../di/container';
+import { TYPES } from '../di/types';
 
 // NOTE: The order is very important!
 export enum TableName {
@@ -23,8 +24,8 @@ export enum TableName {
 }
 
 export type CreateTableCallback = {
-  (tableName: TableName, existed: true, sqlQuery: string): void;
-  (tableName: TableName, existed: false): void;
+  (tableName: TableName, existed: false, sqlQuery: string): void;
+  (tableName: TableName, existed: true): void;
 };
 
 export type DropTableCallback = (
@@ -99,12 +100,21 @@ export class DbOrchestrator {
       }
       if (createTableCallback) {
         if (exists) {
-          createTableCallback(table, exists, (builder as any).toQuery());
-        } else {
           createTableCallback(table, exists);
+        } else {
+          createTableCallback(table, exists, builder!.toQuery());
         }
       }
     }
+  }
+
+  clearDatabaseSeed() {
+    const email = config.get<string>('server.admin.email');
+    if (!this._usersModel) {
+      this._usersModel = getContainer().get<UsersModel>(UsersModel);
+    }
+    // TODO: replace with more relevant model method
+    return this._usersModel.table.where('email', email).delete();
   }
 
   seedDatabase() {

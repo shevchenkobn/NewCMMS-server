@@ -10,6 +10,17 @@ const typeMap = new Map([
     [types_1.TYPES.DbOrchestrator, db_orchestrator_service_1.DbOrchestrator],
 ]);
 // FIXME: otherwise try this: https://github.com/inversify/InversifyJS/blob/master/wiki/middleware.md#context-interceptor
+function middleware1(planAndResolve) {
+    return (args) => {
+        logger_service_1.logger.debug('yeeet, resolved no dep', args);
+        const nextContextInterceptor = args.contextInterceptor;
+        args.contextInterceptor = (context) => {
+            logger_service_1.logger.debug('yeeet, resolved no dep deep', context);
+            return nextContextInterceptor(context);
+        };
+        return planAndResolve(args);
+    };
+}
 const noDependencyHandler = (request) => {
     logger_service_1.logger.debug('yeeet, resolved no dep');
     bindDependency(request.target.serviceIdentifier);
@@ -18,8 +29,8 @@ const noDependencyHandler = (request) => {
 function bindDependency(typeId, type) {
     container
         .bind(typeId)
-        .to(type || typeMap.get(typeId))
-        .whenNoAncestorMatches(noDependencyHandler);
+        .to(type || typeMap.get(typeId));
+    //    .whenNoAncestorMatches(noDependencyHandler);
 }
 let container = null;
 let containedDependencies = null;
@@ -65,6 +76,7 @@ function createContainer(dependencies = null, forceNew = false) {
         autoBindInjectable: true,
         defaultScope: inversify_1.BindingScopeEnum.Singleton,
     });
+    container.applyMiddleware(middleware1);
     for (const typeId of containedDependencies) {
         bindDependency(typeId);
     }

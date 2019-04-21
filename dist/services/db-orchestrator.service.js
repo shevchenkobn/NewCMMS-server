@@ -66,13 +66,21 @@ let DbOrchestrator = class DbOrchestrator {
             }
             if (createTableCallback) {
                 if (exists) {
-                    createTableCallback(table, exists, builder.toQuery());
+                    createTableCallback(table, exists);
                 }
                 else {
-                    createTableCallback(table, exists);
+                    createTableCallback(table, exists, builder.toQuery());
                 }
             }
         }
+    }
+    clearDatabaseSeed() {
+        const email = config.get('server.admin.email');
+        if (!this._usersModel) {
+            this._usersModel = container_1.getContainer().get(users_model_1.UsersModel);
+        }
+        // TODO: replace with more relevant model method
+        return this._usersModel.table.where('email', email).delete();
     }
     seedDatabase() {
         const { id, name, email, password } = config.get('server.admin');

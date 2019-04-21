@@ -11,19 +11,14 @@ import Request = interfaces.Request;
 import { logger } from '../services/logger.service';
 import { DbOrchestrator } from '../services/db-orchestrator.service';
 import Newable = interfaces.Newable;
+import { UsersModel } from '../models/users.model';
 
 const typeMap = new Map<ServiceIdentifier<any>, Newable<any>>([
   [TYPES.DbConnection, DbConnection],
   [TYPES.DbOrchestrator, DbOrchestrator],
-  // [TYPES.DbOrchestrator]
-]);
 
-// FIXME: otherwise try this: https://github.com/inversify/InversifyJS/blob/master/wiki/middleware.md#context-interceptor
-const noDependencyHandler = (request: Request) => {
-  logger.debug('yeeet, resolved no dep');
-  bindDependency(request.target.serviceIdentifier);
-  return true;
-};
+  [TYPES.UsersModel, UsersModel],
+]);
 
 function bindDependency<T>(
   typeId: ServiceIdentifier<T>,
@@ -31,8 +26,7 @@ function bindDependency<T>(
 ) {
   container!
     .bind<any>(typeId)
-    .to(type || typeMap.get(typeId)!)
-    .whenNoAncestorMatches(noDependencyHandler);
+    .to(type || typeMap.get(typeId)!);
 }
 
 let container: Nullable<Container> = null;
@@ -57,24 +51,24 @@ export function getContainedDependencies() {
 }
 
 export function createContainer(
-  dependencies: Nullable<ServiceIdentifier<any>[]> | 'all' = null,
+  trackedDependencies: Nullable<ServiceIdentifier<any>[]> | 'all' = null,
   forceNew = false,
 ) {
   if (container && !forceNew) {
     throw new TypeError('Container is already instantiated. Call with `forceNew === true` to override');
   }
-  if (!dependencies || dependencies === 'all') {
+  if (!trackedDependencies || trackedDependencies === 'all') {
     containedDependencies = Array.from(typeMap.keys());
   } else {
     const possibleDependencies = Object.values(TYPES);
     const actualDependencies = new Set(
-      dependencies
+      trackedDependencies
         .filter(dep => possibleDependencies.includes(dep as any)),
     );
     if (actualDependencies.size === 0) {
       throw new TypeError('No type ids were specified. Please, specify them from the `TYPES` object from the `types.ts` file.');
     }
-    if (actualDependencies.size !== dependencies.length) {
+    if (actualDependencies.size !== trackedDependencies.length) {
       throw new TypeError('Bad or duplicated type ids were specified. Please, specify them from the `TYPES` object from the `types.ts` file.');
     }
     containedDependencies = Array.from(actualDependencies);
@@ -102,6 +96,10 @@ export function initAsync() {
   }
   initPromise = Promise.all(
     containedDependencies!
+      .map(typeId => typeof typeId === 'function'
+        ? typeId
+        : typeMap.get(typeId)!)
+      .filter(type => !!(type as any)[ASYNC_INIT])
       .map((typeId) => container!.get<any>(typeId)[ASYNC_INIT] as Promise<any>),
   );
   return initPromise;
