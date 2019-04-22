@@ -51,29 +51,35 @@ export function getContainedDependencies() {
 }
 
 export function createContainer(
-  trackedDependencies: Nullable<ServiceIdentifier<any>[]> | 'all' = null,
+  ensuredDependencies: Nullable<ServiceIdentifier<any>[]> | 'all' | 'autoBindAll' = null,
   forceNew = false,
 ) {
   if (container && !forceNew) {
     throw new TypeError('Container is already instantiated. Call with `forceNew === true` to override');
   }
-  if (!trackedDependencies || trackedDependencies === 'all') {
+  if (!ensuredDependencies || ensuredDependencies === 'all') {
     containedDependencies = Array.from(typeMap.keys());
+  } else if (
+    ensuredDependencies === 'autoBindAll'
+    || (Array.isArray(ensuredDependencies) && ensuredDependencies.length === 0)
+  ) {
+    containedDependencies = [];
   } else {
     const possibleDependencies = Object.values(TYPES);
     const actualDependencies = new Set(
-      trackedDependencies
+      ensuredDependencies
         .filter(dep => possibleDependencies.includes(dep as any)),
     );
     if (actualDependencies.size === 0) {
       throw new TypeError('No type ids were specified. Please, specify them from the `TYPES` object from the `types.ts` file.');
     }
-    if (actualDependencies.size !== trackedDependencies.length) {
+    if (actualDependencies.size !== ensuredDependencies.length) {
       throw new TypeError('Bad or duplicated type ids were specified. Please, specify them from the `TYPES` object from the `types.ts` file.');
     }
     containedDependencies = Array.from(actualDependencies);
   }
   initPromise = null;
+  asyncInitializables = null;
   container = new Container({
     autoBindInjectable: true,
     defaultScope: BindingScopeEnum.Singleton,
@@ -86,21 +92,55 @@ export function createContainer(
 }
 
 let initPromise: Nullable<Promise<ReadonlyArray<any>>> = null;
+let asyncInitializables: Nullable<Newable<any>[]> = null;
 
-export function initAsync() {
+export function initDependenciesAsync() {
   if (!container) {
     throw new TypeError('Container is not instantiated');
   }
   if (initPromise) {
     return initPromise;
   }
+  if (!asyncInitializables) {
+    asyncInitializables = getAsyncInitializaables();
+  }
   initPromise = Promise.all(
-    containedDependencies!
-      .map(typeId => typeof typeId === 'function'
-        ? typeId
-        : typeMap.get(typeId)!)
-      .filter(type => !!(type as any)[ASYNC_INIT])
+    asyncInitializables
       .map((typeId) => container!.get<any>(typeId)[ASYNC_INIT] as Promise<any>),
   );
   return initPromise;
+}
+
+function getAsyncInitializaables() {
+  return containedDependencies!
+    .map(typeId => typeof typeId === 'function'
+      ? typeId
+      : typeMap.get(typeId)!)
+    .filter(type => !!(type as any)[ASYNC_INIT]) as Newable<any>[];
+}
+
+function updateAsyncInitializables(typeId: ServiceIdentifier<any>) {
+  const type = typeof typeId !== 'function'
+    ? typeMap.get(typeId)!
+    : typeId as Newable<any>;
+  if (!(type as any)[ASYNC_INIT]) {
+    return;
+  }
+  if (!initPromise) {
+    if (!asyncInitializables) {
+      asyncInitializables = [];
+    }
+    asyncInitializables.push(type);
+  } else {
+    initPromise = Promise.all([initPromise, type]);
+  }
+}
+
+function asyncInitializablesUpdater(
+  planAndResolve: interfaces.Next,
+): interfaces.Next {
+  return (args: interfaces.NextArgs) => {
+    updateAsyncInitializables(args.serviceIdentifier);
+    return planAndResolve(args);
+  };
 }

@@ -9,7 +9,6 @@ import {
 import { Maybe, Nullable } from '../@types';
 import * as config from 'config';
 import { IUserCreate, UserRole, UsersModel } from '../models/users.model';
-import { getContainer } from '../di/container';
 import { TYPES } from '../di/types';
 
 // NOTE: The order is very important!
@@ -38,13 +37,16 @@ export class DbOrchestrator {
   private _connection: DbConnection;
   private _knex: Knex;
   private _tableBuilders: Nullable<TableBuilders>;
-  private _usersModel: Nullable<UsersModel>;
+  private _usersModel: UsersModel;
 
-  constructor(@inject(DbConnection) dbConnection: DbConnection) {
+  constructor(
+    @inject(DbConnection) dbConnection: DbConnection,
+    @inject(UsersModel) usersModel: UsersModel,
+  ) {
     this._connection = dbConnection;
+    this._usersModel = usersModel;
     this._knex = this._connection.knex;
     this._tableBuilders = null;
-    this._usersModel = null;
   }
 
   async dropTables(
@@ -110,9 +112,6 @@ export class DbOrchestrator {
 
   clearDatabaseSeed() {
     const email = config.get<string>('server.admin.email');
-    if (!this._usersModel) {
-      this._usersModel = getContainer().get<UsersModel>(UsersModel);
-    }
     // TODO: replace with more relevant model method
     return this._usersModel.table.where('email', email).delete();
   }
@@ -137,9 +136,6 @@ export class DbOrchestrator {
       admin.userId = id;
     }
 
-    if (this._usersModel === null) {
-      this._usersModel = getContainer().get<UsersModel>(UsersModel);
-    }
     return this._usersModel.create(admin);
   }
 }

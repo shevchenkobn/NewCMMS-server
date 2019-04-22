@@ -3,13 +3,14 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const types_1 = require("../di/types");
 const yargs = require("yargs");
+const db_orchestrator_service_1 = require("../services/db-orchestrator.service");
 const container_1 = require("../di/container");
 const db_orchestrator_1 = require("../utils/db-orchestrator");
 const logger_service_1 = require("../services/logger.service");
 const db_clear_1 = require("./db-clear");
 const exit_handler_service_1 = require("../services/exit-handler.service");
 const argv = yargs
-    .usage('Run the script to create or recreate tables in database and seed it with initial valuess.')
+    .usage('Run the script to create or recreate tables in database and seed it with initial values.')
     .version().alias('v', 'version')
     .option('tables', {
     alias: 't',
@@ -37,15 +38,17 @@ const argv = yargs
     description: 'Don\'t add minimal necessary data to database',
 })
     .option('clear-seed', {
-    alias: 'C',
+    alias: 'c',
     boolean: true,
     default: false,
     description: 'Delete seeded values',
 })
     .help('help').alias('h', 'help')
+    .strict()
     .argv;
 (async () => {
-    const dbOrchestrator = container_1.createContainer([types_1.TYPES.DbConnection]).get(types_1.TYPES.DbOrchestrator);
+    const dbOrchestrator = container_1.createContainer([types_1.TYPES.DbOrchestrator]).get(db_orchestrator_service_1.DbOrchestrator);
+    await container_1.initDependenciesAsync();
     logger_service_1.logger.info(`Tables to be created: ${JSON.stringify(argv.tables)}`);
     if (argv.drop) {
         await db_clear_1.dropTablesFromTheCLI(dbOrchestrator, argv.tables, !argv.unsafe);
@@ -61,7 +64,7 @@ const argv = yargs
     });
     logger_service_1.logger.info('Tables are created!');
     if (argv.clearSeed) {
-        logger_service_1.logger.info('Clearing database seed values...');
+        logger_service_1.logger.info('Deleting database seed values...');
         await dbOrchestrator.clearDatabaseSeed();
         logger_service_1.logger.info('Database seed values are deleted!');
     }

@@ -6,7 +6,6 @@ const db_connection_class_1 = require("./db-connection.class");
 const db_orchestrator_1 = require("../utils/db-orchestrator");
 const config = require("config");
 const users_model_1 = require("../models/users.model");
-const container_1 = require("../di/container");
 // NOTE: The order is very important!
 var TableName;
 (function (TableName) {
@@ -19,11 +18,11 @@ var TableName;
     TableName["USER_STATISTICS"] = "userStatistics";
 })(TableName = exports.TableName || (exports.TableName = {}));
 let DbOrchestrator = class DbOrchestrator {
-    constructor(dbConnection) {
+    constructor(dbConnection, usersModel) {
         this._connection = dbConnection;
+        this._usersModel = usersModel;
         this._knex = this._connection.knex;
         this._tableBuilders = null;
-        this._usersModel = null;
     }
     async dropTables(tableNames, safe = true, resolveChildTables = true, dropTableCallback) {
         let orderedTables = tableNames !== undefined
@@ -76,9 +75,6 @@ let DbOrchestrator = class DbOrchestrator {
     }
     clearDatabaseSeed() {
         const email = config.get('server.admin.email');
-        if (!this._usersModel) {
-            this._usersModel = container_1.getContainer().get(users_model_1.UsersModel);
-        }
         // TODO: replace with more relevant model method
         return this._usersModel.table.where('email', email).delete();
     }
@@ -94,16 +90,15 @@ let DbOrchestrator = class DbOrchestrator {
         if (typeof id === 'number') {
             admin.userId = id;
         }
-        if (this._usersModel === null) {
-            this._usersModel = container_1.getContainer().get(users_model_1.UsersModel);
-        }
         return this._usersModel.create(admin);
     }
 };
 DbOrchestrator = tslib_1.__decorate([
     inversify_1.injectable(),
     tslib_1.__param(0, inversify_1.inject(db_connection_class_1.DbConnection)),
-    tslib_1.__metadata("design:paramtypes", [db_connection_class_1.DbConnection])
+    tslib_1.__param(1, inversify_1.inject(users_model_1.UsersModel)),
+    tslib_1.__metadata("design:paramtypes", [db_connection_class_1.DbConnection,
+        users_model_1.UsersModel])
 ], DbOrchestrator);
 exports.DbOrchestrator = DbOrchestrator;
 exports.superAdminId = config.get('server.admin.id');

@@ -28,10 +28,12 @@ if (require.main === module) {
     })
         .help('help')
         .alias('h', 'help')
+        .strict()
         .argv;
     (async () => {
-        await dropTablesFromTheCLI(container_1.createContainer([types_1.TYPES.DbOrchestrator])
-            .get(db_orchestrator_service_1.DbOrchestrator), argv.tables, !argv.unsafe);
+        const dbOrchestrator = container_1.createContainer([types_1.TYPES.DbOrchestrator]).get(db_orchestrator_service_1.DbOrchestrator);
+        await container_1.initDependenciesAsync();
+        await dropTablesFromTheCLI(dbOrchestrator, argv.tables, !argv.unsafe);
         logger_service_1.logger.info('Done. Bye :)');
         exit_handler_service_1.gracefulExit();
     })();

@@ -5,14 +5,14 @@ import * as yargs from 'yargs';
 import {
   DbOrchestrator, TableName,
 } from '../services/db-orchestrator.service';
-import { createContainer } from '../di/container';
+import { createContainer, initDependenciesAsync } from '../di/container';
 import { getTableNames } from '../utils/db-orchestrator';
 import { logger } from '../services/logger.service';
 import { dropTablesFromTheCLI } from './db-clear';
 import { gracefulExit } from '../services/exit-handler.service';
 
 const argv = yargs
-  .usage('Run the script to create or recreate tables in database and seed it with initial valuess.')
+  .usage('Run the script to create or recreate tables in database and seed it with initial values.')
   .version().alias('v', 'version')
   .option('tables', {
     alias: 't',
@@ -40,18 +40,20 @@ const argv = yargs
     description: 'Don\'t add minimal necessary data to database',
   })
   .option('clear-seed', {
-    alias: 'C',
+    alias: 'c',
     boolean: true,
     default: false,
     description: 'Delete seeded values',
   })
   .help('help').alias('h', 'help')
+  .strict()
   .argv;
 
 (async () => {
   const dbOrchestrator = createContainer(
     [TYPES.DbOrchestrator],
   ).get<DbOrchestrator>(DbOrchestrator);
+  await initDependenciesAsync();
 
   logger.info(`Tables to be created: ${JSON.stringify(argv.tables)}`);
   if (argv.drop) {
@@ -72,7 +74,7 @@ const argv = yargs
   logger.info('Tables are created!');
 
   if (argv.clearSeed) {
-    logger.info('Clearing database seed values...');
+    logger.info('Deleting database seed values...');
     await dbOrchestrator.clearDatabaseSeed();
     logger.info('Database seed values are deleted!');
   }

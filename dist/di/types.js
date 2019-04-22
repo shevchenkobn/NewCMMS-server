@@ -6,7 +6,7 @@ exports.TYPES = {
     DbConnection: Symbol.for('DbConnection'),
     DbOrchestrator: Symbol.for('DbOrchestrator'),
     AuthService: Symbol.for('AuthService'),
-    UserModel: Symbol.for('UserModel'),
+    UsersModel: Symbol.for('UsersModel'),
     AuthController: Symbol.for('AuthController'),
     UsersController: Symbol.for('UsersController'),
 };

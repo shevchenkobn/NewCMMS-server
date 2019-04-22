@@ -4,7 +4,11 @@ import { DbOrchestrator, TableName } from '../services/db-orchestrator.service';
 import { logger } from '../services/logger.service';
 import { getChildTables, getTableNames } from '../utils/db-orchestrator';
 import * as yargs from 'yargs';
-import { createContainer, getContainer } from '../di/container';
+import {
+  createContainer,
+  getContainer,
+  initDependenciesAsync,
+} from '../di/container';
 import { TYPES } from '../di/types';
 import { gracefulExit } from '../services/exit-handler.service';
 
@@ -28,13 +32,17 @@ if (require.main === module) {
     })
     .help('help')
     .alias('h', 'help')
+    .strict()
     .argv;
 
   (
     async () => {
+      const dbOrchestrator = createContainer(
+        [TYPES.DbOrchestrator],
+      ).get<DbOrchestrator>(DbOrchestrator);
+      await initDependenciesAsync();
       await dropTablesFromTheCLI(
-        createContainer([TYPES.DbOrchestrator])
-          .get<DbOrchestrator>(DbOrchestrator),
+        dbOrchestrator,
         argv.tables,
         !argv.unsafe,
       );
