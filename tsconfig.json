@@ -52,6 +52,6 @@
     "suppressImplicitAnyIndexErrors": false,
     "target": "esnext",
     "typeRoots": ["@types"],
-    "types": ["node"]
+    "types": ["node", "bluebird-global"]
   }
 }

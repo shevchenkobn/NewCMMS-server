@@ -1,3 +1,4 @@
+// NOTE: Make sure to import it in every entry point you have
 import 'reflect-metadata';
 
 export const ASYNC_INIT = Symbol.for('@asyncInit');

@@ -1,12 +1,12 @@
 #!/usr/bin/node
 
+import '../@types';
 import { DbOrchestrator, TableName } from '../services/db-orchestrator.service';
 import { logger } from '../services/logger.service';
 import { getChildTables, getTableNames } from '../utils/db-orchestrator';
 import * as yargs from 'yargs';
 import {
   createContainer,
-  getContainer,
   initDependenciesAsync,
 } from '../di/container';
 import { TYPES } from '../di/types';
