@@ -8,6 +8,7 @@ import { oc } from 'ts-optchain';
 import * as yaml from 'yaml';
 import { logger } from '../services/logger.service';
 import { getUpdatedYamlNodeOrAddNew, updateYamlComment } from './common';
+import { promisify } from 'util';
 
 let config = importedConfig; // USE THIS CONFIG REFERENCE. It is needed for hot reload.
 
@@ -38,8 +39,8 @@ export async function generateRSAKeyPairFor(
   bitSize = 2048,
 ): Promise<IKeys> {
   if (!generateKeyPairAsync) {
-    generateKeyPairAsync = Promise
-      .promisify(generateKeyPair) as unknown as GenerateKeyPairAsync;
+    generateKeyPairAsync = promisify(generateKeyPair) as
+      unknown as GenerateKeyPairAsync;
   }
   return generateKeyPairAsync('rsa', {
     modulusLength: bitSize,
@@ -76,7 +77,7 @@ export async function saveKeysToConfigFor(
   const localConfigName = getConfigName();
   // An asserting function that will throw an error if condition is false
   await fsPromises.access(
-    appRoot.resolve(localConfigName),
+    localConfigName,
     fsConstants.W_OK,
   );
   const doc = await loadConfigAsYamlAst(localConfigName) as any;
@@ -96,6 +97,7 @@ export async function saveKeysToConfigFor(
     updateYamlComment(privateKeyNode, comment);
     updateYamlComment(publicKeyNode, comment);
   }
+  await fsPromises.writeFile(localConfigName, doc.toString(), 'utf8');
   if (reloadConfig) {
     delete require.cache[require.resolve('config')];
     config = require('config');
@@ -148,7 +150,7 @@ export async function loadKeysFromConfigFor(
 function getConfigName() {
   const fileRegex = /local.ya?ml$/;
   return oc(config.util.getConfigSources()
-    .filter(({ name }) => name.match(fileRegex))[0]).name || appRoot.resolve('config/local.yaml');
+    .find(({ name }) => fileRegex.test(name))).name || appRoot.resolve('config/local.yaml');
 }
 
 async function loadConfigAsYamlAst(fileName: string) {
@@ -164,7 +166,7 @@ export function loadKeysFromFilesFor(
   return Promise.props({
     privateKey: fsPromises.readFile(privateKeyPath, 'utf8'),
     publicKey: fsPromises.readFile(publicKeyPath, 'utf8'),
-  }) as unknown as Promise<Partial<IKeys>>;
+  }) as unknown as Promise<IKeys>;
 }
 
 export function getDefaultKeyPathsFor(type: KeyType): IKeyPaths {

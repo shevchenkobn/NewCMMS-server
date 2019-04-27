@@ -70,11 +70,15 @@ const errorHandler = (err, p) => {
         logger_service_1.logger.error('The process is not shut down gracefully! Error while error handling.');
         logger_service_1.logger.error(err);
     }).finally(() => {
+        process.on('exit', () => {
+            logger_service_1.logger.warn('WARNING! Non-one exit code!');
+            process.kill(process.pid);
+        });
         process.exit(1);
     });
 };
-process.once('uncaughtException', errorHandler);
-process.once('unhandledRejection', errorHandler);
+process.on('uncaughtException', errorHandler);
+process.on('unhandledRejection', errorHandler);
 function bindOnExitHandler(handler, unshift = false) {
     list.add(new ListNode(handler), unshift);
     if (!onSignalHandler) {
@@ -121,15 +125,16 @@ function removeListeners() {
     onSignalHandler = null;
 }
 async function execHandlers() {
-    setTimeout(() => {
-        logger_service_1.logger.error('The process exited due to too long wait for exit handlers!');
-        process.exit(1);
-    }, 1000);
     if (list.length > 0) {
+        const timeout = setTimeout(() => {
+            logger_service_1.logger.error('The process exited due to too long wait for exit handlers!');
+            process.exit(1);
+        }, 1000);
         logger_service_1.logger.info('The process is running exit handlers...');
         for (const handler of list) {
             await handler();
         }
+        clearTimeout(timeout);
     }
 }
 //# sourceMappingURL=exit-handler.service.js.map

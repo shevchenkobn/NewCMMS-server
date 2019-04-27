@@ -36,7 +36,7 @@
     "noStrictGenericChecks": false,
     "outDir": "./dist",
     "plugins": [
-      {"transform": "ts-optchain/transform"}
+      { "transform": "ts-optchain/transform" }
     ],
     "preserveConstEnums": true,
     "pretty": true,

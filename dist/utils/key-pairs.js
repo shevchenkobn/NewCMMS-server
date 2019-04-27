@@ -9,6 +9,7 @@ const ts_optchain_1 = require("ts-optchain");
 const yaml = require("yaml");
 const logger_service_1 = require("../services/logger.service");
 const common_1 = require("./common");
+const util_1 = require("util");
 let config = importedConfig; // USE THIS CONFIG REFERENCE. It is needed for hot reload.
 let generateKeyPairAsync;
 var KeyType;
@@ -18,8 +19,7 @@ var KeyType;
 })(KeyType = exports.KeyType || (exports.KeyType = {}));
 async function generateRSAKeyPairFor(type, bitSize = 2048) {
     if (!generateKeyPairAsync) {
-        generateKeyPairAsync = Promise
-            .promisify(crypto_1.generateKeyPair);
+        generateKeyPairAsync = util_1.promisify(crypto_1.generateKeyPair);
     }
     return generateKeyPairAsync('rsa', {
         modulusLength: bitSize,
@@ -46,7 +46,7 @@ exports.saveKeysToFilesFor = saveKeysToFilesFor;
 async function saveKeysToConfigFor(type, { privateKey, publicKey }, reloadConfig = false, addComments = true) {
     const localConfigName = getConfigName();
     // An asserting function that will throw an error if condition is false
-    await fs_1.promises.access(appRoot.resolve(localConfigName), fs_1.constants.W_OK);
+    await fs_1.promises.access(localConfigName, fs_1.constants.W_OK);
     const doc = await loadConfigAsYamlAst(localConfigName);
     const propName = getConfigPropertyFor(type);
     const privateKeyNode = common_1.getUpdatedYamlNodeOrAddNew(doc, `auth.jwt.keys.keyStrings.${propName}.private`, privateKey);
@@ -56,6 +56,7 @@ async function saveKeysToConfigFor(type, { privateKey, publicKey }, reloadConfig
         common_1.updateYamlComment(privateKeyNode, comment);
         common_1.updateYamlComment(publicKeyNode, comment);
     }
+    await fs_1.promises.writeFile(localConfigName, doc.toString(), 'utf8');
     if (reloadConfig) {
         delete require.cache[require.resolve('config')];
         config = require('config');
@@ -68,8 +69,8 @@ async function loadKeysFor(type, keyPaths = getDefaultKeyPathsFor(type), useCach
     if (!keysFromFile && !keysFromConfig) {
         throw new Error('Neither key files nor config keys are found');
     }
-    if ((ts_optchain_1.oc(keysFromFile).privateKey !== ts_optchain_1.oc(keysFromConfig).privateKey)
-        || (ts_optchain_1.oc(keysFromConfig).publicKey !== ts_optchain_1.oc(keysFromConfig).publicKey)) {
+    if (((keysFromFile != null && keysFromFile.privateKey != null ? keysFromFile.privateKey : undefined) !== (keysFromConfig != null && keysFromConfig.privateKey != null ? keysFromConfig.privateKey : undefined))
+        || ((keysFromConfig != null && keysFromConfig.publicKey != null ? keysFromConfig.publicKey : undefined) !== (keysFromConfig != null && keysFromConfig.publicKey != null ? keysFromConfig.publicKey : undefined))) {
         logger_service_1.logger.warn('Both files and config keys are present! Keys from config are taken.');
     }
     return Object.assign({}, keysFromFile, keysFromConfig);
@@ -94,8 +95,10 @@ async function loadKeysFromConfigFor(type, fromCache = true) {
 exports.loadKeysFromConfigFor = loadKeysFromConfigFor;
 function getConfigName() {
     const fileRegex = /local.ya?ml$/;
-    return ts_optchain_1.oc(config.util.getConfigSources()
-        .filter(({ name }) => name.match(fileRegex))[0]).name || appRoot.resolve('config/local.yaml');
+    return (config.util.getConfigSources()
+        .find(({ name }) => fileRegex.test(name)) != null && config.util.getConfigSources()
+        .find(({ name }) => fileRegex.test(name)).name != null ? config.util.getConfigSources()
+        .find(({ name }) => fileRegex.test(name)).name : undefined) || appRoot.resolve('config/local.yaml');
 }
 async function loadConfigAsYamlAst(fileName) {
     return yaml.parseDocument(await fs_1.promises.readFile(fileName, 'utf8'));
