@@ -7,35 +7,22 @@ const config = require("config");
 const Knex = require("knex");
 const exit_handler_service_1 = require("./exit-handler.service");
 const logger_service_1 = require("./logger.service");
-const Enumerable = require("linq");
+exports.availableDbTypes = [
+    'pg', 'mssql', 'mssql', 'oracle',
+];
 let DbConnection = class DbConnection {
     constructor(dbConfig = config.get('db')) {
-        const dbTypeChoices = Object.keys(dbConfig);
-        if (dbTypeChoices.length === 0) {
-            throw new TypeError('No DB configs found! Check your configs to correct the issue.');
+        if (!exports.availableDbTypes.includes(dbConfig.type)) {
+            throw new TypeError(`The database type "${dbConfig.type}" is not supported! Available DB types: ${JSON.stringify(exports.availableDbTypes)}. Check your configs to correct the issue.`);
         }
-        const dbTypePriority = ['pg', 'mysql', 'mssql'];
-        let client = null;
-        if (dbTypeChoices.length === 1) {
-            if (!dbTypePriority.includes(dbTypeChoices[0])) {
-                throw new TypeError(`The database type "${dbTypeChoices[0]}" is not supported! Check your configs to correct the issue.`);
-            }
-            client = dbTypeChoices[0];
-        }
-        else {
-            client = Enumerable.from(dbTypePriority).first(type => type in dbConfig);
-            if (!client) {
-                throw new TypeError('No supported DB types! Check your configs to correct the issue.');
-            }
-            logger_service_1.logger.warn(`Several DB configs found. The DB "${client}" is selected according to priority ${JSON.stringify(dbTypePriority)}.`);
-        }
+        const { host: client, ...connectionConfig } = dbConfig;
         // A stub condition to be changed in future
         if (client !== 'pg') {
             throw new TypeError('Postgres only supported by now');
         }
         this.config = {
             client,
-            connection: dbConfig[client],
+            connection: connectionConfig,
         };
         this.knex = Knex(this.config);
         exit_handler_service_1.bindOnExitHandler(() => {

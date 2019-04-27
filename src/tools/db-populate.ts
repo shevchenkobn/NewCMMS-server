@@ -2,6 +2,7 @@
 
 import '../@types';
 import { TYPES } from '../di/types';
+import { exitGracefully } from '../services/exit-handler.service';
 import * as yargs from 'yargs';
 import {
   DbOrchestrator, TableName,
@@ -10,7 +11,6 @@ import { createContainer, initDependenciesAsync } from '../di/container';
 import { getTableNames } from '../utils/db-orchestrator';
 import { logger } from '../services/logger.service';
 import { dropTablesFromTheCLI } from './db-clear';
-import { gracefulExit } from '../services/exit-handler.service';
 
 const argv = yargs
   .usage('Run the script to create or recreate tables in database and seed it with initial values.')
@@ -48,6 +48,9 @@ const argv = yargs
   })
   .help('help').alias('h', 'help')
   .strict()
+  .completion()
+  .recommendCommands()
+  .showHelpOnFail(true)
   .argv;
 
 (async () => {
@@ -86,5 +89,5 @@ const argv = yargs
   }
 
   logger.info('Done. Bye :)');
-  gracefulExit();
+  exitGracefully();
 })();

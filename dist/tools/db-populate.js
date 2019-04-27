@@ -1,14 +1,15 @@
 #!/usr/bin/node
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+require("../@types");
 const types_1 = require("../di/types");
+const exit_handler_service_1 = require("../services/exit-handler.service");
 const yargs = require("yargs");
 const db_orchestrator_service_1 = require("../services/db-orchestrator.service");
 const container_1 = require("../di/container");
 const db_orchestrator_1 = require("../utils/db-orchestrator");
 const logger_service_1 = require("../services/logger.service");
 const db_clear_1 = require("./db-clear");
-const exit_handler_service_1 = require("../services/exit-handler.service");
 const argv = yargs
     .usage('Run the script to create or recreate tables in database and seed it with initial values.')
     .version().alias('v', 'version')
@@ -45,6 +46,9 @@ const argv = yargs
 })
     .help('help').alias('h', 'help')
     .strict()
+    .completion()
+    .recommendCommands()
+    .showHelpOnFail(true)
     .argv;
 (async () => {
     const dbOrchestrator = container_1.createContainer([types_1.TYPES.DbOrchestrator]).get(db_orchestrator_service_1.DbOrchestrator);
@@ -74,6 +78,6 @@ const argv = yargs
         logger_service_1.logger.info('Database is seeded!');
     }
     logger_service_1.logger.info('Done. Bye :)');
-    exit_handler_service_1.gracefulExit();
+    exit_handler_service_1.exitGracefully();
 })();
 //# sourceMappingURL=db-populate.js.map

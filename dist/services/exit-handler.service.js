@@ -57,7 +57,24 @@ class List {
 }
 const list = new List();
 let onSignalHandler = null;
-let errorHandler = null;
+const errorHandler = (err, p) => {
+    if (p) {
+        logger_service_1.logger.error('Unhandled promise rejection for ');
+        logger_service_1.logger.error(p);
+    }
+    else {
+        logger_service_1.logger.error('Unhandled exception!');
+    }
+    logger_service_1.logger.error(err);
+    execHandlers().catch(err => {
+        logger_service_1.logger.error('The process is not shut down gracefully! Error while error handling.');
+        logger_service_1.logger.error(err);
+    }).finally(() => {
+        process.exit(1);
+    });
+};
+process.once('uncaughtException', errorHandler);
+process.once('unhandledRejection', errorHandler);
 function bindOnExitHandler(handler, unshift = false) {
     list.add(new ListNode(handler), unshift);
     if (!onSignalHandler) {
@@ -72,12 +89,12 @@ function unbindOnExitHandler(handler) {
     }
 }
 exports.unbindOnExitHandler = unbindOnExitHandler;
-function gracefulExit() {
+function exitGracefully() {
     if (onSignalHandler) {
         onSignalHandler('SIGQUIT');
     }
 }
-exports.gracefulExit = gracefulExit;
+exports.exitGracefully = exitGracefully;
 function initListeners() {
     onSignalHandler = signal => {
         execHandlers().catch((err) => {
@@ -92,24 +109,6 @@ function initListeners() {
     process.once('SIGQUIT', onSignalHandler);
     process.once('SIGHUP', onSignalHandler);
     process.once('SIGBREAK', onSignalHandler);
-    errorHandler = (err, p) => {
-        if (p) {
-            logger_service_1.logger.error('Unhandled promise rejection for ');
-            logger_service_1.logger.error(p);
-        }
-        else {
-            logger_service_1.logger.error('Unhandled exception!');
-        }
-        logger_service_1.logger.error(err);
-        execHandlers().catch(err => {
-            logger_service_1.logger.error('The process is not shut down gracefully! Error while error handling.');
-            logger_service_1.logger.error(err);
-        }).finally(() => {
-            process.exit(1);
-        });
-    };
-    process.once('uncaughtException', errorHandler);
-    process.once('unhandledRejection', errorHandler);
 }
 function removeListeners() {
     if (onSignalHandler) {
@@ -119,21 +118,18 @@ function removeListeners() {
         process.off('SIGHUP', onSignalHandler);
         process.off('SIGBREAK', onSignalHandler);
     }
-    if (errorHandler) {
-        process.off('uncaughtException', errorHandler);
-        process.off('unhandledRejection', errorHandler);
-    }
     onSignalHandler = null;
-    errorHandler = null;
 }
 async function execHandlers() {
     setTimeout(() => {
         logger_service_1.logger.error('The process exited due to too long wait for exit handlers!');
         process.exit(1);
     }, 1000);
-    logger_service_1.logger.info('The process is running exit handlers...');
-    for (const handler of list) {
-        await handler();
+    if (list.length > 0) {
+        logger_service_1.logger.info('The process is running exit handlers...');
+        for (const handler of list) {
+            await handler();
+        }
     }
 }
 //# sourceMappingURL=exit-handler.service.js.map

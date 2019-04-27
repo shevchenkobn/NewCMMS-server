@@ -1,6 +1,8 @@
 #!/usr/bin/node
 
 import '../@types';
+import { TYPES } from '../di/types';
+import { exitGracefully } from '../services/exit-handler.service';
 import { DbOrchestrator, TableName } from '../services/db-orchestrator.service';
 import { logger } from '../services/logger.service';
 import { getChildTables, getTableNames } from '../utils/db-orchestrator';
@@ -9,8 +11,6 @@ import {
   createContainer,
   initDependenciesAsync,
 } from '../di/container';
-import { TYPES } from '../di/types';
-import { gracefulExit } from '../services/exit-handler.service';
 
 if (require.main === module) {
   const argv = yargs
@@ -33,6 +33,9 @@ if (require.main === module) {
     .help('help')
     .alias('h', 'help')
     .strict()
+    .completion()
+    .recommendCommands()
+    .showHelpOnFail(true)
     .argv;
 
   (
@@ -47,7 +50,7 @@ if (require.main === module) {
         !argv.unsafe,
       );
       logger.info('Done. Bye :)');
-      gracefulExit();
+      exitGracefully();
     }
   )();
 }

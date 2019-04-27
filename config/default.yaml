@@ -9,25 +9,11 @@ server:
     email: master.admin@local.host
 
 db:
-  pg:
-    host: 127.0.0.1
-    database: newcmms
-    user: yourUser
-    password: yourPass
-
-auth:
-  jwt:
-    keys:
-      folder: keys/
-      filenames:
-        private: id_rsa
-        public: id_rsa.pub
-    expiration:
-      access: 2h # 2 hours: 1000 * 60 * 60 * 2
-      refresh: 15811200000 # half of year: 1000 * 60 * 60 * 24 * (366 / 2)
-    issuer: NewCMMS
-  refreshToken:
-    length: 128
+  type: pg
+  host: 127.0.0.1
+  database: newcmms
+  user: yourUser
+  password: yourPass
 
 cors:
   whitelist:
@@ -38,3 +24,26 @@ cors:
     - DELETE
     - PUT
     - PATCH
+
+auth:
+  jwt:
+    expiration: # NO MONTH ABBREVIATION AVAILABLE. For format refer to https://www.npmjs.com/package/ms or try from node CLI
+      accessToken: 2h
+      refreshToken: 0.5y
+    issuer: NewCMMS
+    keys: # Keys are needed for tokens' signature
+      folder: keys/
+      filenames:
+        accessToken:
+          private: access_id_rsa
+          public: access_id_rsa.pub
+        refreshToken:
+          private: refresh_id_rsa
+          public: refresh_id_rsa.pub
+      keyStrings: # Keys in pkcs format can be stored in the config. It is needed for multi-node deployments.
+        accessToken:
+          private:
+          public:
+        refreshToken:
+          private:
+          public:
