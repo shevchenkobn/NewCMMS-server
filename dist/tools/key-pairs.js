@@ -33,21 +33,39 @@ const argv = yargs
     description: 'Don\'t generate RSA key for refresh token signature.',
     conflicts: 'refresh-token-size',
 })
+    .option('no-save-to-files', {
+    alias: 'F',
+    type: 'boolean',
+    description: 'Don\'t save generated keys to files.',
+})
+    .option('no-save-to-config', {
+    alias: 'C',
+    type: 'boolean',
+    description: 'Don\'t save to local.yaml config file.',
+})
+    .conflicts('no-save-to-files', 'no-save-to-config')
+    .option('no-update-comments', {
+    alias: 'U',
+    type: 'boolean',
+    description: 'Don\'t append comments about update when writing to local.yaml file.',
+    conflicts: 'no-save-to-config',
+})
     .check((argv, aliases) => {
     if (typeof argv.accessTokenSize === 'number'
         && !common_1.isPositiveInteger(argv.accessTokenSize)) {
         const optionAlias = typeof aliases['accessTokenSize'] === 'string'
             ? aliases['accessTokenSize']
             : aliases['accessTokenSize'].join('" or "');
-        throw new Error(`Option "${optionAlias}" must be a positive integer!`);
+        throw new TypeError(`Option "${optionAlias}" must be a positive integer!`);
     }
     if (typeof argv.refreshTokenSize === 'number'
         && !common_1.isPositiveInteger(argv.refreshTokenSize)) {
         const optionAlias = typeof aliases['refreshTokenSize'] === 'string'
             ? aliases['refreshTokenSize']
             : aliases['refreshTokenSize'].join('" or "');
-        throw `Option "${optionAlias}" must be a positive integer!`;
+        throw new TypeError(`Option "${optionAlias}" must be a positive integer!`);
     }
+    return true;
 })
     .help('help').alias('h', 'help')
     .strict()
@@ -55,5 +73,7 @@ const argv = yargs
     .recommendCommands()
     .showHelpOnFail(true)
     .argv;
-console.log(argv);
+(async () => {
+    console.log(argv);
+})();
 //# sourceMappingURL=key-pairs.js.map

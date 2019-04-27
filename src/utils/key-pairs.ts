@@ -3,11 +3,12 @@ import { Nullable } from '../@types';
 import * as appRoot from 'app-root-path';
 import * as importedConfig from 'config';
 import * as path from 'path';
-import { promises as fsPromises, constants as fsConstants } from 'fs';
+import { constants as fsConstants, promises as fsPromises } from 'fs';
 import { oc } from 'ts-optchain';
 import * as yaml from 'yaml';
-import { from } from 'linq';
 import { logger } from '../services/logger.service';
+import { getUpdatedYamlNodeOrAddNew, updateYamlComment } from './common';
+
 let config = importedConfig; // USE THIS CONFIG REFERENCE. It is needed for hot reload.
 
 type GenerateKeyPairAsync = (type: 'rsa', options: RSAKeyPairOptions<'pem', 'pem'>) => Promise<IKeys>;
@@ -35,7 +36,7 @@ export interface IConfigKeyPairSpecifier {
 export async function generateRSAKeyPairFor(
   type: KeyType,
   bitSize = 2048,
-) {
+): Promise<IKeys> {
   if (!generateKeyPairAsync) {
     generateKeyPairAsync = Promise
       .promisify(generateKeyPair) as unknown as GenerateKeyPairAsync;
@@ -70,6 +71,7 @@ export async function saveKeysToConfigFor(
   type: KeyType,
   { privateKey, publicKey }: IKeys,
   reloadConfig = false,
+  addComments = true,
 ) {
   const localConfigName = getConfigName();
   // An asserting function that will throw an error if condition is false
@@ -77,10 +79,23 @@ export async function saveKeysToConfigFor(
     appRoot.resolve(localConfigName),
     fsConstants.W_OK,
   );
-  const doc = loadConfigAsYamlAst(localConfigName);
+  const doc = await loadConfigAsYamlAst(localConfigName) as any;
   const propName = getConfigPropertyFor(type);
-  (doc as any).set(`auth.jwt.keys.keyStrings.${propName}.private`, privateKey);
-  (doc as any).set(`auth.jwt.keys.keyStrings.${propName}.public`, publicKey);
+  const privateKeyNode = getUpdatedYamlNodeOrAddNew(
+    doc,
+    `auth.jwt.keys.keyStrings.${propName}.private`,
+    privateKey,
+  );
+  const publicKeyNode = getUpdatedYamlNodeOrAddNew(
+    doc,
+    `auth.jwt.keys.keyStrings.${propName}.public`,
+    publicKey,
+  );
+  if (addComments) {
+    const comment = `Updated from ${__filename} at ${new Date().toISOString()}`;
+    updateYamlComment(privateKeyNode, comment);
+    updateYamlComment(publicKeyNode, comment);
+  }
   if (reloadConfig) {
     delete require.cache[require.resolve('config')];
     config = require('config');
@@ -123,10 +138,10 @@ export async function loadKeysFromConfigFor(
       publicKey: pub,
     };
   }
-  const doc = await loadConfigAsYamlAst(getConfigName());
+  const doc = await loadConfigAsYamlAst(getConfigName()) as any;
   return {
-    privateKey: (doc as any).get(`auth.jwt.keys.keyStrings.${propName}.private`),
-    publicKey: (doc as any).get(`auth.jwt.keys.keyStrings.${propName}.public`),
+    privateKey: doc.get(`auth.jwt.keys.keyStrings.${propName}.private`),
+    publicKey: doc.get(`auth.jwt.keys.keyStrings.${propName}.public`),
   };
 }
 

@@ -8,6 +8,7 @@ const fs_1 = require("fs");
 const ts_optchain_1 = require("ts-optchain");
 const yaml = require("yaml");
 const logger_service_1 = require("../services/logger.service");
+const common_1 = require("./common");
 let config = importedConfig; // USE THIS CONFIG REFERENCE. It is needed for hot reload.
 let generateKeyPairAsync;
 var KeyType;
@@ -42,14 +43,19 @@ function saveKeysToFilesFor(type, { privateKey, publicKey }, { privateKeyPath, p
     });
 }
 exports.saveKeysToFilesFor = saveKeysToFilesFor;
-async function saveKeysToConfigFor(type, { privateKey, publicKey }, reloadConfig = false) {
+async function saveKeysToConfigFor(type, { privateKey, publicKey }, reloadConfig = false, addComments = true) {
     const localConfigName = getConfigName();
     // An asserting function that will throw an error if condition is false
     await fs_1.promises.access(appRoot.resolve(localConfigName), fs_1.constants.W_OK);
-    const doc = loadConfigAsYamlAst(localConfigName);
+    const doc = await loadConfigAsYamlAst(localConfigName);
     const propName = getConfigPropertyFor(type);
-    doc.set(`auth.jwt.keys.keyStrings.${propName}.private`, privateKey);
-    doc.set(`auth.jwt.keys.keyStrings.${propName}.public`, publicKey);
+    const privateKeyNode = common_1.getUpdatedYamlNodeOrAddNew(doc, `auth.jwt.keys.keyStrings.${propName}.private`, privateKey);
+    const publicKeyNode = common_1.getUpdatedYamlNodeOrAddNew(doc, `auth.jwt.keys.keyStrings.${propName}.public`, publicKey);
+    if (addComments) {
+        const comment = `Updated from ${__filename} at ${new Date().toISOString()}`;
+        common_1.updateYamlComment(privateKeyNode, comment);
+        common_1.updateYamlComment(publicKeyNode, comment);
+    }
     if (reloadConfig) {
         delete require.cache[require.resolve('config')];
         config = require('config');
