@@ -1,22 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const tslib_1 = require("tslib");
-const inversify_1 = require("inversify");
-const db_connection_class_1 = require("./db-connection.class");
-const db_orchestrator_1 = require("../utils/db-orchestrator");
 const config = require("config");
+const inversify_1 = require("inversify");
 const users_model_1 = require("../models/users.model");
-// NOTE: The order is very important!
-var TableName;
-(function (TableName) {
-    TableName["USERS"] = "users";
-    TableName["TRIGGER_DEVICES"] = "triggerDevices";
-    TableName["ACTION_DEVICES"] = "actionDevices";
-    TableName["TRIGGER_ACTIONS"] = "triggerActions";
-    TableName["BILLS"] = "bills";
-    TableName["BILL_RATES"] = "billRates";
-    TableName["USER_STATISTICS"] = "userStatistics";
-})(TableName = exports.TableName || (exports.TableName = {}));
+const db_orchestrator_1 = require("../utils/db-orchestrator");
+const db_connection_class_1 = require("./db-connection.class");
 let DbOrchestrator = class DbOrchestrator {
     constructor(dbConnection, usersModel) {
         this._connection = dbConnection;
@@ -102,4 +91,4 @@ DbOrchestrator = tslib_1.__decorate([
 ], DbOrchestrator);
 exports.DbOrchestrator = DbOrchestrator;
 exports.superAdminId = config.get('server.admin.id');
-//# sourceMappingURL=db-orchestrator.service.js.map
+//# sourceMappingURL=db-orchestrator.class.js.map

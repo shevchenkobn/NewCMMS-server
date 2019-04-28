@@ -5,7 +5,7 @@ require("../@types");
 const types_1 = require("../di/types");
 const exit_handler_service_1 = require("../services/exit-handler.service");
 const yargs = require("yargs");
-const db_orchestrator_service_1 = require("../services/db-orchestrator.service");
+const db_orchestrator_class_1 = require("../services/db-orchestrator.class");
 const container_1 = require("../di/container");
 const db_orchestrator_1 = require("../utils/db-orchestrator");
 const logger_service_1 = require("../services/logger.service");
@@ -51,7 +51,7 @@ const argv = yargs
     .showHelpOnFail(true)
     .argv;
 (async () => {
-    const dbOrchestrator = container_1.createContainer([types_1.TYPES.DbOrchestrator]).get(db_orchestrator_service_1.DbOrchestrator);
+    const dbOrchestrator = container_1.createContainer([types_1.TYPES.DbOrchestrator]).get(db_orchestrator_class_1.DbOrchestrator);
     await container_1.initDependenciesAsync();
     logger_service_1.logger.info(`Tables to be created: ${JSON.stringify(argv.tables)}`);
     if (argv.drop) {

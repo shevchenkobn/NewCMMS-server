@@ -1,26 +1,15 @@
+import * as config from 'config';
 import { inject, injectable } from 'inversify';
-import { DbConnection } from './db-connection.class';
 import * as Knex from 'knex';
+import { Maybe, Nullable } from '../@types';
+import { IUserCreate, UserRole, UsersModel } from '../models/users.model';
 import {
   getChildTables,
   getTableNames,
   TableBuilders,
+  TableName,
 } from '../utils/db-orchestrator';
-import { Maybe, Nullable } from '../@types';
-import * as config from 'config';
-import { IUserCreate, UserRole, UsersModel } from '../models/users.model';
-import { TYPES } from '../di/types';
-
-// NOTE: The order is very important!
-export enum TableName {
-  USERS = 'users',
-  TRIGGER_DEVICES = 'triggerDevices',
-  ACTION_DEVICES = 'actionDevices',
-  TRIGGER_ACTIONS = 'triggerActions',
-  BILLS = 'bills',
-  BILL_RATES = 'billRates',
-  USER_STATISTICS = 'userStatistics',
-}
+import { DbConnection } from './db-connection.class';
 
 export type CreateTableCallback = {
   (tableName: TableName, existed: false, sqlQuery: string): void;

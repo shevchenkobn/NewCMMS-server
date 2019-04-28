@@ -1,8 +1,18 @@
-import { Nullable } from '../@types';
 import * as Knex from 'knex';
-import { TableName } from '../services/db-orchestrator.service';
-import { logger } from '../services/logger.service';
+import { Nullable } from '../@types';
 import { DbConnection } from '../services/db-connection.class';
+import { logger } from '../services/logger.service';
+
+// NOTE: The order is very important!
+export enum TableName {
+  USERS = 'users',
+  TRIGGER_DEVICES = 'triggerDevices',
+  ACTION_DEVICES = 'actionDevices',
+  TRIGGER_ACTIONS = 'triggerActions',
+  BILLS = 'bills',
+  BILL_RATES = 'billRates',
+  USER_STATISTICS = 'userStatistics',
+}
 
 let tableNames: Nullable<ReadonlyArray<TableName>> = null;
 export function getTableNames() {

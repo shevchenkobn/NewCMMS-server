@@ -7,7 +7,11 @@ import { constants as fsConstants, promises as fsPromises } from 'fs';
 import { oc } from 'ts-optchain';
 import * as yaml from 'yaml';
 import { logger } from '../services/logger.service';
-import { updateYamlComment, getUpdatedYamlNodeOrAddNew } from './yaml';
+import {
+  updateYamlComment,
+  getUpdatedYamlNodeOrAddNew,
+  getYamlNodeAt, getYamlValueAt,
+} from './yaml';
 import { promisify } from 'util';
 import { Sema } from 'async-sema/lib';
 import { getJwtConfig } from './auth';
@@ -131,14 +135,25 @@ export async function loadKeysFor(
 ): Promise<IKeys> {
   const keysFromFile = await loadKeysFromFilesFor(type, keyPaths);
   const keysFromConfig = await loadKeysFromConfigFor(type, useCachedConfig);
-  if (!keysFromFile && !keysFromConfig) {
+  if ((
+    !oc(keysFromFile).privateKey && !oc(keysFromFile).publicKey
+  ) && (
+    !oc(keysFromConfig).privateKey && !oc(keysFromConfig).publicKey
+  )) {
     throw new Error('Neither key files nor config keys are found');
   }
   if (
-    (oc(keysFromFile).privateKey !== oc(keysFromConfig).privateKey)
-    || (oc(keysFromConfig).publicKey !== oc(keysFromConfig).publicKey)
+    (
+      oc(keysFromFile).privateKey
+      && oc(keysFromConfig).privateKey
+      && oc(keysFromFile).privateKey !== oc(keysFromConfig).privateKey
+    ) || (
+      oc(keysFromConfig).publicKey
+      && oc(keysFromConfig).publicKey
+      && oc(keysFromConfig).publicKey !== oc(keysFromConfig).publicKey
+    )
   ) {
-    logger.warn('Both files and config keys are present! Keys from config are taken.');
+    logger.warn('Both files and config keys are present! They are different, so keys from config are taken.');
   }
   return Object.assign(
     {},
@@ -163,13 +178,19 @@ export async function loadKeysFromConfigFor(
   }
   const doc = await loadConfigAsYamlAst(getConfigName()) as any;
   return {
-    privateKey: doc.get(`auth.jwt.keys.keyStrings.${propName}.private`),
-    publicKey: doc.get(`auth.jwt.keys.keyStrings.${propName}.public`),
+    privateKey: getYamlValueAt<string>(
+      doc,
+      `auth.jwt.keys.keyStrings.${propName}.private`,
+    ),
+    publicKey: getYamlValueAt<string>(
+      doc,
+      `auth.jwt.keys.keyStrings.${propName}.public`,
+    ),
   };
 }
 
 function getConfigName() {
-  const fileRegex = /local.ya?ml$/;
+  const fileRegex = /local\.ya?ml$/;
   return oc(config.util.getConfigSources()
     .find(({ name }) => fileRegex.test(name))).name || appRoot.resolve('config/local.yaml');
 }

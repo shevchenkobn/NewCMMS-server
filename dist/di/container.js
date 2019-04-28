@@ -1,19 +1,21 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const auth_service_1 = require("../services/auth.service");
 const types_1 = require("./types");
 const inversify_1 = require("inversify");
 const db_connection_class_1 = require("../services/db-connection.class");
-const db_orchestrator_service_1 = require("../services/db-orchestrator.service");
+const db_orchestrator_class_1 = require("../services/db-orchestrator.class");
 const users_model_1 = require("../models/users.model");
-const typeMap = new Map([
+exports.typeMap = new Map([
     [types_1.TYPES.DbConnection, db_connection_class_1.DbConnection],
-    [types_1.TYPES.DbOrchestrator, db_orchestrator_service_1.DbOrchestrator],
+    [types_1.TYPES.DbOrchestrator, db_orchestrator_class_1.DbOrchestrator],
+    [types_1.TYPES.AuthService, auth_service_1.AuthService],
     [types_1.TYPES.UsersModel, users_model_1.UsersModel],
 ]);
 function bindDependency(typeId, type) {
     container
         .bind(typeId)
-        .to(type || typeMap.get(typeId));
+        .to(type || exports.typeMap.get(typeId));
 }
 let container = null;
 let containedDependencies = null;
@@ -40,7 +42,7 @@ function createContainer(ensuredDependencies = null, forceNew = false) {
         throw new TypeError('Container is already instantiated. Call with `forceNew === true` to override');
     }
     if (!ensuredDependencies || ensuredDependencies === 'all') {
-        containedDependencies = Array.from(typeMap.keys());
+        containedDependencies = Array.from(exports.typeMap.keys());
     }
     else if (ensuredDependencies === 'autoBindAll'
         || (Array.isArray(ensuredDependencies) && ensuredDependencies.length === 0)) {
@@ -91,12 +93,12 @@ function getAsyncInitializaables() {
     return containedDependencies
         .map(typeId => typeof typeId === 'function'
         ? typeId
-        : typeMap.get(typeId))
+        : exports.typeMap.get(typeId))
         .filter(type => !!type[types_1.ASYNC_INIT]);
 }
 function updateAsyncInitializables(typeId) {
     const type = typeof typeId !== 'function'
-        ? typeMap.get(typeId)
+        ? exports.typeMap.get(typeId)
         : typeId;
     if (!type[types_1.ASYNC_INIT]) {
         return;

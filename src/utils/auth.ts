@@ -29,7 +29,7 @@ export interface IJwtConfig {
 let jwtConfig: Nullable<DeepReadonly<IJwtConfig>> = null;
 export function getJwtConfig() { // use it to cache wherever needed
   if (!jwtConfig) {
-    jwtConfig = config.get<IJwtConfig>('jwt');
+    jwtConfig = config.get<IJwtConfig>('auth.jwt');
   }
   return jwtConfig;
 }

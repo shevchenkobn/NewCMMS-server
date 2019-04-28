@@ -5,7 +5,7 @@ const error_service_1 = require("../services/error.service");
 let jwtConfig = null;
 function getJwtConfig() {
     if (!jwtConfig) {
-        jwtConfig = config.get('jwt');
+        jwtConfig = config.get('auth.jwt');
     }
     return jwtConfig;
 }

@@ -27,7 +27,7 @@ export class DbConnection {
     if (!availableDbTypes.includes(dbConfig.type)) {
       throw new TypeError(`The database type "${dbConfig.type}" is not supported! Available DB types: ${JSON.stringify(availableDbTypes)}. Check your configs to correct the issue.`);
     }
-    const { host: client, ...connectionConfig } = dbConfig;
+    const { type: client, ...connectionConfig } = dbConfig;
 
     // A stub condition to be changed in future
     if (client !== 'pg') {

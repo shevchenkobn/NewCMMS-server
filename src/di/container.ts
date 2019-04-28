@@ -1,3 +1,4 @@
+import { AuthService } from '../services/auth.service';
 import { ASYNC_INIT, TYPES } from './types';
 import {
   BindingScopeEnum,
@@ -7,18 +8,20 @@ import {
 import { Maybe, Nullable, Optional } from '../@types';
 import { DbConnection } from '../services/db-connection.class';
 import ServiceIdentifier = interfaces.ServiceIdentifier;
-import Request = interfaces.Request;
 import { logger } from '../services/logger.service';
-import { DbOrchestrator } from '../services/db-orchestrator.service';
+import { DbOrchestrator } from '../services/db-orchestrator.class';
 import Newable = interfaces.Newable;
 import { UsersModel } from '../models/users.model';
 
-const typeMap = new Map<ServiceIdentifier<any>, Newable<any>>([
-  [TYPES.DbConnection, DbConnection],
-  [TYPES.DbOrchestrator, DbOrchestrator],
+export const typeMap: ReadonlyMap<ServiceIdentifier<any>, Newable<any>> =
+  new Map<ServiceIdentifier<any>, Newable<any>>([
+    [TYPES.DbConnection, DbConnection],
+    [TYPES.DbOrchestrator, DbOrchestrator],
 
-  [TYPES.UsersModel, UsersModel],
-]);
+    [TYPES.AuthService, AuthService],
+
+    [TYPES.UsersModel, UsersModel],
+  ]);
 
 function bindDependency<T>(
   typeId: ServiceIdentifier<T>,

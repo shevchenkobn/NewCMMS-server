@@ -1,11 +1,21 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const db_orchestrator_service_1 = require("../services/db-orchestrator.service");
 const logger_service_1 = require("../services/logger.service");
+// NOTE: The order is very important!
+var TableName;
+(function (TableName) {
+    TableName["USERS"] = "users";
+    TableName["TRIGGER_DEVICES"] = "triggerDevices";
+    TableName["ACTION_DEVICES"] = "actionDevices";
+    TableName["TRIGGER_ACTIONS"] = "triggerActions";
+    TableName["BILLS"] = "bills";
+    TableName["BILL_RATES"] = "billRates";
+    TableName["USER_STATISTICS"] = "userStatistics";
+})(TableName = exports.TableName || (exports.TableName = {}));
 let tableNames = null;
 function getTableNames() {
     if (!tableNames) {
-        tableNames = Object.values(db_orchestrator_service_1.TableName);
+        tableNames = Object.values(TableName);
     }
     return tableNames.slice();
 }
@@ -33,8 +43,8 @@ class TableBuilders {
     getTableFactories() {
         const c = this._columnBuilders;
         return new Map([
-            [db_orchestrator_service_1.TableName.USERS, () => this._knex.schema.createTable(db_orchestrator_service_1.TableName.USERS, table => {
-                    table.increments(getIdColumn(db_orchestrator_service_1.TableName.USERS))
+            [TableName.USERS, () => this._knex.schema.createTable(TableName.USERS, table => {
+                    table.increments(getIdColumn(TableName.USERS))
                         .primary()
                         .notNullable();
                     table.string('email', 90).unique().notNullable();
@@ -42,8 +52,8 @@ class TableBuilders {
                     c.addColumn(table, 0 /* UINT1 */, 'role').notNullable();
                     table.string('fullName', 90).notNullable();
                 })],
-            [db_orchestrator_service_1.TableName.TRIGGER_DEVICES, () => this._knex.schema.createTable(db_orchestrator_service_1.TableName.TRIGGER_DEVICES, table => {
-                    table.increments(getIdColumn(db_orchestrator_service_1.TableName.TRIGGER_DEVICES))
+            [TableName.TRIGGER_DEVICES, () => this._knex.schema.createTable(TableName.TRIGGER_DEVICES, table => {
+                    table.increments(getIdColumn(TableName.TRIGGER_DEVICES))
                         .primary()
                         .notNullable();
                     c.addColumn(table, 1 /* MAC_ADDRESS */, 'physicalAddress');
@@ -51,8 +61,8 @@ class TableBuilders {
                     table.string('name', 75).unique().notNullable();
                     table.string('type', 75).notNullable();
                 })],
-            [db_orchestrator_service_1.TableName.ACTION_DEVICES, () => this._knex.schema.createTable(db_orchestrator_service_1.TableName.ACTION_DEVICES, table => {
-                    table.increments(getIdColumn(db_orchestrator_service_1.TableName.ACTION_DEVICES))
+            [TableName.ACTION_DEVICES, () => this._knex.schema.createTable(TableName.ACTION_DEVICES, table => {
+                    table.increments(getIdColumn(TableName.ACTION_DEVICES))
                         .primary()
                         .notNullable();
                     c.addColumn(table, 1 /* MAC_ADDRESS */, 'physicalAddress');
@@ -61,69 +71,69 @@ class TableBuilders {
                     table.string('type', 75).notNullable();
                     table.decimal('hourlyRate', 10, 6).notNullable();
                 })],
-            [db_orchestrator_service_1.TableName.TRIGGER_ACTIONS, () => this._knex.schema.createTable(db_orchestrator_service_1.TableName.TRIGGER_ACTIONS, table => {
-                    table.increments(getIdColumn(db_orchestrator_service_1.TableName.TRIGGER_ACTIONS))
+            [TableName.TRIGGER_ACTIONS, () => this._knex.schema.createTable(TableName.TRIGGER_ACTIONS, table => {
+                    table.increments(getIdColumn(TableName.TRIGGER_ACTIONS))
                         .primary()
                         .notNullable();
-                    const triggerDeviceId = getIdColumn(db_orchestrator_service_1.TableName.TRIGGER_DEVICES);
+                    const triggerDeviceId = getIdColumn(TableName.TRIGGER_DEVICES);
                     table.integer(triggerDeviceId)
                         .notNullable()
                         .references(triggerDeviceId)
-                        .inTable(db_orchestrator_service_1.TableName.TRIGGER_DEVICES)
+                        .inTable(TableName.TRIGGER_DEVICES)
                         .onDelete('CASCADE');
-                    const actionDeviceId = getIdColumn(db_orchestrator_service_1.TableName.ACTION_DEVICES);
+                    const actionDeviceId = getIdColumn(TableName.ACTION_DEVICES);
                     table.integer(actionDeviceId)
                         .notNullable()
                         .references(actionDeviceId)
-                        .inTable(db_orchestrator_service_1.TableName.ACTION_DEVICES)
+                        .inTable(TableName.ACTION_DEVICES)
                         .onDelete('CASCADE');
                 })],
-            [db_orchestrator_service_1.TableName.BILLS, () => this._knex.schema.createTable(db_orchestrator_service_1.TableName.BILLS, table => {
-                    table.increments(getIdColumn(db_orchestrator_service_1.TableName.BILLS))
+            [TableName.BILLS, () => this._knex.schema.createTable(TableName.BILLS, table => {
+                    table.increments(getIdColumn(TableName.BILLS))
                         .primary()
                         .notNullable();
-                    const triggerDeviceId = getIdColumn(db_orchestrator_service_1.TableName.TRIGGER_DEVICES);
+                    const triggerDeviceId = getIdColumn(TableName.TRIGGER_DEVICES);
                     table.integer(triggerDeviceId)
                         .notNullable()
                         .references(triggerDeviceId)
-                        .inTable(db_orchestrator_service_1.TableName.TRIGGER_DEVICES)
+                        .inTable(TableName.TRIGGER_DEVICES)
                         .onDelete('CASCADE');
                     table.dateTime('startedAt').notNullable();
                     table.dateTime('finishedAt').nullable();
                     table.dateTime('sum').nullable();
                 })],
-            [db_orchestrator_service_1.TableName.BILL_RATES, () => this._knex.schema.createTable(db_orchestrator_service_1.TableName.BILL_RATES, table => {
-                    table.increments(getIdColumn(db_orchestrator_service_1.TableName.BILL_RATES))
+            [TableName.BILL_RATES, () => this._knex.schema.createTable(TableName.BILL_RATES, table => {
+                    table.increments(getIdColumn(TableName.BILL_RATES))
                         .primary()
                         .notNullable();
-                    const billId = getIdColumn(db_orchestrator_service_1.TableName.BILLS);
+                    const billId = getIdColumn(TableName.BILLS);
                     table.integer(billId)
                         .notNullable()
                         .references(billId)
-                        .inTable(db_orchestrator_service_1.TableName.BILLS)
+                        .inTable(TableName.BILLS)
                         .onDelete('CASCADE');
-                    const actionDeviceId = getIdColumn(db_orchestrator_service_1.TableName.ACTION_DEVICES);
+                    const actionDeviceId = getIdColumn(TableName.ACTION_DEVICES);
                     table.integer(actionDeviceId)
                         .notNullable()
                         .references(actionDeviceId)
-                        .inTable(db_orchestrator_service_1.TableName.ACTION_DEVICES)
+                        .inTable(TableName.ACTION_DEVICES)
                         .onDelete('SET NULL');
                 })],
-            [db_orchestrator_service_1.TableName.USER_STATISTICS, () => this._knex.schema.createTable(db_orchestrator_service_1.TableName.USER_STATISTICS, table => {
-                    table.increments(getIdColumn(db_orchestrator_service_1.TableName.USER_STATISTICS))
+            [TableName.USER_STATISTICS, () => this._knex.schema.createTable(TableName.USER_STATISTICS, table => {
+                    table.increments(getIdColumn(TableName.USER_STATISTICS))
                         .primary()
                         .notNullable();
-                    const userId = getIdColumn(db_orchestrator_service_1.TableName.USERS);
+                    const userId = getIdColumn(TableName.USERS);
                     table.integer(userId)
                         .notNullable()
                         .references(userId)
-                        .inTable(db_orchestrator_service_1.TableName.USERS)
+                        .inTable(TableName.USERS)
                         .onDelete('CASCADE');
-                    const triggerDeviceId = getIdColumn(db_orchestrator_service_1.TableName.TRIGGER_DEVICES);
+                    const triggerDeviceId = getIdColumn(TableName.TRIGGER_DEVICES);
                     table.integer(triggerDeviceId)
                         .notNullable()
                         .references(triggerDeviceId)
-                        .inTable(db_orchestrator_service_1.TableName.TRIGGER_DEVICES)
+                        .inTable(TableName.TRIGGER_DEVICES)
                         .onDelete('CASCADE');
                     table.dateTime('triggerTime').notNullable();
                 })],
@@ -155,19 +165,19 @@ function getChildTables(tableNames, includeOriginal = false) {
 exports.getChildTables = getChildTables;
 function getAllChildTables() {
     return new Map([
-        [db_orchestrator_service_1.TableName.USERS, [db_orchestrator_service_1.TableName.USER_STATISTICS]],
+        [TableName.USERS, [TableName.USER_STATISTICS]],
         [
-            db_orchestrator_service_1.TableName.TRIGGER_DEVICES,
-            [db_orchestrator_service_1.TableName.TRIGGER_ACTIONS, db_orchestrator_service_1.TableName.BILLS, db_orchestrator_service_1.TableName.USER_STATISTICS],
+            TableName.TRIGGER_DEVICES,
+            [TableName.TRIGGER_ACTIONS, TableName.BILLS, TableName.USER_STATISTICS],
         ],
         [
-            db_orchestrator_service_1.TableName.ACTION_DEVICES,
-            [db_orchestrator_service_1.TableName.TRIGGER_ACTIONS, db_orchestrator_service_1.TableName.BILL_RATES],
+            TableName.ACTION_DEVICES,
+            [TableName.TRIGGER_ACTIONS, TableName.BILL_RATES],
         ],
-        [db_orchestrator_service_1.TableName.TRIGGER_ACTIONS, []],
-        [db_orchestrator_service_1.TableName.BILLS, [db_orchestrator_service_1.TableName.BILL_RATES]],
-        [db_orchestrator_service_1.TableName.BILL_RATES, []],
-        [db_orchestrator_service_1.TableName.USER_STATISTICS, []],
+        [TableName.TRIGGER_ACTIONS, []],
+        [TableName.BILLS, [TableName.BILL_RATES]],
+        [TableName.BILL_RATES, []],
+        [TableName.USER_STATISTICS, []],
     ]);
 }
 let tableIdColumns = null;
@@ -180,13 +190,13 @@ function getIdColumn(tableName) {
 exports.getIdColumn = getIdColumn;
 function getTableIdColumns() {
     return new Map([
-        [db_orchestrator_service_1.TableName.USERS, 'userId'],
-        [db_orchestrator_service_1.TableName.TRIGGER_DEVICES, 'triggerDeviceId'],
-        [db_orchestrator_service_1.TableName.ACTION_DEVICES, 'actionDeviceId'],
-        [db_orchestrator_service_1.TableName.TRIGGER_ACTIONS, 'triggerActionId'],
-        [db_orchestrator_service_1.TableName.BILLS, 'billId'],
-        [db_orchestrator_service_1.TableName.BILL_RATES, 'billRateId'],
-        [db_orchestrator_service_1.TableName.USER_STATISTICS, 'userStatisticsId'],
+        [TableName.USERS, 'userId'],
+        [TableName.TRIGGER_DEVICES, 'triggerDeviceId'],
+        [TableName.ACTION_DEVICES, 'actionDeviceId'],
+        [TableName.TRIGGER_ACTIONS, 'triggerActionId'],
+        [TableName.BILLS, 'billId'],
+        [TableName.BILL_RATES, 'billRateId'],
+        [TableName.USER_STATISTICS, 'userStatisticsId'],
     ]);
 }
 var SpecificDBDataTypes;

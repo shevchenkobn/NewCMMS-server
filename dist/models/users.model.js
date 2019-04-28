@@ -4,7 +4,7 @@ const tslib_1 = require("tslib");
 const inversify_1 = require("inversify");
 const db_connection_class_1 = require("../services/db-connection.class");
 const bcrypt_1 = require("bcrypt");
-const db_orchestrator_service_1 = require("../services/db-orchestrator.service");
+const db_orchestrator_1 = require("../utils/db-orchestrator");
 const randomatic = require("randomatic");
 var UserRole;
 (function (UserRole) {
@@ -16,7 +16,7 @@ let UsersModel = class UsersModel {
         this._dbConnection = dbConnection;
     }
     get table() {
-        return this._dbConnection.knex(db_orchestrator_service_1.TableName.USERS);
+        return this._dbConnection.knex(db_orchestrator_1.TableName.USERS);
     }
     async create(user, returning) {
         const { password = randomatic('aA0!', 72), ...userSeed } = user;

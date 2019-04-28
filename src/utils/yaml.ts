@@ -4,6 +4,8 @@ import { Nullable } from '../@types';
 import AstNode = yaml.ast.AstNode;
 import Document = yaml.ast.Document;
 import Pair = yaml.ast.Pair;
+import * as appRoot from 'app-root-path';
+import * as refParser from 'json-schema-ref-parser';
 
 export function getUpdatedYamlNodeOrAddNew(
   document: Document,
@@ -19,6 +21,14 @@ export function getUpdatedYamlNodeOrAddNew(
   const newNode = yaml.createNode(newValue, wrapScalars as true);
   setYamlNodeAt(document, path, newNode as AstNode);
   return newNode as AstNode;
+}
+
+export function getYamlValueAt<T>(
+  document: Document,
+  path: string,
+): Nullable<T> {
+  const value = oc(getYamlNodeAt(document, path) as any).value;
+  return typeof value === 'undefined' ? null : value as unknown as T;
 }
 
 export function getYamlNodeAt(
@@ -63,4 +73,29 @@ export function updateYamlComment(node: AstNode, comment: string) {
     ? ` <prepended_comment_from_script>: ${comment}; ${node.comment}`
     : ` ${comment}`;
   return node;
+}
+
+export function loadOpenApiDoc(
+  rootPath = appRoot.resolve('openapi/src/openapi.yaml'),
+  copyReferenced = false,
+) {
+  return refParser[copyReferenced ? 'bundle' : 'dereference'](rootPath, {
+    parse: {
+      yaml: {
+        order: Number.MIN_SAFE_INTEGER,
+        allowEmpty: false,
+        canParse: /\.ya?ml$/,
+      },
+    },
+    resolve: {
+      external: true,
+      file: {
+        order: Number.MIN_SAFE_INTEGER,
+        canRead: /\.ya?ml$/,
+      },
+    },
+    dereference: {
+      circular: false,
+    },
+  }) as Promise<any>;
 }

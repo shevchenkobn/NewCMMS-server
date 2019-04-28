@@ -5,10 +5,9 @@ import { TYPES } from '../di/types';
 import { exitGracefully } from '../services/exit-handler.service';
 import * as yargs from 'yargs';
 import {
-  DbOrchestrator, TableName,
-} from '../services/db-orchestrator.service';
+  DbOrchestrator, } from '../services/db-orchestrator.class';
 import { createContainer, initDependenciesAsync } from '../di/container';
-import { getTableNames } from '../utils/db-orchestrator';
+import { getTableNames, TableName } from '../utils/db-orchestrator';
 import { logger } from '../services/logger.service';
 import { dropTablesFromTheCLI } from './db-clear';
 

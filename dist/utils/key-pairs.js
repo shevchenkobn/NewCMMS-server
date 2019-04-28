@@ -78,12 +78,13 @@ exports.loadKeys = loadKeys;
 async function loadKeysFor(type, keyPaths = getDefaultKeyPathsFor(type), useCachedConfig = false) {
     const keysFromFile = await loadKeysFromFilesFor(type, keyPaths);
     const keysFromConfig = await loadKeysFromConfigFor(type, useCachedConfig);
-    if (!keysFromFile && !keysFromConfig) {
+    if ((!(keysFromFile != null && keysFromFile.privateKey != null ? keysFromFile.privateKey : undefined) && !(keysFromFile != null && keysFromFile.publicKey != null ? keysFromFile.publicKey : undefined)) && (!(keysFromConfig != null && keysFromConfig.privateKey != null ? keysFromConfig.privateKey : undefined) && !(keysFromConfig != null && keysFromConfig.publicKey != null ? keysFromConfig.publicKey : undefined))) {
         throw new Error('Neither key files nor config keys are found');
     }
-    if (((keysFromFile != null && keysFromFile.privateKey != null ? keysFromFile.privateKey : undefined) !== (keysFromConfig != null && keysFromConfig.privateKey != null ? keysFromConfig.privateKey : undefined))
-        || ((keysFromConfig != null && keysFromConfig.publicKey != null ? keysFromConfig.publicKey : undefined) !== (keysFromConfig != null && keysFromConfig.publicKey != null ? keysFromConfig.publicKey : undefined))) {
-        logger_service_1.logger.warn('Both files and config keys are present! Keys from config are taken.');
+    if (((keysFromFile != null && keysFromFile.privateKey != null ? keysFromFile.privateKey : undefined) && (keysFromConfig != null && keysFromConfig.privateKey != null ? keysFromConfig.privateKey : undefined)
+        && (keysFromFile != null && keysFromFile.privateKey != null ? keysFromFile.privateKey : undefined) !== (keysFromConfig != null && keysFromConfig.privateKey != null ? keysFromConfig.privateKey : undefined)) || ((keysFromConfig != null && keysFromConfig.publicKey != null ? keysFromConfig.publicKey : undefined) && (keysFromConfig != null && keysFromConfig.publicKey != null ? keysFromConfig.publicKey : undefined)
+        && (keysFromConfig != null && keysFromConfig.publicKey != null ? keysFromConfig.publicKey : undefined) !== (keysFromConfig != null && keysFromConfig.publicKey != null ? keysFromConfig.publicKey : undefined))) {
+        logger_service_1.logger.warn('Both files and config keys are present! They are different, so keys from config are taken.');
     }
     return Object.assign({}, keysFromFile, keysFromConfig);
 }
@@ -100,13 +101,13 @@ async function loadKeysFromConfigFor(type, fromCache = true) {
     }
     const doc = await loadConfigAsYamlAst(getConfigName());
     return {
-        privateKey: doc.get(`auth.jwt.keys.keyStrings.${propName}.private`),
-        publicKey: doc.get(`auth.jwt.keys.keyStrings.${propName}.public`),
+        privateKey: yaml_1.getYamlValueAt(doc, `auth.jwt.keys.keyStrings.${propName}.private`),
+        publicKey: yaml_1.getYamlValueAt(doc, `auth.jwt.keys.keyStrings.${propName}.public`),
     };
 }
 exports.loadKeysFromConfigFor = loadKeysFromConfigFor;
 function getConfigName() {
-    const fileRegex = /local.ya?ml$/;
+    const fileRegex = /local\.ya?ml$/;
     return (config.util.getConfigSources()
         .find(({ name }) => fileRegex.test(name)) != null && config.util.getConfigSources()
         .find(({ name }) => fileRegex.test(name)).name != null ? config.util.getConfigSources()

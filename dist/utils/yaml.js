@@ -2,6 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const yaml = require("yaml");
 const ts_optchain_1 = require("ts-optchain");
+const appRoot = require("app-root-path");
+const refParser = require("json-schema-ref-parser");
 function getUpdatedYamlNodeOrAddNew(document, path, newValue, wrapScalars = true) {
     const existingNode = getYamlNodeAt(document, path);
     if (existingNode) {
@@ -13,6 +15,11 @@ function getUpdatedYamlNodeOrAddNew(document, path, newValue, wrapScalars = true
     return newNode;
 }
 exports.getUpdatedYamlNodeOrAddNew = getUpdatedYamlNodeOrAddNew;
+function getYamlValueAt(document, path) {
+    const value = getYamlNodeAt(document, path) != null && getYamlNodeAt(document, path).value != null ? getYamlNodeAt(document, path).value : undefined;
+    return typeof value === 'undefined' ? null : value;
+}
+exports.getYamlValueAt = getYamlValueAt;
 function getYamlNodeAt(document, path) {
     const props = path.split('.');
     let doc = document.contents;
@@ -53,4 +60,26 @@ function updateYamlComment(node, comment) {
     return node;
 }
 exports.updateYamlComment = updateYamlComment;
+function loadOpenApiDoc(rootPath = appRoot.resolve('openapi/src/openapi.yaml'), copyReferenced = false) {
+    return refParser[copyReferenced ? 'bundle' : 'dereference'](rootPath, {
+        parse: {
+            yaml: {
+                order: Number.MIN_SAFE_INTEGER,
+                allowEmpty: false,
+                canParse: /\.ya?ml$/,
+            },
+        },
+        resolve: {
+            external: true,
+            file: {
+                order: Number.MIN_SAFE_INTEGER,
+                canRead: /\.ya?ml$/,
+            },
+        },
+        dereference: {
+            circular: false,
+        },
+    });
+}
+exports.loadOpenApiDoc = loadOpenApiDoc;
 //# sourceMappingURL=yaml.js.map

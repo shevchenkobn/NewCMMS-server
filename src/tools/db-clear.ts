@@ -3,9 +3,13 @@
 import '../@types';
 import { TYPES } from '../di/types';
 import { exitGracefully } from '../services/exit-handler.service';
-import { DbOrchestrator, TableName } from '../services/db-orchestrator.service';
+import { DbOrchestrator} from '../services/db-orchestrator.class';
 import { logger } from '../services/logger.service';
-import { getChildTables, getTableNames } from '../utils/db-orchestrator';
+import {
+  getChildTables,
+  getTableNames,
+  TableName,
+} from '../utils/db-orchestrator';
 import * as yargs from 'yargs';
 import {
   createContainer,

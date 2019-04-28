@@ -1,7 +1,7 @@
 import { inject, injectable } from 'inversify';
 import { DbConnection } from '../services/db-connection.class';
 import { hash } from 'bcrypt';
-import { TableName } from '../services/db-orchestrator.service';
+import { TableName } from '../utils/db-orchestrator';
 import * as randomatic from 'randomatic';
 
 export enum UserRole {

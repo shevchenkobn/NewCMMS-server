@@ -4,7 +4,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 require("../@types");
 const types_1 = require("../di/types");
 const exit_handler_service_1 = require("../services/exit-handler.service");
-const db_orchestrator_service_1 = require("../services/db-orchestrator.service");
+const db_orchestrator_class_1 = require("../services/db-orchestrator.class");
 const logger_service_1 = require("../services/logger.service");
 const db_orchestrator_1 = require("../utils/db-orchestrator");
 const yargs = require("yargs");
@@ -35,7 +35,7 @@ if (require.main === module) {
         .showHelpOnFail(true)
         .argv;
     (async () => {
-        const dbOrchestrator = container_1.createContainer([types_1.TYPES.DbOrchestrator]).get(db_orchestrator_service_1.DbOrchestrator);
+        const dbOrchestrator = container_1.createContainer([types_1.TYPES.DbOrchestrator]).get(db_orchestrator_class_1.DbOrchestrator);
         await container_1.initDependenciesAsync();
         await dropTablesFromTheCLI(dbOrchestrator, argv.tables, !argv.unsafe);
         logger_service_1.logger.info('Done. Bye :)');
