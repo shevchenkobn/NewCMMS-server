@@ -119,7 +119,7 @@ async function saveKeysFor(argv, type, promise) {
     const savePipeline = [];
     if (!argv.noSaveToConfig) {
         logger_service_1.logger.info(`Saving key pair for ${tokenName} signature to config...`);
-        savePipeline.push(key_pairs_1.saveKeysToConfigFor(type, keys, false, !argv.noUpdateComments));
+        savePipeline.push(key_pairs_1.saveKeysToConfigFor(type, keys, !argv.noUpdateComments));
     }
     if (!argv.noSaveToFiles) {
         logger_service_1.logger.info(`Saving key pair for ${tokenName} signature to files...`);
@@ -153,13 +153,13 @@ async function copyKeyPairsToConfigHandler(argv) {
         const tokenName = tokenNames.get(key_pairs_1.KeyType.ACCESS_TOKEN);
         logger_service_1.logger.info(`Copying key pair for ${tokenName} signature to config...`);
         const keys = await key_pairs_1.loadKeysFromFilesFor(key_pairs_1.KeyType.ACCESS_TOKEN);
-        await key_pairs_1.saveKeysToConfigFor(key_pairs_1.KeyType.ACCESS_TOKEN, keys, false, !argv.noUpdateComments);
+        await key_pairs_1.saveKeysToConfigFor(key_pairs_1.KeyType.ACCESS_TOKEN, keys, !argv.noUpdateComments);
     }
     if (!argv.noRefreshTokenPair) {
         const tokenName = tokenNames.get(key_pairs_1.KeyType.REFRESH_TOKEN);
         logger_service_1.logger.info(`Copying key pair for ${tokenName} signature to config...`);
         const keys = await key_pairs_1.loadKeysFromFilesFor(key_pairs_1.KeyType.REFRESH_TOKEN);
-        await key_pairs_1.saveKeysToConfigFor(key_pairs_1.KeyType.REFRESH_TOKEN, keys, false, !argv.noUpdateComments);
+        await key_pairs_1.saveKeysToConfigFor(key_pairs_1.KeyType.REFRESH_TOKEN, keys, !argv.noUpdateComments);
     }
     logger_service_1.logger.info('Done. Bye! :)');
     exit_handler_service_1.exitGracefully();

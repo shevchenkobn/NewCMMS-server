@@ -158,7 +158,6 @@ async function saveKeysFor<T>(
     savePipeline.push(saveKeysToConfigFor(
       type,
       keys,
-      false,
       !argv.noUpdateComments,
     ));
   }
@@ -201,7 +200,6 @@ async function copyKeyPairsToConfigHandler<T>(argv: yargs.Arguments<T>) {
     await saveKeysToConfigFor(
       KeyType.ACCESS_TOKEN,
       keys,
-      false,
       !argv.noUpdateComments,
     );
   }
@@ -212,7 +210,6 @@ async function copyKeyPairsToConfigHandler<T>(argv: yargs.Arguments<T>) {
     await saveKeysToConfigFor(
       KeyType.REFRESH_TOKEN,
       keys,
-      false,
       !argv.noUpdateComments,
     );
   }

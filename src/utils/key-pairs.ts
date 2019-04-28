@@ -1,16 +1,16 @@
 import { generateKeyPair, RSAKeyPairOptions } from 'crypto';
 import { Nullable } from '../@types';
 import * as appRoot from 'app-root-path';
-import * as importedConfig from 'config';
+import * as config from 'config';
 import * as path from 'path';
 import { constants as fsConstants, promises as fsPromises } from 'fs';
 import { oc } from 'ts-optchain';
 import * as yaml from 'yaml';
 import { logger } from '../services/logger.service';
-import { getUpdatedYamlNodeOrAddNew, updateYamlComment } from './common';
+import { getUpdatedYamlNodeOrAddNew} from './yaml';
 import { promisify } from 'util';
-
-let config = importedConfig; // USE THIS CONFIG REFERENCE. It is needed for hot reload.
+import { Sema } from 'async-sema/lib';
+import { updateYamlComment } from './yaml';
 
 type GenerateKeyPairAsync = (type: 'rsa', options: RSAKeyPairOptions<'pem', 'pem'>) => Promise<IKeys>;
 let generateKeyPairAsync: Nullable<GenerateKeyPairAsync>;
@@ -67,14 +67,19 @@ export function saveKeysToFilesFor(
     publicKey: fsPromises.writeFile(publicKeyPath, publicKey, 'utf8'),
   });
 }
-
+// This semaphore is needed to prevent race condition in case of two concurrent config writes
+let lock: Nullable<Sema> = null;
+// WARNING!!! Loaded Config module contents will not change!
 export async function saveKeysToConfigFor(
   type: KeyType,
   { privateKey, publicKey }: IKeys,
-  reloadConfig = false,
   addComments = true,
 ) {
   const localConfigName = getConfigName();
+  if (!lock) {
+    lock = new Sema(1);
+  }
+  await lock.acquire();
   // An asserting function that will throw an error if condition is false
   await fsPromises.access(
     localConfigName,
@@ -98,10 +103,7 @@ export async function saveKeysToConfigFor(
     updateYamlComment(publicKeyNode, comment);
   }
   await fsPromises.writeFile(localConfigName, doc.toString(), 'utf8');
-  if (reloadConfig) {
-    delete require.cache[require.resolve('config')];
-    config = require('config');
-  }
+  lock.release();
 }
 
 export async function loadKeysFor(

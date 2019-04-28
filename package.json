@@ -38,6 +38,7 @@
   "homepage": "https://github.com/shevchenkobn/NewCMMS-server#readme",
   "dependencies": {
     "app-root-path": "^2.2.1",
+    "async-sema": "^3.0.0",
     "bcrypt": "^3.0.5",
     "bluebird": "^3.5.4",
     "bluebird-global": "^1.0.1",
