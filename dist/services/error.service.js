@@ -5,6 +5,7 @@ var ErrorCode;
     ErrorCode["AUTH_NO"] = "AUTH_NO";
     ErrorCode["AUTH_ROLE"] = "AUTH_ROLE";
     ErrorCode["AUTH_BAD"] = "AUTH_BAD";
+    ErrorCode["AUTH_BAD_SCHEME"] = "AUTH_BAD_SCHEME";
     ErrorCode["AUTH_EXPIRED"] = "AUTH_EXPIRED";
     ErrorCode["USER_ROLE_BAD"] = "USER_ROLE_BAD";
     ErrorCode["USER_FILTER_BAD"] = "USER_FILTER_BAD";

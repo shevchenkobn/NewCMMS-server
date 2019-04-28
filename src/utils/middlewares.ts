@@ -14,6 +14,7 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
 
       case ErrorCode.AUTH_NO:
       case ErrorCode.AUTH_BAD:
+      case ErrorCode.AUTH_BAD_SCHEME:
         res.status(401);
         break;
 

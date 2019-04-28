@@ -1,5 +1,5 @@
 import { generateKeyPair, RSAKeyPairOptions } from 'crypto';
-import { Nullable } from '../@types';
+import { Nullable, NullablePartial, Optional } from '../@types';
 import * as appRoot from 'app-root-path';
 import * as config from 'config';
 import * as path from 'path';
@@ -7,10 +7,10 @@ import { constants as fsConstants, promises as fsPromises } from 'fs';
 import { oc } from 'ts-optchain';
 import * as yaml from 'yaml';
 import { logger } from '../services/logger.service';
-import { getUpdatedYamlNodeOrAddNew} from './yaml';
+import { updateYamlComment, getUpdatedYamlNodeOrAddNew } from './yaml';
 import { promisify } from 'util';
 import { Sema } from 'async-sema/lib';
-import { updateYamlComment } from './yaml';
+import { getJwtConfig } from './auth';
 
 type GenerateKeyPairAsync = (type: 'rsa', options: RSAKeyPairOptions<'pem', 'pem'>) => Promise<IKeys>;
 let generateKeyPairAsync: Nullable<GenerateKeyPairAsync>;
@@ -29,7 +29,7 @@ export interface IKeys {
   privateKey: string;
 }
 
-export interface IConfigKeyPairSpecifier {
+export interface IConfigKeyPairDescriptor {
   private: string;
   public: string;
 }
@@ -77,7 +77,7 @@ export async function saveKeysToConfigFor(
 ) {
   const localConfigName = getConfigName();
   if (!lock) {
-    lock = new Sema(1);
+    lock = new Sema(1, { capacity: 2 });
   }
   await lock.acquire();
   // An asserting function that will throw an error if condition is false
@@ -106,6 +106,24 @@ export async function saveKeysToConfigFor(
   lock.release();
 }
 
+export async function loadKeys(
+  keyPaths = getDefaultKeyPaths(),
+  useCachedConfig = false,
+) {
+  return Promise.props({
+    accessToken: loadKeysFor(
+      KeyType.ACCESS_TOKEN,
+      keyPaths.accessToken,
+      useCachedConfig,
+    ),
+    refreshToken: loadKeysFor(
+      KeyType.REFRESH_TOKEN,
+      keyPaths.refreshToken,
+      useCachedConfig,
+    ),
+  });
+}
+
 export async function loadKeysFor(
   type: KeyType,
   keyPaths = getDefaultKeyPathsFor(type),
@@ -132,14 +150,15 @@ export async function loadKeysFor(
 export async function loadKeysFromConfigFor(
   type: KeyType,
   fromCache = true,
-): Promise<Partial<IKeys>> {
+): Promise<NullablePartial<IKeys>> {
   const propName = getConfigPropertyFor(type);
   if (fromCache) {
     // It is needed because private and public are reserved words
-    const { private: pk, public: pub } = config.get<IConfigKeyPairSpecifier>(`auth.jwt.keys.keyStrings.${propName}`);
+    const { private: pk, public: pub } = oc(getJwtConfig().keys)
+      .keyStrings[propName];
     return {
-      privateKey: pk,
-      publicKey: pub,
+      privateKey: pk as any,
+      publicKey: pub as any,
     };
   }
   const doc = await loadConfigAsYamlAst(getConfigName()) as any;
@@ -171,10 +190,17 @@ export function loadKeysFromFilesFor(
   }) as unknown as Promise<IKeys>;
 }
 
+export function getDefaultKeyPaths() {
+  return {
+    accessToken: getDefaultKeyPathsFor(KeyType.ACCESS_TOKEN),
+    refreshToken: getDefaultKeyPathsFor(KeyType.REFRESH_TOKEN),
+  };
+}
+
 export function getDefaultKeyPathsFor(type: KeyType): IKeyPaths {
-  const folderPath = appRoot.resolve(config.get<string>('auth.jwt.keys.folder'));
+  const folderPath = appRoot.resolve(getJwtConfig().keys.folder);
   const { private: privateKeyFile, public: publicKeyFile } = config
-    .get(`auth.jwt.keys.filenames.${getConfigPropertyFor(type)}`) as IConfigKeyPairSpecifier;
+    .get(`auth.jwt.keys.filenames.${getConfigPropertyFor(type)}`) as IConfigKeyPairDescriptor;
   return {
     privateKeyPath: path.join(folderPath, privateKeyFile),
     publicKeyPath: path.join(folderPath, publicKeyFile),

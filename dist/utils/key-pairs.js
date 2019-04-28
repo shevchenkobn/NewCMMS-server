@@ -11,7 +11,7 @@ const logger_service_1 = require("../services/logger.service");
 const yaml_1 = require("./yaml");
 const util_1 = require("util");
 const lib_1 = require("async-sema/lib");
-const yaml_2 = require("./yaml");
+const auth_1 = require("./auth");
 let generateKeyPairAsync;
 var KeyType;
 (function (KeyType) {
@@ -50,7 +50,7 @@ let lock = null;
 async function saveKeysToConfigFor(type, { privateKey, publicKey }, addComments = true) {
     const localConfigName = getConfigName();
     if (!lock) {
-        lock = new lib_1.Sema(1);
+        lock = new lib_1.Sema(1, { capacity: 2 });
     }
     await lock.acquire();
     // An asserting function that will throw an error if condition is false
@@ -61,13 +61,20 @@ async function saveKeysToConfigFor(type, { privateKey, publicKey }, addComments 
     const publicKeyNode = yaml_1.getUpdatedYamlNodeOrAddNew(doc, `auth.jwt.keys.keyStrings.${propName}.public`, publicKey);
     if (addComments) {
         const comment = `Updated from ${__filename} at ${new Date().toISOString()}`;
-        yaml_2.updateYamlComment(privateKeyNode, comment);
-        yaml_2.updateYamlComment(publicKeyNode, comment);
+        yaml_1.updateYamlComment(privateKeyNode, comment);
+        yaml_1.updateYamlComment(publicKeyNode, comment);
     }
     await fs_1.promises.writeFile(localConfigName, doc.toString(), 'utf8');
     lock.release();
 }
 exports.saveKeysToConfigFor = saveKeysToConfigFor;
+async function loadKeys(keyPaths = getDefaultKeyPaths(), useCachedConfig = false) {
+    return Promise.props({
+        accessToken: loadKeysFor(KeyType.ACCESS_TOKEN, keyPaths.accessToken, useCachedConfig),
+        refreshToken: loadKeysFor(KeyType.REFRESH_TOKEN, keyPaths.refreshToken, useCachedConfig),
+    });
+}
+exports.loadKeys = loadKeys;
 async function loadKeysFor(type, keyPaths = getDefaultKeyPathsFor(type), useCachedConfig = false) {
     const keysFromFile = await loadKeysFromFilesFor(type, keyPaths);
     const keysFromConfig = await loadKeysFromConfigFor(type, useCachedConfig);
@@ -85,7 +92,7 @@ async function loadKeysFromConfigFor(type, fromCache = true) {
     const propName = getConfigPropertyFor(type);
     if (fromCache) {
         // It is needed because private and public are reserved words
-        const { private: pk, public: pub } = config.get(`auth.jwt.keys.keyStrings.${propName}`);
+        const { private: pk, public: pub } = (auth_1.getJwtConfig().keys != null && auth_1.getJwtConfig().keys.keyStrings != null ? auth_1.getJwtConfig().keys.keyStrings : undefined)[propName];
         return {
             privateKey: pk,
             publicKey: pub,
@@ -115,8 +122,15 @@ function loadKeysFromFilesFor(type, { privateKeyPath, publicKeyPath } = getDefau
     });
 }
 exports.loadKeysFromFilesFor = loadKeysFromFilesFor;
+function getDefaultKeyPaths() {
+    return {
+        accessToken: getDefaultKeyPathsFor(KeyType.ACCESS_TOKEN),
+        refreshToken: getDefaultKeyPathsFor(KeyType.REFRESH_TOKEN),
+    };
+}
+exports.getDefaultKeyPaths = getDefaultKeyPaths;
 function getDefaultKeyPathsFor(type) {
-    const folderPath = appRoot.resolve(config.get('auth.jwt.keys.folder'));
+    const folderPath = appRoot.resolve(auth_1.getJwtConfig().keys.folder);
     const { private: privateKeyFile, public: publicKeyFile } = config
         .get(`auth.jwt.keys.filenames.${getConfigPropertyFor(type)}`);
     return {

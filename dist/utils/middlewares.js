@@ -13,6 +13,7 @@ exports.errorHandler = (err, req, res, next) => {
                 break;
             case error_service_1.ErrorCode.AUTH_NO:
             case error_service_1.ErrorCode.AUTH_BAD:
+            case error_service_1.ErrorCode.AUTH_BAD_SCHEME:
                 res.status(401);
                 break;
             case error_service_1.ErrorCode.SERVER:
