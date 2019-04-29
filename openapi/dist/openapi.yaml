@@ -1,0 +1,35 @@
+openapi: 3.0.2
+info:
+  title: NewCMMS public REST API
+  version: 1.0.0
+  contact:
+    name: Bogdan Shevchenko
+    url: https://github.com/shevchenkobn
+    email: bohdan.shevchenko1@nure.ua
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+servers:
+  - url: /api/v1
+    description: The server will be served from the same host as this document.
+tags:
+  - name: auth
+    description: API to manage auth tokens
+  - name: users
+    description: API to manage users
+paths:
+  /auth:
+    parameters: []
+components:
+  securitySchemes:
+    jwt-bearer:
+      type: oauth2
+      description: The main and only mean of authorizing to the system.
+      flows:
+        password:
+          scopes:
+            users: For Access Token. Mainly readonly access by non-admin users.
+            admin: For Access Token. CRUD access to all the entities.
+            refreshToken: For Refresh Token. Scope to refresh token.
+          tokenUrl: "{serverUrlWithApiBase}/auth/login"
+          refreshUrl: "{serverUrlWithApiBase}/auth/refresh"

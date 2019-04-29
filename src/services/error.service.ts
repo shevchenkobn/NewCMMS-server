@@ -1,3 +1,4 @@
+import { OpenAPIRequestValidatorArgs } from 'openapi-request-validator';
 
 export enum ErrorCode {
   AUTH_NO = 'AUTH_NO',
@@ -34,3 +35,10 @@ export class LogicError extends TypeError {
     this.code = code;
   }
 }
+
+export const errorTransformer: OpenAPIRequestValidatorArgs['errorTransformer'] = (
+  openApiError,
+  ajvError,
+) => {
+
+};

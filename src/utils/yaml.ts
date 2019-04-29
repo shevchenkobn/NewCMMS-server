@@ -1,11 +1,9 @@
-import * as yaml from 'yaml';
 import { oc } from 'ts-optchain';
+import * as yaml from 'yaml';
 import { Nullable } from '../@types';
 import AstNode = yaml.ast.AstNode;
 import Document = yaml.ast.Document;
 import Pair = yaml.ast.Pair;
-import * as appRoot from 'app-root-path';
-import * as refParser from 'json-schema-ref-parser';
 
 export function getUpdatedYamlNodeOrAddNew(
   document: Document,
@@ -73,29 +71,4 @@ export function updateYamlComment(node: AstNode, comment: string) {
     ? ` <prepended_comment_from_script>: ${comment}; ${node.comment}`
     : ` ${comment}`;
   return node;
-}
-
-export function loadOpenApiDoc(
-  rootPath = appRoot.resolve('openapi/src/openapi.yaml'),
-  copyReferenced = false,
-) {
-  return refParser[copyReferenced ? 'bundle' : 'dereference'](rootPath, {
-    parse: {
-      yaml: {
-        order: Number.MIN_SAFE_INTEGER,
-        allowEmpty: false,
-        canParse: /\.ya?ml$/,
-      },
-    },
-    resolve: {
-      external: true,
-      file: {
-        order: Number.MIN_SAFE_INTEGER,
-        canRead: /\.ya?ml$/,
-      },
-    },
-    dereference: {
-      circular: false,
-    },
-  }) as Promise<any>;
 }

@@ -14,7 +14,11 @@ import {
 } from './services/exit-handler.service';
 import { logger } from './services/logger.service';
 import { errorHandler, notFoundHandler } from './utils/middlewares';
-import { loadOpenApiDoc } from './utils/yaml';
+import {
+  getOpenApiOptions,
+  loadOpenApiDoc,
+  saveFullOpenApiDocument,
+} from './utils/openapi';
 import * as express from 'express';
 import { createServer } from 'http';
 import * as config from 'config';
@@ -54,28 +58,37 @@ Promise.join(
   initDependenciesAsync(),
 ).then(([apiDoc]) => {
   const notProduction = process.env.NODE_ENV !== 'production';
-  const { host, port, openapiDocsPrefix } = config.get<IServerConfig>('server');
+  const { host, port } = config.get<IServerConfig>('server');
 
   const app = express();
   const server = createServer(app);
 
-  // TODO: initialize openapi
-  const openapiFramework = initialize({
-    app,
-    apiDoc,
+  const openapiFramework = initialize(
+    getOpenApiOptions(app, apiDoc),
+  );
 
-  });
-
-  logger.log(openapiFramework.apiDoc);
   if (argv!.buildOpenapiDoc) {
-    // TODO: build the doc
+    logger.info('Saving full OpenApi doc...');
+    saveFullOpenApiDocument(openapiFramework.apiDoc).then(() => {
+      logger.info('OpenApi doc is saved.');
+    }).catch(err => {
+      logger.error('Failed to save OpenApi doc due to');
+      logger.error(err);
+    });
   }
 
   app.use(errorHandler);
   app.use(notFoundHandler);
 
   bindOnExitHandler(() => {
-    server.close();
+    server.close((err) => {
+      if (err) {
+        logger.error('TCP socket for HTTP server was closed due to');
+        logger.error(err);
+      } else {
+        logger.info('TCP socket for HTTP server is gracefully closed.');
+      }
+    });
   }, true);
 
   server.listen(port, host, () => {

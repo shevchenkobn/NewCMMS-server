@@ -1,9 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const yaml = require("yaml");
 const ts_optchain_1 = require("ts-optchain");
-const appRoot = require("app-root-path");
-const refParser = require("json-schema-ref-parser");
+const yaml = require("yaml");
 function getUpdatedYamlNodeOrAddNew(document, path, newValue, wrapScalars = true) {
     const existingNode = getYamlNodeAt(document, path);
     if (existingNode) {
@@ -60,26 +58,4 @@ function updateYamlComment(node, comment) {
     return node;
 }
 exports.updateYamlComment = updateYamlComment;
-function loadOpenApiDoc(rootPath = appRoot.resolve('openapi/src/openapi.yaml'), copyReferenced = false) {
-    return refParser[copyReferenced ? 'bundle' : 'dereference'](rootPath, {
-        parse: {
-            yaml: {
-                order: Number.MIN_SAFE_INTEGER,
-                allowEmpty: false,
-                canParse: /\.ya?ml$/,
-            },
-        },
-        resolve: {
-            external: true,
-            file: {
-                order: Number.MIN_SAFE_INTEGER,
-                canRead: /\.ya?ml$/,
-            },
-        },
-        dereference: {
-            circular: false,
-        },
-    });
-}
-exports.loadOpenApiDoc = loadOpenApiDoc;
 //# sourceMappingURL=yaml.js.map

@@ -31,4 +31,6 @@ class LogicError extends TypeError {
     }
 }
 exports.LogicError = LogicError;
+exports.errorTransformer = (openApiError, ajvError) => {
+};
 //# sourceMappingURL=error.service.js.map
