@@ -46,7 +46,7 @@ function getOpenApiOptions(app, apiDoc) {
         errorTransformer: error_service_1.errorTransformer,
         exposeApiDocs: true,
         // pathSecurity: null, //FIXME: maybe needed
-        paths: path.join(__dirname, '../openapi-resolvers/'),
+        paths: path.join(__dirname, '../openapi/resolvers/'),
         pathsIgnore: /\.(spec|test)$/,
         promiseMode: true,
         securityHandlers: security_handlers_service_1.getSecurityHandlers(),

@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const auth_common_1 = require("../openapi/services/auth.common");
 const auth_service_1 = require("../services/auth.service");
 const types_1 = require("./types");
 const inversify_1 = require("inversify");
@@ -11,6 +12,7 @@ exports.typeMap = new Map([
     [types_1.TYPES.DbOrchestrator, db_orchestrator_class_1.DbOrchestrator],
     [types_1.TYPES.AuthService, auth_service_1.AuthService],
     [types_1.TYPES.UsersModel, users_model_1.UsersModel],
+    [types_1.TYPES.AuthCommon, auth_common_1.AuthCommon],
 ]);
 function bindDependency(typeId, type) {
     container

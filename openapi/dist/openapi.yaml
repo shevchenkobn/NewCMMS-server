@@ -18,8 +18,25 @@ tags:
   - name: users
     description: API to manage users
 paths:
+  /auth/refresh:
+    parameters: []
   /auth:
     parameters: []
+    post:
+      description: test
+      responses:
+        "200":
+          description: test
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  hello:
+                    type: string
+      security:
+        - jwt-bearer:
+            - user
 components:
   securitySchemes:
     jwt-bearer:
@@ -28,8 +45,8 @@ components:
       flows:
         password:
           scopes:
-            users: For Access Token. Mainly readonly access by non-admin users.
+            user: For Access Token. Mainly readonly access by non-admin users.
             admin: For Access Token. CRUD access to all the entities.
-            refreshToken: For Refresh Token. Scope to refresh token.
+            token:refresh: For Refresh Token. Scope to refresh token.
           tokenUrl: "{serverUrlWithApiBase}/auth/login"
           refreshUrl: "{serverUrlWithApiBase}/auth/refresh"

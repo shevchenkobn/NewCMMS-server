@@ -8,7 +8,7 @@ exports.TYPES = {
     DbOrchestrator: Symbol.for('DbOrchestrator'),
     AuthService: Symbol.for('AuthService'),
     UsersModel: Symbol.for('UsersModel'),
-    AuthController: Symbol.for('AuthController'),
-    UsersController: Symbol.for('UsersController'),
+    AuthCommon: Symbol.for('AuthCommon'),
+    UsersCommon: Symbol.for('UsersCommon'),
 };
 //# sourceMappingURL=types.js.map
