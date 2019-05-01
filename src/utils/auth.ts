@@ -5,6 +5,7 @@ import { IUser, UserRole } from '../models/users.model';
 import { ErrorCode, LogicError } from '../services/error.service';
 import { IConfigKeyPairDescriptor } from './key-pairs';
 import { JwtBearerScope } from './openapi';
+import { TokenExpiredError, VerifyErrors } from 'jsonwebtoken';
 
 export interface IConfigTokenTypesDescriptor<T> {
   accessToken: T;
@@ -23,12 +24,26 @@ export interface IJwtConfig {
   };
 }
 
+export interface IJwtPayload {
+  id: number;
+  scopes: JwtBearerScope[];
+}
+
+export const jwtAudience = 'human-actors';
+
 let jwtConfig: Nullable<DeepReadonly<IJwtConfig>> = null;
 export function getJwtConfig() { // use it to cache wherever needed
   if (!jwtConfig) {
     jwtConfig = config.get<IJwtConfig>('auth.jwt');
   }
   return jwtConfig;
+}
+
+export function isJwtPayload(payload: any): payload is IJwtPayload {
+  return typeof payload === 'object' && payload !== null
+    && typeof payload.id === 'number'
+    && Array.isArray(payload.scopes)
+    && payload.scopes.every((p: any) => !!JwtBearerScope[p]);
 }
 
 export function getTokenFromRequest(request: IncomingMessage) {
@@ -55,4 +70,24 @@ export function getJwtBearerScopes(user: IUser) {
     scopes.push(JwtBearerScope.ADMIN);
   }
   return scopes;
+}
+
+export function handleJwtError(
+  err: VerifyErrors,
+  codeToThrow = ErrorCode.AUTH_BAD,
+): never {
+  if (err instanceof TokenExpiredError) {
+    throw new LogicError(ErrorCode.AUTH_EXPIRED);
+  }
+  throw new LogicError(codeToThrow);
+}
+
+export function assertRequiredScopes(
+  requiredScopes: ReadonlyArray<JwtBearerScope>,
+  actualScopes: ReadonlyArray<JwtBearerScope>,
+) {
+  if (actualScopes.some(s => !requiredScopes.includes(s))) {
+    // Scope is synonymic to user's role
+    throw new LogicError(ErrorCode.AUTH_ROLE);
+  }
 }

@@ -1,6 +1,6 @@
 import * as appRoot from 'app-root-path';
 import * as bodyParser from 'body-parser';
-import { Express } from 'express';
+import { Express, Request, Response } from 'express';
 import { ExpressOpenAPIArgs, Operation } from 'express-openapi';
 import { promises as fsPromises } from 'fs';
 import * as refParser from 'json-schema-ref-parser';
@@ -10,6 +10,7 @@ import * as yaml from 'yaml';
 import { errorTransformer } from '../services/error.service';
 import { logger } from '../services/logger.service';
 import { getSecurityHandlers } from '../services/security-handlers.service';
+import { IOpenAPIResponseValidator } from 'openapi-response-validator';
 
 export interface IOpenApiPathItemHandler {
   parameters?: OpenAPIV3.ParameterObject[];
@@ -22,6 +23,22 @@ export interface IOpenApiPathItemHandler {
   options?: Operation;
   head?: Operation;
   patch?: Operation;
+}
+
+export const jwtBearerScheme = 'jwt-bearer';
+
+export enum JwtBearerScope {
+  EMPLOYEE = 'employee',
+  ADMIN = 'admin',
+  TOKEN_REFRESH = 'token:refresh',
+}
+
+export interface IOpenApiRequest extends Request {
+  apiDoc: OpenAPIV3.Document & Record<string, any>;
+}
+
+export interface IOpenApiResponse extends Response, IOpenAPIResponseValidator {
+
 }
 
 export function loadOpenApiDoc(
@@ -81,12 +98,4 @@ export function saveFullOpenApiDocument(doc: any) {
     yaml.stringify(doc, { keepCstNodes: true }),
     'utf8',
   );
-}
-
-export const jwtBearerScheme = 'jwt-bearer';
-
-export enum JwtBearerScope {
-  EMPLOYEE = 'employee',
-  ADMIN = 'admin',
-  TOKEN_REFRESH = 'token:refresh',
 }

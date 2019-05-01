@@ -2,26 +2,23 @@ import { inject, injectable } from 'inversify';
 import * as jwt from 'jsonwebtoken';
 import { ASYNC_INIT } from '../di/types';
 import {
-  getJwtConfig, getTokenFromRequest, getTokenFromAccessTokenString,
+  assertRequiredScopes,
+  getJwtBearerScopes,
+  getJwtConfig,
+  getTokenFromRequest,
+  handleJwtError,
   IConfigTokenTypesDescriptor,
-  IJwtConfig, getJwtBearerScopes,
+  IJwtConfig,
+  IJwtPayload,
+  isJwtPayload,
+  jwtAudience,
 } from '../utils/auth';
-import {
-  getDefaultKeyPaths,
-  IKeys,
-  loadKeys,
-} from '../utils/key-pairs';
+import { getDefaultKeyPaths, IKeys, loadKeys } from '../utils/key-pairs';
 import { IUser, UsersModel } from '../models/users.model';
 import { IncomingMessage } from 'http';
 import { JwtBearerScope } from '../utils/openapi';
 import { ErrorCode, LogicError } from './error.service';
-
-export interface IJwtPayload {
-  id: number;
-  scopes: JwtBearerScope[];
-}
-
-export const jwtAudience = 'human-actors';
+import { Nullable } from '../@types';
 
 @injectable()
 export class AuthService {
@@ -48,6 +45,8 @@ export class AuthService {
       scopes: getJwtBearerScopes(user),
     }, this._keys.accessToken.privateKey, {
       algorithm: 'RS512', // FIXME: RS256
+      subject: user.userId.toString(),
+      audience: jwtAudience,
       expiresIn: this._jwtConfig.expiration.accessToken,
       issuer: this._jwtConfig.issuer,
     });
@@ -59,41 +58,91 @@ export class AuthService {
       scopes: [JwtBearerScope.TOKEN_REFRESH],
     }, this._keys.refreshToken.privateKey, {
       algorithm: 'RS512',
+      subject: user.userId.toString(),
       audience: jwtAudience,
       expiresIn: this._jwtConfig.expiration.refreshToken,
       issuer: this._jwtConfig.issuer,
     });
   }
 
-  decodeAccessToken(token: string, ignoreExpiration = false) {
-    return jwt.verify(token, this._keys.accessToken.publicKey, {
-      ignoreExpiration,
-      audience: jwtAudience,
-      algorithms: ['RS512'], // FIXME: RS256
-      issuer: this._jwtConfig.issuer,
-    }) as IJwtPayload;
+  decodeAccessToken(
+    token: string,
+    scopes: Nullable<JwtBearerScope[]> = null,
+    ignoreExpiration = false,
+  ) {
+    let payload: object | string;
+    try {
+      payload = jwt.verify(token, this._keys.accessToken.publicKey, {
+        ignoreExpiration,
+        audience: jwtAudience,
+        algorithms: ['RS512'], // FIXME: RS256
+        issuer: this._jwtConfig.issuer,
+      });
+    } catch (err) {
+      handleJwtError(err);
+    }
+    if (!isJwtPayload(payload!)) {
+      throw new LogicError(ErrorCode.AUTH_BAD_REFRESH);
+    }
+    if (scopes) {
+      assertRequiredScopes(scopes, payload.scopes);
+    }
+    return payload;
   }
 
-  decodeRefreshToken(token: string, ignoreExpiration = false) {
-    return jwt.verify(token, this._keys.accessToken.publicKey, {
-      ignoreExpiration,
-      algorithms: ['RS512'],
-      issuer: this._jwtConfig.issuer,
-    }) as IJwtPayload;
+  decodeRefreshToken(
+    token: string,
+    checkScope = false,
+    ignoreExpiration = false,
+  ) {
+    let payload: object | string;
+    try {
+      payload = jwt.verify(token, this._keys.accessToken.publicKey, {
+        ignoreExpiration,
+        audience: jwtAudience,
+        algorithms: ['RS512'],
+        issuer: this._jwtConfig.issuer,
+      });
+    } catch (err) {
+      handleJwtError(err, ErrorCode.AUTH_BAD_REFRESH);
+    }
+    if (!isJwtPayload(payload!)) {
+      throw new LogicError(ErrorCode.AUTH_BAD_REFRESH);
+    }
+    if (
+      checkScope
+      && (
+        payload.scopes.length !== 1
+        || payload.scopes[0] !== JwtBearerScope.TOKEN_REFRESH
+      )
+    ) {
+      throw new LogicError(ErrorCode.AUTH_BAD_REFRESH);
+    }
+    return payload;
   }
 
   getUserFromRequestByAccessToken(
     request: IncomingMessage,
+    scopes: Nullable<JwtBearerScope[]> = null,
     ignoreExpiration = false,
   ) {
     return this.getUserFromAccessToken(
       getTokenFromRequest(request),
+      scopes,
       ignoreExpiration,
     );
   }
 
-  async getUserFromAccessToken(token: string, ignoreExpiration = false) {
-    const { id: userId } = this.decodeAccessToken(token, ignoreExpiration);
+  async getUserFromAccessToken(
+    token: string,
+    scopes: Nullable<JwtBearerScope[]> = null,
+    ignoreExpiration = false,
+  ) {
+    const { id: userId } = this.decodeAccessToken(
+      token,
+      scopes,
+      ignoreExpiration,
+    );
     const users = await this._usersModel.table.where({ userId }).select(); // FIXME: add method for retrieving
     if (users.length === 0) {
       throw new LogicError(ErrorCode.AUTH_BAD);

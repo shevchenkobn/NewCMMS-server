@@ -9,6 +9,7 @@ const types_1 = require("../di/types");
 const auth_1 = require("../utils/auth");
 const key_pairs_1 = require("../utils/key-pairs");
 const users_model_1 = require("../models/users.model");
+const openapi_1 = require("../utils/openapi");
 const error_service_1 = require("./error.service");
 let AuthService = class AuthService {
     constructor(usersModel, keyPaths = key_pairs_1.getDefaultKeyPaths()) {
@@ -21,8 +22,11 @@ let AuthService = class AuthService {
     generateAccessToken(user) {
         return jwt.sign({
             id: user.userId,
+            scopes: auth_1.getJwtBearerScopes(user),
         }, this._keys.accessToken.privateKey, {
             algorithm: 'RS512',
+            subject: user.userId.toString(),
+            audience: auth_1.jwtAudience,
             expiresIn: this._jwtConfig.expiration.accessToken,
             issuer: this._jwtConfig.issuer,
         });
@@ -30,34 +34,64 @@ let AuthService = class AuthService {
     generateRefreshToken(user) {
         return jwt.sign({
             id: user.userId,
+            scopes: [openapi_1.JwtBearerScope.TOKEN_REFRESH],
         }, this._keys.refreshToken.privateKey, {
             algorithm: 'RS512',
+            subject: user.userId.toString(),
+            audience: auth_1.jwtAudience,
             expiresIn: this._jwtConfig.expiration.refreshToken,
             issuer: this._jwtConfig.issuer,
         });
     }
-    decodeAccessToken(token, ignoreExpiration = false) {
-        return jwt.verify(token, this._keys.accessToken.publicKey, {
-            ignoreExpiration,
-            algorithms: ['RS512'],
-            issuer: this._jwtConfig.issuer,
-        });
+    decodeAccessToken(token, scopes = null, ignoreExpiration = false) {
+        let payload;
+        try {
+            payload = jwt.verify(token, this._keys.accessToken.publicKey, {
+                ignoreExpiration,
+                audience: auth_1.jwtAudience,
+                algorithms: ['RS512'],
+                issuer: this._jwtConfig.issuer,
+            });
+        }
+        catch (err) {
+            auth_1.handleJwtError(err);
+        }
+        if (!auth_1.isJwtPayload(payload)) {
+            throw new error_service_1.LogicError(error_service_1.ErrorCode.AUTH_BAD_REFRESH);
+        }
+        if (scopes) {
+            auth_1.assertRequiredScopes(scopes, payload.scopes);
+        }
+        return payload;
     }
-    decodeRefreshToken(token, ignoreExpiration = false) {
-        return jwt.verify(token, this._keys.accessToken.publicKey, {
-            ignoreExpiration,
-            algorithms: ['RS512'],
-            issuer: this._jwtConfig.issuer,
-        });
+    decodeRefreshToken(token, checkScope = false, ignoreExpiration = false) {
+        let payload;
+        try {
+            payload = jwt.verify(token, this._keys.accessToken.publicKey, {
+                ignoreExpiration,
+                audience: auth_1.jwtAudience,
+                algorithms: ['RS512'],
+                issuer: this._jwtConfig.issuer,
+            });
+        }
+        catch (err) {
+            auth_1.handleJwtError(err, error_service_1.ErrorCode.AUTH_BAD_REFRESH);
+        }
+        if (!auth_1.isJwtPayload(payload)) {
+            throw new error_service_1.LogicError(error_service_1.ErrorCode.AUTH_BAD_REFRESH);
+        }
+        if (checkScope
+            && (payload.scopes.length !== 1
+                || payload.scopes[0] !== openapi_1.JwtBearerScope.TOKEN_REFRESH)) {
+            throw new error_service_1.LogicError(error_service_1.ErrorCode.AUTH_BAD_REFRESH);
+        }
+        return payload;
     }
-    getUserFromRequestByAccessToken(request, ignoreExpiration = false) {
-        return this.getUserFromAccessToken(auth_1.getTokenFromRequest(request), ignoreExpiration);
+    getUserFromRequestByAccessToken(request, scopes = null, ignoreExpiration = false) {
+        return this.getUserFromAccessToken(auth_1.getTokenFromRequest(request), scopes, ignoreExpiration);
     }
-    getUserFromAccessTokenString(str, ignoreExpiration = false) {
-        return this.getUserFromAccessToken(auth_1.getTokenFromString(str), ignoreExpiration);
-    }
-    async getUserFromAccessToken(token, ignoreExpiration = false) {
-        const { id: userId } = this.decodeAccessToken(token, ignoreExpiration);
+    async getUserFromAccessToken(token, scopes = null, ignoreExpiration = false) {
+        const { id: userId } = this.decodeAccessToken(token, scopes, ignoreExpiration);
         const users = await this._usersModel.table.where({ userId }).select(); // FIXME: add method for retrieving
         if (users.length === 0) {
             throw new error_service_1.LogicError(error_service_1.ErrorCode.AUTH_BAD);

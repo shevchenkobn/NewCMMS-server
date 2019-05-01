@@ -13,7 +13,11 @@ import {
   exitGracefully,
 } from './services/exit-handler.service';
 import { logger } from './services/logger.service';
-import { errorHandler, notFoundHandler } from './utils/middlewares';
+import {
+  errorHandler,
+  notFoundHandler,
+  validateResponses,
+} from './utils/middlewares';
 import {
   getOpenApiOptions,
   loadOpenApiDoc,
@@ -62,6 +66,15 @@ Promise.join(
 
   const app = express();
   const server = createServer(app);
+
+//  apiDoc['x-express-openapi-disable-coercion-middleware'] = false; // FIXME: delete if requests are coerced without it
+  apiDoc['x-express-openapi-disable-defaults-middleware'] = true;
+  if (notProduction) {
+    apiDoc['x-express-openapi-disable-response-validation-middleware'] = false;
+    apiDoc['x-express-openapi-additional-middleware'] = [validateResponses];
+  } else {
+    apiDoc['x-express-openapi-disable-response-validation-middleware'] = true;
+  }
 
   const openapiFramework = initialize(
     getOpenApiOptions(app, apiDoc),

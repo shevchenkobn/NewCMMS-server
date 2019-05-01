@@ -34,6 +34,15 @@ Promise.join(openapi_1.loadOpenApiDoc(), container_1.initDependenciesAsync()).th
     const { host, port } = config.get('server');
     const app = express();
     const server = http_1.createServer(app);
+    //  apiDoc['x-express-openapi-disable-coercion-middleware'] = false; // FIXME: delete if requests are coerced without it
+    apiDoc['x-express-openapi-disable-defaults-middleware'] = true;
+    if (notProduction) {
+        apiDoc['x-express-openapi-disable-response-validation-middleware'] = false;
+        apiDoc['x-express-openapi-additional-middleware'] = [middlewares_1.validateResponses];
+    }
+    else {
+        apiDoc['x-express-openapi-disable-response-validation-middleware'] = true;
+    }
     const openapiFramework = express_openapi_1.initialize(openapi_1.getOpenApiOptions(app, apiDoc));
     if (argv.buildOpenapiDoc) {
         logger_service_1.logger.info('Saving full OpenApi doc...');

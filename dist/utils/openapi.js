@@ -1,14 +1,21 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const appRoot = require("app-root-path");
-const path = require("path");
-const yaml = require("yaml");
+const bodyParser = require("body-parser");
 const fs_1 = require("fs");
 const refParser = require("json-schema-ref-parser");
-const bodyParser = require("body-parser");
+const path = require("path");
+const yaml = require("yaml");
 const error_service_1 = require("../services/error.service");
 const logger_service_1 = require("../services/logger.service");
 const security_handlers_service_1 = require("../services/security-handlers.service");
+exports.jwtBearerScheme = 'jwt-bearer';
+var JwtBearerScope;
+(function (JwtBearerScope) {
+    JwtBearerScope["EMPLOYEE"] = "employee";
+    JwtBearerScope["ADMIN"] = "admin";
+    JwtBearerScope["TOKEN_REFRESH"] = "token:refresh";
+})(JwtBearerScope = exports.JwtBearerScope || (exports.JwtBearerScope = {}));
 function loadOpenApiDoc(rootPath = appRoot.resolve('openapi/src/openapi.yaml'), copyReferenced = false) {
     return refParser[copyReferenced ? 'bundle' : 'dereference'](rootPath, {
         parse: {

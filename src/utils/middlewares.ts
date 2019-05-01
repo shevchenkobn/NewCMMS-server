@@ -1,14 +1,68 @@
-import { ErrorCode, LogicError } from '../services/error.service';
+import {
+  ErrorCode,
+  LogicError,
+  ResponseValidationError,
+} from '../services/error.service';
 import { ErrorRequestHandler, Handler } from 'express';
 import { logger } from '../services/logger.service';
+import { IOpenApiRequest, IOpenApiResponse } from './openapi';
+import { IRequestWithUser } from '../services/security-handlers.service';
+import { DeepPartial, Optional } from '../@types';
+import { OpenAPIResponseValidatorValidationError } from 'openapi-response-validator';
+
+export const validateResponses: Handler = (req, res, next) => {
+  const request = req as IOpenApiRequest;
+  const response = res as IOpenApiResponse;
+
+  const strictValidation = !!request.apiDoc['x-express-openapi-validation-strict'];
+  if (typeof response.validateResponse === 'function') {
+    const send = res.send;
+    res.send = function expressOpenAPISend(...args) {
+      const onlyWarn = !strictValidation;
+      if (res.get('x-express-openapi-validation-error-for') !== undefined) {
+        return send.apply(res, args);
+      }
+      const body = args[0];
+      let validation: Optional<
+        Partial<OpenAPIResponseValidatorValidationError>
+      > = response.validateResponse(
+        res.statusCode.toString(),
+        body,
+      ) as any;
+      let validationMessage;
+      if (!validation) {
+        validation = { message: undefined, errors: undefined };
+      }
+      if (validation.errors) {
+        // tslint:disable-next-line:max-line-length
+        validationMessage = `Invalid response for status code ${res.statusCode} for ${req.url}: ${
+          Array.from(validation.errors).map(_ => _.message).join(',')
+        }`;
+        logger.warn(validationMessage);
+        // Set to avoid a loop, and to provide the original status code
+        res.set('x-express-openapi-validation-error-for', res.statusCode.toString());
+      }
+      if (onlyWarn || !validation.errors) {
+        return send.apply(res, args);
+      }
+      res.status(500);
+      return res.json(new ResponseValidationError(
+        validation,
+        validationMessage,
+      ));
+    };
+  }
+  next();
+};
 
 export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
-  logger.error('Request error: ');
-  logger.error(err);
+  logger.debug('Request error: ');
+  logger.debug(err);
   if (err instanceof LogicError) {
     switch (err.code) {
       case ErrorCode.AUTH_ROLE:
       case ErrorCode.AUTH_EXPIRED:
+      case ErrorCode.AUTH_BAD_REFRESH:
       case ErrorCode.SELECT_BAD:
         res.status(403);
         break;

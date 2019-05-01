@@ -1,13 +1,12 @@
-import { Request } from 'express';
 import { SecurityHandlers } from 'openapi-security-handler';
 import { OpenAPIV3 } from 'openapi-types';
 import { Nullable } from '../@types';
 import { getContainer } from '../di/container';
 import { IUser } from '../models/users.model';
-import { JwtBearerScope } from '../utils/openapi';
+import { IOpenApiRequest, JwtBearerScope } from '../utils/openapi';
 import { AuthService } from './auth.service';
 
-export interface IRequestWithUser extends Request {
+export interface IRequestWithUser extends IOpenApiRequest {
   user: IUser;
 }
 
@@ -24,7 +23,10 @@ export function getSecurityHandlers() {
         const request = req as IRequestWithUser;
         const jwtScopes = scopes as JwtBearerScope[];
 
-        const user = await authService.getUserFromRequestByAccessToken(request);
+        const user = await authService.getUserFromRequestByAccessToken(
+          request,
+          jwtScopes,
+        );
         request.user = user;
         return true;
       },
