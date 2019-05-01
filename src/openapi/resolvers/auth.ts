@@ -1,9 +1,8 @@
 import { getContainer } from '../../di/container';
 import {
   jwtBearerScheme,
-  JwtBearerScope,
-} from '../../services/security-handlers.service';
-import { IOpenApiPathItemHandler } from '../../utils/openapi';
+  } from '../../utils/openapi';
+import { IOpenApiPathItemHandler, JwtBearerScope } from '../../utils/openapi';
 import { AuthCommon } from '../services/auth.common';
 
 const pathItemHandler: IOpenApiPathItemHandler = {};
@@ -34,6 +33,6 @@ pathItemHandler.post.apiDoc = {
     },
   },
   security: [{
-    [jwtBearerScheme]: [JwtBearerScope.USER],
+    [jwtBearerScheme]: [JwtBearerScope.EMPLOYEE],
   }],
 };

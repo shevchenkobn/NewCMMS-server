@@ -27,7 +27,7 @@ pathItemHandler.post.apiDoc = {
         },
     },
     security: [{
-            [security_handlers_service_1.jwtBearerScheme]: [security_handlers_service_1.JwtBearerScope.USER],
+            [security_handlers_service_1.jwtBearerScheme]: [security_handlers_service_1.JwtBearerScope.EMPLOYEE],
         }],
 };
 module.exports = pathItemHandler;

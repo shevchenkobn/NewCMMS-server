@@ -2,9 +2,9 @@ import { inject, injectable } from 'inversify';
 import * as jwt from 'jsonwebtoken';
 import { ASYNC_INIT } from '../di/types';
 import {
-  getJwtConfig, getTokenFromRequest, getTokenFromString,
+  getJwtConfig, getTokenFromRequest, getTokenFromAccessTokenString,
   IConfigTokenTypesDescriptor,
-  IJwtConfig,
+  IJwtConfig, getJwtBearerScopes,
 } from '../utils/auth';
 import {
   getDefaultKeyPaths,
@@ -13,11 +13,15 @@ import {
 } from '../utils/key-pairs';
 import { IUser, UsersModel } from '../models/users.model';
 import { IncomingMessage } from 'http';
+import { JwtBearerScope } from '../utils/openapi';
 import { ErrorCode, LogicError } from './error.service';
 
 export interface IJwtPayload {
   id: number;
+  scopes: JwtBearerScope[];
 }
+
+export const jwtAudience = 'human-actors';
 
 @injectable()
 export class AuthService {
@@ -41,6 +45,7 @@ export class AuthService {
   generateAccessToken(user: IUser) {
     return jwt.sign({
       id: user.userId,
+      scopes: getJwtBearerScopes(user),
     }, this._keys.accessToken.privateKey, {
       algorithm: 'RS512', // FIXME: RS256
       expiresIn: this._jwtConfig.expiration.accessToken,
@@ -51,8 +56,10 @@ export class AuthService {
   generateRefreshToken(user: IUser) {
     return jwt.sign({
       id: user.userId,
+      scopes: [JwtBearerScope.TOKEN_REFRESH],
     }, this._keys.refreshToken.privateKey, {
       algorithm: 'RS512',
+      audience: jwtAudience,
       expiresIn: this._jwtConfig.expiration.refreshToken,
       issuer: this._jwtConfig.issuer,
     });
@@ -61,6 +68,7 @@ export class AuthService {
   decodeAccessToken(token: string, ignoreExpiration = false) {
     return jwt.verify(token, this._keys.accessToken.publicKey, {
       ignoreExpiration,
+      audience: jwtAudience,
       algorithms: ['RS512'], // FIXME: RS256
       issuer: this._jwtConfig.issuer,
     }) as IJwtPayload;
@@ -80,13 +88,6 @@ export class AuthService {
   ) {
     return this.getUserFromAccessToken(
       getTokenFromRequest(request),
-      ignoreExpiration,
-    );
-  }
-
-  getUserFromAccessTokenString(str: string, ignoreExpiration = false) {
-    return this.getUserFromAccessToken(
-      getTokenFromString(str),
       ignoreExpiration,
     );
   }

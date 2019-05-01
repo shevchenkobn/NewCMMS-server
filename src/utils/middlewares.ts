@@ -3,6 +3,7 @@ import { ErrorRequestHandler, Handler } from 'express';
 import { logger } from '../services/logger.service';
 
 export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
+  logger.error('Request error: ');
   logger.error(err);
   if (err instanceof LogicError) {
     switch (err.code) {

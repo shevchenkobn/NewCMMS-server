@@ -1,32 +1,32 @@
-import { Nullable } from '../@types';
-import { getContainer } from '../di/container';
-import { AuthService } from './auth.service';
+import { Request } from 'express';
 import { SecurityHandlers } from 'openapi-security-handler';
 import { OpenAPIV3 } from 'openapi-types';
-import { logger } from './logger.service';
+import { Nullable } from '../@types';
+import { getContainer } from '../di/container';
+import { IUser } from '../models/users.model';
+import { JwtBearerScope } from '../utils/openapi';
+import { AuthService } from './auth.service';
 
-export const jwtBearerScheme = 'jwt-bearer';
-
-export enum JwtBearerScope {
-  USER = 'user',
-  ADMIN = 'admin',
-  TOKEN_REFRESH = 'token:refresh',
+export interface IRequestWithUser extends Request {
+  user: IUser;
 }
 
-let auth: Nullable<AuthService> = null;
+let authService: AuthService; // not Nullable<> due to type inference flaw
 let securityHandlers: Nullable<SecurityHandlers> = null;
 export function getSecurityHandlers() {
-  if (!auth) {
-    auth = getContainer().get<AuthService>(AuthService);
-  }
   if (!securityHandlers) {
+    if (!authService) {
+      authService = getContainer().get<AuthService>(AuthService);
+    }
     securityHandlers = {
       'jwt-bearer': async (req, scopes, definition) => {
         const scheme = definition as unknown as OpenAPIV3.OAuth2SecurityScheme;
-        logger.debug(scheme);
-        logger.debug(req);
-        logger.debug(scopes);
-        return false;
+        const request = req as IRequestWithUser;
+        const jwtScopes = scopes as JwtBearerScope[];
+
+        const user = await authService.getUserFromRequestByAccessToken(request);
+        request.user = user;
+        return true;
       },
     };
   }

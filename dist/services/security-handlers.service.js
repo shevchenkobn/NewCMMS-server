@@ -6,7 +6,7 @@ const logger_service_1 = require("./logger.service");
 exports.jwtBearerScheme = 'jwt-bearer';
 var JwtBearerScope;
 (function (JwtBearerScope) {
-    JwtBearerScope["USER"] = "user";
+    JwtBearerScope["EMPLOYEE"] = "user";
     JwtBearerScope["ADMIN"] = "admin";
     JwtBearerScope["TOKEN_REFRESH"] = "token:refresh";
 })(JwtBearerScope = exports.JwtBearerScope || (exports.JwtBearerScope = {}));
@@ -20,9 +20,8 @@ function getSecurityHandlers() {
         securityHandlers = {
             'jwt-bearer': async (req, scopes, definition) => {
                 const scheme = definition;
-                logger_service_1.logger.debug(scheme);
-                logger_service_1.logger.debug(req);
-                logger_service_1.logger.debug(scopes);
+                const request = req;
+                logger_service_1.logger.debug(definition);
                 return false;
             },
         };

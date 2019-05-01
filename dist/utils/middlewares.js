@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const error_service_1 = require("../services/error.service");
 const logger_service_1 = require("../services/logger.service");
 exports.errorHandler = (err, req, res, next) => {
+    logger_service_1.logger.error('Request error: ');
     logger_service_1.logger.error(err);
     if (err instanceof error_service_1.LogicError) {
         switch (err.code) {
