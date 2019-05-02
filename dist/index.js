@@ -38,7 +38,9 @@ Promise.join(openapi_1.loadOpenApiDoc(), container_1.initDependenciesAsync()).th
     apiDoc['x-express-openapi-disable-defaults-middleware'] = true;
     if (notProduction) {
         apiDoc['x-express-openapi-disable-response-validation-middleware'] = false;
+        apiDoc['x-express-openapi-response-validation-strict'] = true;
         apiDoc['x-express-openapi-additional-middleware'] = [middlewares_1.validateResponses];
+        logger_service_1.logger.info('Response OpenApi validation is enabled');
     }
     else {
         apiDoc['x-express-openapi-disable-response-validation-middleware'] = true;
@@ -53,7 +55,7 @@ Promise.join(openapi_1.loadOpenApiDoc(), container_1.initDependenciesAsync()).th
             logger_service_1.logger.error(err);
         });
     }
-    app.use(middlewares_1.errorHandler);
+    app.use(middlewares_1.errorHandlingPipeline);
     app.use(middlewares_1.notFoundHandler);
     exit_handler_service_1.bindOnExitHandler(() => {
         server.close((err) => {

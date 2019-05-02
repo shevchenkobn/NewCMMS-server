@@ -4,13 +4,13 @@ import { Express, Request, Response } from 'express';
 import { ExpressOpenAPIArgs, Operation } from 'express-openapi';
 import { promises as fsPromises } from 'fs';
 import * as refParser from 'json-schema-ref-parser';
+import { IOpenAPIResponseValidator } from 'openapi-response-validator';
 import { OpenAPIV3 } from 'openapi-types';
 import * as path from 'path';
 import * as yaml from 'yaml';
 import { errorTransformer } from '../services/error.service';
 import { logger } from '../services/logger.service';
 import { getSecurityHandlers } from '../services/security-handlers.service';
-import { IOpenAPIResponseValidator } from 'openapi-response-validator';
 
 export interface IOpenApiPathItemHandler {
   parameters?: OpenAPIV3.ParameterObject[];
@@ -39,6 +39,17 @@ export interface IOpenApiRequest extends Request {
 
 export interface IOpenApiResponse extends Response, IOpenAPIResponseValidator {
 
+}
+
+export interface IOpenApiFinalError {
+  status: number;
+  errors?: any[];
+}
+
+export interface IOpenApiSecurityHandlerError {
+  status: 401;
+  message: string;
+  errorCode: 'authentication.openapi.security';
 }
 
 export function loadOpenApiDoc(
@@ -92,10 +103,26 @@ export function getOpenApiOptions(
   };
 }
 
+export function isOpenApiFinalError(
+  err: any,
+): err is IOpenApiFinalError {
+  return typeof err === 'object' && err !== null
+    && typeof err.status === 'number' && Array.isArray(err.errors);
+}
+
 export function saveFullOpenApiDocument(doc: any) {
   return fsPromises.writeFile(
     appRoot.resolve('openapi/dist/openapi.yaml'),
     yaml.stringify(doc, { keepCstNodes: true }),
     'utf8',
   );
+}
+
+export function isOpenApiSecurityHandlerError(
+  err: any,
+): err is IOpenApiSecurityHandlerError {
+  return typeof err === 'object' && err !== null
+    && err.status === 401
+    && typeof err.message === 'string'
+    && err.errorCode === 'authentication.openapi.security';
 }

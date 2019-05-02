@@ -91,8 +91,12 @@ let AuthService = class AuthService {
         return this.getUserFromAccessToken(auth_1.getTokenFromRequest(request), scopes, ignoreExpiration);
     }
     async getUserFromAccessToken(token, scopes = null, ignoreExpiration = false) {
-        const { id: userId } = this.decodeAccessToken(token, scopes, ignoreExpiration);
-        const users = await this._usersModel.table.where({ userId }).select(); // FIXME: add method for retrieving
+        const payload = this.decodeAccessToken(token, scopes, ignoreExpiration);
+        return this.getUserFromPayload(payload);
+    }
+    async getUserFromPayload(payload) {
+        const users = await this._usersModel.table.where({ userId: payload.id })
+            .select(); // FIXME: add method for retrieving
         if (users.length === 0) {
             throw new error_service_1.LogicError(error_service_1.ErrorCode.AUTH_BAD);
         }

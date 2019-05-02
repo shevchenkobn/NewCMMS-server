@@ -1,7 +1,7 @@
 {
   "extends": "tslint-config-airbnb",
   "rules": {
-    "max-line-length": [true, {"limit": 80, "ignore-pattern": "^import |^export {(.*?)}|class [a-zA-Z]+ implements |//|/\\*| \\*| \\*/|\".*\"|`.*`|'.*'"}],
+    "max-line-length": [true, {"limit": 80, "ignore-pattern": "^import |^export {(.*?)}| implements | extends |//|/\\*| \\*| \\*/|\".*\"|`.*`|'.*'"}],
     "variable-name": [true, "allow-leading-underscore"],
     "align": false,
     "ter-arrow-parens": false,

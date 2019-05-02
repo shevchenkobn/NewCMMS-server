@@ -138,12 +138,19 @@ export class AuthService {
     scopes: Nullable<JwtBearerScope[]> = null,
     ignoreExpiration = false,
   ) {
-    const { id: userId } = this.decodeAccessToken(
+    const payload = this.decodeAccessToken(
       token,
       scopes,
       ignoreExpiration,
     );
-    const users = await this._usersModel.table.where({ userId }).select(); // FIXME: add method for retrieving
+    return this.getUserFromPayload(payload);
+  }
+
+  async getUserFromPayload(
+    payload: IJwtPayload,
+  ) {
+    const users = await this._usersModel.table.where({ userId: payload.id })
+      .select(); // FIXME: add method for retrieving
     if (users.length === 0) {
       throw new LogicError(ErrorCode.AUTH_BAD);
     }

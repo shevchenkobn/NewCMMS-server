@@ -61,8 +61,20 @@ function getOpenApiOptions(app, apiDoc) {
     };
 }
 exports.getOpenApiOptions = getOpenApiOptions;
+function isOpenApiFinalError(err) {
+    return typeof err === 'object' && err !== null
+        && typeof err.status === 'number' && Array.isArray(err.errors);
+}
+exports.isOpenApiFinalError = isOpenApiFinalError;
 function saveFullOpenApiDocument(doc) {
     return fs_1.promises.writeFile(appRoot.resolve('openapi/dist/openapi.yaml'), yaml.stringify(doc, { keepCstNodes: true }), 'utf8');
 }
 exports.saveFullOpenApiDocument = saveFullOpenApiDocument;
+function isOpenApiSecurityHandlerError(err) {
+    return typeof err === 'object' && err !== null
+        && err.status === 401
+        && typeof err.message === 'string'
+        && err.errorCode === 'authentication.openapi.security';
+}
+exports.isOpenApiSecurityHandlerError = isOpenApiSecurityHandlerError;
 //# sourceMappingURL=openapi.js.map

@@ -34,19 +34,26 @@ paths:
                 properties:
                   hello:
                     type: string
-      security:
-        - jwt-bearer:
-            - user
 components:
   securitySchemes:
     jwt-bearer:
       type: oauth2
-      description: The main and only mean of authorizing to the system.
+      description: 'The main and only mean of authorizing to the system for human actors.
+        The JWT token has `userId` as subject and payload of `{ "id": 42,
+        "scopes": ["string", "scopes" }` where `id` is `userId` and `scopes` is
+        an array of authorised scopes to be described below. The token MUST be
+        provided under `Bearer ` scheme in `Authorization` header.'
       flows:
         password:
           scopes:
-            user: For Access Token. Mainly readonly access by non-admin users.
+            employee: For Access Token. Mainly readonly access by non-admin users
+              (employees).
             admin: For Access Token. CRUD access to all the entities.
             token:refresh: For Refresh Token. Scope to refresh token.
           tokenUrl: "{serverUrlWithApiBase}/auth/login"
           refreshUrl: "{serverUrlWithApiBase}/auth/refresh"
+x-express-openapi-disable-defaults-middleware: true
+x-express-openapi-disable-response-validation-middleware: false
+x-express-openapi-validation-strict: true
+x-express-openapi-additional-middleware:
+  - null

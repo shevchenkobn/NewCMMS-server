@@ -14,7 +14,7 @@ import {
 } from './services/exit-handler.service';
 import { logger } from './services/logger.service';
 import {
-  errorHandler,
+  errorHandlingPipeline,
   notFoundHandler,
   validateResponses,
 } from './utils/middlewares';
@@ -71,7 +71,9 @@ Promise.join(
   apiDoc['x-express-openapi-disable-defaults-middleware'] = true;
   if (notProduction) {
     apiDoc['x-express-openapi-disable-response-validation-middleware'] = false;
+    apiDoc['x-express-openapi-response-validation-strict'] = true;
     apiDoc['x-express-openapi-additional-middleware'] = [validateResponses];
+    logger.info('Response OpenApi validation is enabled');
   } else {
     apiDoc['x-express-openapi-disable-response-validation-middleware'] = true;
   }
@@ -90,7 +92,7 @@ Promise.join(
     });
   }
 
-  app.use(errorHandler);
+  app.use(errorHandlingPipeline);
   app.use(notFoundHandler);
 
   bindOnExitHandler(() => {
