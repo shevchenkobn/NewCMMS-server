@@ -46,16 +46,16 @@ let argv: Nullable<yargs.Arguments> = yargs
     description: 'Generate OpenApi YAML document.',
   }).argv;
 
-// Function expression is needed to avoid polluting the scope.
-const container = (() => {
+// Avoid polluting global namespace
+namespace Di {
   const excludedDependencies: ServiceIdentifier<any>[] = [TYPES.DbOrchestrator];
-  return createContainer(
+  export const container = createContainer(
     // This function is needed to ensure ALL async initialized services will be eagerly injected
     Array.from(typeMap.keys()).filter(
       t => !excludedDependencies.includes(t),
     ),
   );
-})();
+}
 
 Promise.join(
   loadOpenApiDoc(),

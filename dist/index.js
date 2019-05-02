@@ -22,13 +22,14 @@ let argv = yargs
     default: false,
     description: 'Generate OpenApi YAML document.',
 }).argv;
-// Function expression is needed to avoid polluting the scope.
-const container = (() => {
+// Avoid polluting global namespace
+var Di;
+(function (Di) {
     const excludedDependencies = [types_1.TYPES.DbOrchestrator];
-    return container_1.createContainer(
+    Di.container = container_1.createContainer(
     // This function is needed to ensure ALL async initialized services will be eagerly injected
     Array.from(container_1.typeMap.keys()).filter(t => !excludedDependencies.includes(t)));
-})();
+})(Di || (Di = {}));
 Promise.join(openapi_1.loadOpenApiDoc(), container_1.initDependenciesAsync()).then(([apiDoc]) => {
     const notProduction = process.env.NODE_ENV !== 'production';
     const { host, port } = config.get('server');
