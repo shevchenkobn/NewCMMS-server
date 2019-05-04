@@ -24,7 +24,7 @@ let AuthService = class AuthService {
             id: user.userId,
             scopes: auth_1.getJwtBearerScopes(user),
         }, this._keys.accessToken.privateKey, {
-            algorithm: 'RS512',
+            algorithm: 'RS256',
             subject: user.userId.toString(),
             audience: auth_1.jwtAudience,
             expiresIn: this._jwtConfig.expiration.accessToken,
@@ -49,7 +49,7 @@ let AuthService = class AuthService {
             payload = jwt.verify(token, this._keys.accessToken.publicKey, {
                 ignoreExpiration,
                 audience: auth_1.jwtAudience,
-                algorithms: ['RS512'],
+                algorithms: ['RS256'],
                 issuer: this._jwtConfig.issuer,
             });
         }
@@ -95,12 +95,11 @@ let AuthService = class AuthService {
         return this.getUserFromPayload(payload);
     }
     async getUserFromPayload(payload) {
-        const users = await this._usersModel.table.where({ userId: payload.id })
-            .select(); // FIXME: add method for retrieving
-        if (users.length === 0) {
+        const user = await this._usersModel.getOne({ userId: payload.id });
+        if (!user) {
             throw new error_service_1.LogicError(error_service_1.ErrorCode.AUTH_BAD);
         }
-        return users[0];
+        return user;
     }
 };
 _a = types_1.ASYNC_INIT;

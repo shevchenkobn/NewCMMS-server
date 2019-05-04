@@ -14,11 +14,16 @@ import {
   jwtAudience,
 } from '../utils/auth';
 import { getDefaultKeyPaths, IKeys, loadKeys } from '../utils/key-pairs';
-import { IUser, UsersModel } from '../models/users.model';
+import { IUser, UserRole, UsersModel } from '../models/users.model';
 import { IncomingMessage } from 'http';
 import { JwtBearerScope } from '../utils/openapi';
 import { ErrorCode, LogicError } from './error.service';
 import { Nullable } from '../@types';
+
+export interface IUserForToken {
+  userId: number;
+  role: UserRole;
+}
 
 @injectable()
 export class AuthService {
@@ -39,12 +44,12 @@ export class AuthService {
     this._usersModel = usersModel;
   }
 
-  generateAccessToken(user: IUser) {
+  generateAccessToken(user: IUserForToken) {
     return jwt.sign({
       id: user.userId,
       scopes: getJwtBearerScopes(user),
     }, this._keys.accessToken.privateKey, {
-      algorithm: 'RS512', // FIXME: RS256
+      algorithm: 'RS256', // FIXME: RS256
       subject: user.userId.toString(),
       audience: jwtAudience,
       expiresIn: this._jwtConfig.expiration.accessToken,
@@ -52,7 +57,7 @@ export class AuthService {
     });
   }
 
-  generateRefreshToken(user: IUser) {
+  generateRefreshToken(user: IUserForToken) {
     return jwt.sign({
       id: user.userId,
       scopes: [JwtBearerScope.TOKEN_REFRESH],
@@ -75,7 +80,7 @@ export class AuthService {
       payload = jwt.verify(token, this._keys.accessToken.publicKey, {
         ignoreExpiration,
         audience: jwtAudience,
-        algorithms: ['RS512'], // FIXME: RS256
+        algorithms: ['RS256'],
         issuer: this._jwtConfig.issuer,
       });
     } catch (err) {
@@ -149,11 +154,10 @@ export class AuthService {
   async getUserFromPayload(
     payload: IJwtPayload,
   ) {
-    const users = await this._usersModel.table.where({ userId: payload.id })
-      .select(); // FIXME: add method for retrieving
-    if (users.length === 0) {
+    const user = await this._usersModel.getOne({ userId: payload.id });
+    if (!user) {
       throw new LogicError(ErrorCode.AUTH_BAD);
     }
-    return users[0] as IUser;
+    return user;
   }
 }

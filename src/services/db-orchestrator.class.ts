@@ -101,8 +101,7 @@ export class DbOrchestrator {
 
   clearDatabaseSeed() {
     const email = config.get<string>('server.admin.email');
-    // TODO: replace with more relevant model method
-    return this._usersModel.table.where('email', email).delete();
+    return this._usersModel.deleteOne({ email });
   }
 
   seedDatabase() {

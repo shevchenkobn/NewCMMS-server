@@ -23,4 +23,8 @@ components:
   securitySchemes:
     jwt-bearer:
       $ref: './security-schemes/jwt-bearer.yaml'
+  schemas:
+    $ref: ./schemas/__init__.yaml
+  responses:
+    $ref: ./responses/__init__.yaml
 

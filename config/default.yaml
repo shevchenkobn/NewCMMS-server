@@ -5,7 +5,7 @@ server:
   admin:
     id: 1
     name: Master Admin
-    password: admin
+    password: Admin!123
     email: master.admin@local.host
 
 db:

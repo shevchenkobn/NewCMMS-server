@@ -23,17 +23,39 @@ paths:
   /auth:
     parameters: []
     post:
-      description: test
+      description: Acquire a token pair
+      requestBody:
+        description: Credentials to log in with
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  $ref: "#/components/schemas/UserPassword"
+              additionalProperties: false
+        required: true
       responses:
         "200":
-          description: test
+          description: Login Successful
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  hello:
-                    type: string
+                $ref: "#/components/schemas/TokenPair"
+        "400":
+          $ref: "#/components/responses/OpenApiBadRequest"
+        "401":
+          description: Error in data provided
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 components:
   securitySchemes:
     jwt-bearer:
@@ -52,8 +74,60 @@ components:
             token:refresh: For Refresh Token. Scope to refresh token.
           tokenUrl: "{serverUrlWithApiBase}/auth/login"
           refreshUrl: "{serverUrlWithApiBase}/auth/refresh"
+  schemas:
+    TokenPair:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+      additionalProperties: false
+    UserPassword:
+      type: string
+      format: password
+      pattern: ^(?=.*[A-Z])(?=.*[!@#$&*])(?=.*[0-9])(?=.*[a-z]).{6,}$
+    Error:
+      type: object
+      required:
+        - code
+      properties:
+        code:
+          type: string
+      additionalProperties: true
+  responses:
+    OpenApiBadRequest:
+      description: A response that indicated about error in request produced by the OpenApi
+        validation. It is not programmatical but API misuse.
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - code
+            properties:
+              code:
+                type: string
+                enum:
+                  - OPENAPI_VALIDATION
+            additionalProperties: true
+    BadRequest:
+      description: A response that indicated about error in request produced by the OpenApi
+        validation. It is not programmatical but API misuse.
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - code
+            properties:
+              code:
+                type: string
+                enum:
+                  - OPENAPI_VALIDATION
+            additionalProperties: true
 x-express-openapi-disable-defaults-middleware: true
 x-express-openapi-disable-response-validation-middleware: false
-x-express-openapi-validation-strict: true
+x-express-openapi-response-validation-strict: true
 x-express-openapi-additional-middleware:
   - null

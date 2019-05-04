@@ -1,0 +1,11 @@
+description: A response that indicated about error in request produced by the OpenApi validation. It is not programmatical but API misuse.
+content:
+  application/json:
+    schema:
+      type: object
+      required: [code]
+      properties:
+        code:
+          type: string
+          enum: [OPENAPI_VALIDATION]
+      additionalProperties: true

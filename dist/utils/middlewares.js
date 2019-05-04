@@ -9,7 +9,7 @@ exports.validateResponses = (req, res, next) => {
     const request = req;
     const response = res;
     const strictValidation = !!request.apiDoc['x-express-openapi-response-validation-strict'];
-    if (typeof response.validateResponse === 'function') { // FIXME: change when error transformer will be used
+    if (typeof response.validateResponse === 'function') {
         const send = res.send;
         res.send = function expressOpenAPISend(...args) {
             const onlyWarn = !strictValidation;

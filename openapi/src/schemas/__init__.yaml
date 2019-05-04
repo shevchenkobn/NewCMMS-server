@@ -1,0 +1,8 @@
+TokenPair:
+  $ref: ./token-pair.yaml
+
+UserPassword:
+  $ref: ./user-password.yaml
+
+Error:
+  $ref: ./error.yaml

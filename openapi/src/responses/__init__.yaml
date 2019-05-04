@@ -1,0 +1,5 @@
+OpenApiBadRequest:
+  $ref: ./openapi-bad-request.yaml
+
+BadRequest:
+  $ref: ./openapi-bad-request.yaml

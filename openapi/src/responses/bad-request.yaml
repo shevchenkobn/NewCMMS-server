@@ -1,0 +1,5 @@
+description: A response that indicated about error in request produced either by the OpenApi validation or in business logic.
+content:
+  application/json:
+    schema:
+      $ref: '#/components/schemas/Error'

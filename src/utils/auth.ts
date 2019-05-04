@@ -61,7 +61,7 @@ export function getTokenFromAccessTokenString(str: string) {
   return str.replace(bearerRegex, '');
 }
 
-export function getJwtBearerScopes(user: IUser) {
+export function getJwtBearerScopes(user: { role: UserRole }) {
   const scopes = [];
   if (user.role & UserRole.EMPLOYEE) {
     scopes.push(JwtBearerScope.EMPLOYEE);

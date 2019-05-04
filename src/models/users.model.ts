@@ -1,8 +1,10 @@
+import { compare, hash } from 'bcrypt';
 import { inject, injectable } from 'inversify';
-import { DbConnection } from '../services/db-connection.class';
-import { hash } from 'bcrypt';
-import { TableName } from '../utils/db-orchestrator';
 import * as randomatic from 'randomatic';
+import { Nullable } from '../@types';
+import { DbConnection } from '../services/db-connection.class';
+import { ErrorCode, LogicError } from '../services/error.service';
+import { TableName } from '../utils/db-orchestrator';
 
 export enum UserRole {
   EMPLOYEE = 1,
@@ -20,17 +22,33 @@ export interface IUserCreate extends IUserCreateNoPassword {
   password: string;
 }
 
-export interface IUser extends IUserCreate {
+export interface IUser extends IUserCreateNoPassword {
   userId: number;
 }
 
-export interface IUserWithPassword extends IUser, IUserCreateNoPassword {
+export interface IUserWithPassword extends IUser, IUserCreate {
   userId: number;
 }
 
-export interface IDBUser extends IUser {
+export interface IUserFromDB extends IUser {
   passwordHash: string;
 }
+
+export interface IUserCredentials {
+  email: string;
+  password: string;
+}
+
+export interface IUserId {
+  userId: number;
+}
+
+export interface IUserEmail {
+  email: string;
+}
+
+export const maxBcryptStringToHashLength = 72;
+export const bcryptOptimalHashCycles = 13;
 
 @injectable()
 export class UsersModel {
@@ -44,29 +62,104 @@ export class UsersModel {
     this._dbConnection = dbConnection;
   }
 
+  getAssertedUser(userCredentials: IUserCredentials): Promise<IUser>;
+  getAssertedUser(
+    userCredentials: IUserCredentials,
+    returning: ReadonlyArray<keyof IUserFromDB>,
+  ): Promise<Partial<IUserFromDB>>;
+  async getAssertedUser(
+    userCredentials: IUserCredentials,
+    returning = getAllSafeUserPropertyNames() as
+      ReadonlyArray<keyof IUserFromDB>,
+  ) {
+    if (!userCredentials.password) {
+      throw new LogicError(ErrorCode.USER_PASSWORD_NO);
+    }
+    const select = returning.slice();
+    const passwordHashRequested = returning.includes('passwordHash');
+    if (!passwordHashRequested) {
+      select.push('passwordHash');
+    }
+    const user = await this.getOne({ email: userCredentials.email }, select);
+    if (!user) {
+      throw new LogicError(ErrorCode.USER_EMAIL_BAD);
+    }
+    if (!await compare(userCredentials.password, user.passwordHash!)) {
+      throw new LogicError(ErrorCode.USER_PASSWORD_BAD);
+    }
+    if (!passwordHashRequested) {
+      delete user.passwordHash;
+    }
+    return user;
+  }
+
+  getOne(email: IUserEmail): Promise<Nullable<IUser>>;
+  getOne(
+    email: IUserEmail,
+    returning: ReadonlyArray<keyof IUserFromDB>,
+  ): Promise<Nullable<Partial<IUserFromDB>>>;
+  getOne(userId: IUserId): Promise<Nullable<IUser>>;
+  getOne(
+    userId: IUserId,
+    returning: ReadonlyArray<keyof IUserFromDB>,
+  ): Promise<Nullable<Partial<IUserFromDB>>>;
+  async getOne(
+    emailOrUserId: IUserEmail | IUserId,
+    returning = getAllSafeUserPropertyNames() as
+      ReadonlyArray<keyof IUserFromDB>,
+  ): Promise<Nullable<IUserFromDB | Partial<IUserFromDB>>> {
+    if (!isValidUserUniqueIdentifier(emailOrUserId)) {
+      throw new LogicError(
+        ErrorCode.USER_EMAIL_AND_ID,
+        'Both email and user id present. Use only one of them.',
+      );
+    }
+    const users = await this.table.where(emailOrUserId).select();
+    if (users.length === 0) {
+      return null;
+    }
+    return users[0];
+  }
+
+  deleteOne(email: IUserEmail): Promise<void>;
+  deleteOne(userId: IUserId): Promise<void>;
+  async deleteOne(emailOrUserId: IUserEmail | IUserId): Promise<void> {
+    if (!isValidUserUniqueIdentifier(emailOrUserId)) {
+      throw new LogicError(
+        ErrorCode.USER_EMAIL_AND_ID,
+        'Both email and user id present. Use only one of them.',
+      );
+    }
+    return this.table.where(emailOrUserId).delete();
+  }
+
   create(
     user: Readonly<IUserCreate>,
     returning: ReadonlyArray<keyof IUserCreate>,
-  ): Promise<IUser>;
+  ): Promise<Partial<IUser>>;
   create(
     user: Readonly<IUserCreate>,
   ): Promise<void>;
   create(
     user: Readonly<IUserCreateNoPassword>,
     returning: ReadonlyArray<keyof IUserWithPassword>,
-  ): Promise<IUserWithPassword>;
+  ): Promise<Partial<IUserWithPassword>>;
   create(
     user: Readonly<IUserCreateNoPassword>,
   ): Promise<void>;
   async create(
     user: Readonly<IUserCreateNoPassword & IUserCreate>,
     returning?: ReadonlyArray<keyof (IUserCreateNoPassword & IUserCreate)>,
-  ): Promise<IUser | void> {
-    const { password = randomatic('aA0!', 72), ...userSeed } = user as (IUserWithPassword & IDBUser);
-    userSeed.passwordHash = await hash(password, 13);
+  ): Promise<IUser | Partial<IUser> | void> {
+    const { password = getRandomPassword(), ...userSeed } =
+      user as (IUserWithPassword & IUserFromDB);
+    userSeed.passwordHash = await hash(password, bcryptOptimalHashCycles);
     if (!user.password) {
       if (!returning || !returning.includes('password')) {
-        throw new TypeError('Password is being generated by ignored by caller!');
+        throw new LogicError(
+          ErrorCode.USER_PASSWORD_SAVE_NO,
+          'Password is being generated by ignored by caller!',
+        );
       }
       const newUser = await this.table
         .insert(userSeed, returning as string[]) as IUserWithPassword;
@@ -76,4 +169,21 @@ export class UsersModel {
     return await this.table
       .insert(userSeed, returning as string[]) as IUser;
   }
+}
+
+export function isValidUserUniqueIdentifier(
+  emailOrUserId: IUserEmail | IUserId,
+): emailOrUserId is (IUserEmail | IUserId) {
+  return Object.keys(emailOrUserId).length === 1 && (
+    'email' in emailOrUserId
+    || 'userId' in emailOrUserId
+  );
+}
+
+export function getRandomPassword() {
+  return randomatic('aA0!', maxBcryptStringToHashLength);
+}
+
+export function getAllSafeUserPropertyNames(): (keyof IUser)[] {
+  return ['userId', 'email', 'role', 'fullName'];
 }
