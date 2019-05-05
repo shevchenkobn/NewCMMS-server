@@ -1,0 +1,5 @@
+description: Access token is absent, malformed or expired
+content:
+  application/json:
+    schema:
+      $ref: '../schemas/error.yaml'

@@ -6,3 +6,6 @@ UserPassword:
 
 Error:
   $ref: ./error.yaml
+
+User:
+  $ref: ./user.yaml

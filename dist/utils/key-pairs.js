@@ -1,17 +1,16 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const crypto_1 = require("crypto");
 const appRoot = require("app-root-path");
-const config = require("config");
-const path = require("path");
-const fs_1 = require("fs");
-const ts_optchain_1 = require("ts-optchain");
-const yaml = require("yaml");
-const logger_service_1 = require("../services/logger.service");
-const yaml_1 = require("./yaml");
-const util_1 = require("util");
 const lib_1 = require("async-sema/lib");
+const config = require("config");
+const crypto_1 = require("crypto");
+const fs_1 = require("fs");
+const path = require("path");
+const ts_optchain_1 = require("ts-optchain");
+const util_1 = require("util");
+const logger_service_1 = require("../services/logger.service");
 const auth_1 = require("./auth");
+const yaml_1 = require("./yaml");
 let generateKeyPairAsync;
 var KeyType;
 (function (KeyType) {
@@ -55,7 +54,7 @@ async function saveKeysToConfigFor(type, { privateKey, publicKey }, addComments 
     await lock.acquire();
     // An asserting function that will throw an error if condition is false
     await fs_1.promises.access(localConfigName, fs_1.constants.W_OK);
-    const doc = await loadConfigAsYamlAst(localConfigName);
+    const doc = await yaml_1.loadConfigAsYamlAst(localConfigName);
     const propName = getConfigPropertyFor(type);
     const privateKeyNode = yaml_1.getUpdatedYamlNodeOrAddNew(doc, `auth.jwt.keys.keyStrings.${propName}.private`, privateKey);
     const publicKeyNode = yaml_1.getUpdatedYamlNodeOrAddNew(doc, `auth.jwt.keys.keyStrings.${propName}.public`, publicKey);
@@ -99,7 +98,7 @@ async function loadKeysFromConfigFor(type, fromCache = true) {
             publicKey: pub,
         };
     }
-    const doc = await loadConfigAsYamlAst(getConfigName());
+    const doc = await yaml_1.loadConfigAsYamlAst(getConfigName());
     return {
         privateKey: yaml_1.getYamlValueAt(doc, `auth.jwt.keys.keyStrings.${propName}.private`),
         publicKey: yaml_1.getYamlValueAt(doc, `auth.jwt.keys.keyStrings.${propName}.public`),
@@ -112,9 +111,6 @@ function getConfigName() {
         .find(({ name }) => fileRegex.test(name)) != null && config.util.getConfigSources()
         .find(({ name }) => fileRegex.test(name)).name != null ? config.util.getConfigSources()
         .find(({ name }) => fileRegex.test(name)).name : undefined) || appRoot.resolve('config/local.yaml');
-}
-async function loadConfigAsYamlAst(fileName) {
-    return yaml.parseDocument(await fs_1.promises.readFile(fileName, 'utf8'));
 }
 function loadKeysFromFilesFor(type, { privateKeyPath, publicKeyPath } = getDefaultKeyPathsFor(type)) {
     return Promise.props({

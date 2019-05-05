@@ -48,7 +48,7 @@ pathItemHandler.post.apiDoc = {
             $ref: '#/components/responses/OpenApiBadRequest',
         },
         401: {
-            description: 'Error in data provided',
+            description: 'Error in login data provided',
             content: {
                 'application/json': {
                     schema: {

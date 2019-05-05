@@ -33,7 +33,7 @@ export interface IJwtPayload {
 export const jwtAudience = 'human-actors';
 
 let jwtConfig: Nullable<DeepReadonly<IJwtConfig>> = null;
-export function getJwtConfig() { // use it to cache wherever needed
+export function getJwtConfig(): DeepReadonly<IJwtConfig> { // use it to cache wherever needed
   if (!jwtConfig) {
     jwtConfig = config.get<IJwtConfig>('auth.jwt');
   }
@@ -62,7 +62,7 @@ export function getTokenFromAccessTokenString(str: string) {
   return str.replace(bearerRegex, '');
 }
 
-export function getJwtBearerScopes(user: { role: UserRole }) {
+export function getJwtBearerScopes(user: Readonly<{ role: UserRole }>) {
   const scopes = [];
   if (user.role & UserRole.EMPLOYEE) {
     scopes.push(JwtBearerScope.EMPLOYEE);

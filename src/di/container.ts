@@ -56,6 +56,18 @@ export function getContainedDependencies() {
   return containedDependencies!.keys();
 }
 
+export function addContainedDependencies(
+  typeIds: ReadonlyArray<ServiceIdentifier<any>>,
+) {
+  if (!container) {
+    throw new TypeError('Container is not instantiated');
+  }
+  for (const typeId of typeIds) {
+    bindDependency(typeId);
+    updateAsyncInitializables(typeId);
+  }
+}
+
 export function createContainer(
   ensuredDependencies: Nullable<ServiceIdentifier<any>[]> | 'all' | 'autoBindAll' = null,
   forceNew = false,
@@ -140,13 +152,4 @@ function updateAsyncInitializables(typeId: ServiceIdentifier<any>) {
   } else {
     initPromise = Promise.all([initPromise, type]);
   }
-}
-
-function asyncInitializablesUpdater(
-  planAndResolve: interfaces.Next,
-): interfaces.Next {
-  return (args: interfaces.NextArgs) => {
-    updateAsyncInitializables(args.serviceIdentifier);
-    return planAndResolve(args);
-  };
 }

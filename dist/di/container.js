@@ -39,6 +39,16 @@ function getContainedDependencies() {
     return containedDependencies.keys();
 }
 exports.getContainedDependencies = getContainedDependencies;
+function addContainedDependencies(typeIds) {
+    if (!container) {
+        throw new TypeError('Container is not instantiated');
+    }
+    for (const typeId of typeIds) {
+        bindDependency(typeId);
+        updateAsyncInitializables(typeId);
+    }
+}
+exports.addContainedDependencies = addContainedDependencies;
 function createContainer(ensuredDependencies = null, forceNew = false) {
     if (container && !forceNew) {
         throw new TypeError('Container is already instantiated. Call with `forceNew === true` to override');
@@ -114,11 +124,5 @@ function updateAsyncInitializables(typeId) {
     else {
         initPromise = Promise.all([initPromise, type]);
     }
-}
-function asyncInitializablesUpdater(planAndResolve) {
-    return (args) => {
-        updateAsyncInitializables(args.serviceIdentifier);
-        return planAndResolve(args);
-    };
 }
 //# sourceMappingURL=container.js.map

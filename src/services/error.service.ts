@@ -56,12 +56,12 @@ export class LogicError extends TypeError implements ILogicError {
 }
 
 export class OpenApiValidationError extends Error {
-  public readonly openApiError: DeepReadonly<OpenAPIRequestValidatorError>;
-  public readonly jsonSchemaError: DeepReadonly<Ajv.ErrorObject>;
+  readonly openApiError: DeepReadonly<OpenAPIRequestValidatorError>;
+  readonly jsonSchemaError: DeepReadonly<Ajv.ErrorObject>;
 
   constructor(
     openApiError: DeepReadonly<OpenAPIRequestValidatorError>,
-    jsonSchemaError: Ajv.ErrorObject,
+    jsonSchemaError: DeepReadonly<Ajv.ErrorObject>,
     message?: string,
   ) {
     super(message);
@@ -71,11 +71,11 @@ export class OpenApiValidationError extends Error {
 }
 
 export class ServerError extends LogicError {
-  public readonly innerError?: DeepReadonly<any>;
+  readonly innerError?: DeepReadonly<any>;
 
   constructor(
     code: ServerErrorCode,
-    innerError?: any,
+    innerError?: DeepReadonly<any>,
     message?: string,
   ) {
     super(code);
@@ -96,12 +96,14 @@ export class ServerError extends LogicError {
 }
 
 export class ResponseValidationError extends ServerError {
-  public readonly innerError!: DeepReadonly<
+  readonly innerError!: DeepReadonly<
     Partial<OpenAPIResponseValidatorValidationError>
   >;
 
   constructor(
-    validationError: Partial<OpenAPIResponseValidatorValidationError>,
+    validationError: DeepReadonly<
+      Partial<OpenAPIResponseValidatorValidationError>
+    >,
     message?: string,
   ) {
     super(
@@ -120,7 +122,7 @@ export const errorTransformer: OpenAPIRequestValidatorArgs['errorTransformer'] =
 };
 
 export function coerceLogicError(
-  err: IOpenApiFinalError,
+  err: DeepReadonly<IOpenApiFinalError>,
 ): IOpenApiFinalLogicError {
   const error = err as IOpenApiFinalLogicError;
   error.code = ErrorCode.OPENAPI_VALIDATION;

@@ -3,7 +3,7 @@
 import '../@types';
 import { TYPES } from '../di/types';
 import { exitGracefully } from '../services/exit-handler.service';
-import { DbOrchestrator} from '../services/db-orchestrator.class';
+import { DbOrchestrator } from '../services/db-orchestrator.class';
 import { logger } from '../services/logger.service';
 import {
   getChildTables,

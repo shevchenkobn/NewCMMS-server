@@ -12,6 +12,10 @@ var UserRole;
     UserRole[UserRole["EMPLOYEE"] = 1] = "EMPLOYEE";
     UserRole[UserRole["ADMIN"] = 2] = "ADMIN";
 })(UserRole = exports.UserRole || (exports.UserRole = {}));
+function getUserRoleLimits() {
+    return [UserRole.EMPLOYEE, UserRole.ADMIN];
+}
+exports.getUserRoleLimits = getUserRoleLimits;
 exports.maxBcryptStringToHashLength = 72;
 exports.bcryptOptimalHashCycles = 13;
 let UsersModel = class UsersModel {
@@ -46,7 +50,8 @@ let UsersModel = class UsersModel {
         if (!isValidUserUniqueIdentifier(emailOrUserId)) {
             throw new error_service_1.LogicError(error_service_1.ErrorCode.USER_EMAIL_AND_ID, 'Both email and user id present. Use only one of them.');
         }
-        const users = await this.table.where(emailOrUserId).select();
+        const users = await this.table.where(emailOrUserId)
+            .select(returning);
         if (users.length === 0) {
             return null;
         }

@@ -1,7 +1,7 @@
 import { inject, injectable } from 'inversify';
 import { IUserCredentials, UsersModel } from '../../models/users.model';
 import { AuthService, IUserForToken } from '../../services/auth.service';
-import { DeepNonMayble } from '../../@types';
+import { DeepNonMayble, DeepReadonly } from '../../@types';
 import { ErrorCode, LogicError } from '../../services/error.service';
 
 export interface ITokenPair {
@@ -11,8 +11,8 @@ export interface ITokenPair {
 
 @injectable()
 export class AuthCommon {
-  public readonly authService: AuthService;
-  public readonly usersModel: UsersModel;
+  readonly authService: AuthService;
+  readonly usersModel: UsersModel;
 
   constructor(
     @inject(AuthService) authService: AuthService,
@@ -23,7 +23,7 @@ export class AuthCommon {
   }
 
   async getTokensForUser(
-    userCredentials: IUserCredentials,
+    userCredentials: DeepReadonly<IUserCredentials>,
   ): Promise<ITokenPair> {
     const user = await this.usersModel.getAssertedUser(
       userCredentials,

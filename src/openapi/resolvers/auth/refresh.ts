@@ -1,7 +1,6 @@
 import { IOpenApiPathItemHandler } from '../../../utils/openapi';
 import { getContainer } from '../../../di/container';
 import { AuthCommon, ITokenPair } from '../../services/auth.common';
-import { IUserCredentials } from '../../../models/users.model';
 import { Optional } from '../../../@types';
 
 const pathItemHandler: IOpenApiPathItemHandler = {};
@@ -75,7 +74,7 @@ pathItemHandler.post.apiDoc = {
       $ref: '#/components/responses/OpenApiBadRequest',
     },
     401: {
-      description: 'Error in data provided',
+      description: 'Error in tokens provided',
       content: {
         'application/json': {
           schema: {

@@ -8,21 +8,21 @@ const Knex = require("knex");
 const exit_handler_service_1 = require("./exit-handler.service");
 const logger_service_1 = require("./logger.service");
 exports.availableDbTypes = [
-    'pg', 'mssql', 'mssql', 'oracle',
+    'pg', 'mssql', 'oracle',
 ];
 let DbConnection = class DbConnection {
     constructor(dbConfig = config.get('db')) {
         if (!exports.availableDbTypes.includes(dbConfig.type)) {
             throw new TypeError(`The database type "${dbConfig.type}" is not supported! Available DB types: ${JSON.stringify(exports.availableDbTypes)}. Check your configs to correct the issue.`);
         }
-        const { type: client, ...connectionConfig } = dbConfig;
-        // A stub condition to be changed in future
-        if (client !== 'pg') {
-            throw new TypeError('Postgres only supported by now');
-        }
+        const { type: client, debug, ...connectionConfig } = dbConfig;
         this.config = {
             client,
             connection: connectionConfig,
+            log: logger_service_1.logger,
+            asyncStackTraces: true,
+            debug: process.env.NODE_ENV !== 'production' && debug,
+            acquireConnectionTimeout: 60000,
         };
         this.knex = Knex(this.config);
         exit_handler_service_1.bindOnExitHandler(() => {

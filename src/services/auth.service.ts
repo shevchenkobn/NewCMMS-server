@@ -18,7 +18,7 @@ import { IUser, UserRole, UsersModel } from '../models/users.model';
 import { IncomingMessage } from 'http';
 import { JwtBearerScope } from '../utils/openapi';
 import { ErrorCode, LogicError } from './error.service';
-import { Nullable } from '../@types';
+import { DeepReadonly, Nullable } from '../@types';
 
 export interface IUserForToken {
   userId: number;
@@ -27,9 +27,9 @@ export interface IUserForToken {
 
 @injectable()
 export class AuthService {
-  public static readonly [ASYNC_INIT] = true;
-  public readonly [ASYNC_INIT]: Promise<void>;
-  private _jwtConfig: Pick<IJwtConfig, 'expiration' | 'issuer' | 'algorithms'>;
+  static readonly [ASYNC_INIT] = true;
+  readonly [ASYNC_INIT]: Promise<void>;
+  private _jwtConfig: DeepReadonly<Pick<IJwtConfig, 'expiration' | 'issuer' | 'algorithms'>>;
   private _keys!: IConfigTokenTypesDescriptor<IKeys>;
   private _usersModel: UsersModel;
 
@@ -50,7 +50,7 @@ export class AuthService {
     this._usersModel = usersModel;
   }
 
-  generateAccessToken(user: IUserForToken) {
+  generateAccessToken(user: DeepReadonly<IUserForToken>) {
     return jwt.sign({
       id: user.userId,
       scopes: getJwtBearerScopes(user),
@@ -63,7 +63,7 @@ export class AuthService {
     });
   }
 
-  generateRefreshToken(user: IUserForToken) {
+  generateRefreshToken(user: DeepReadonly<IUserForToken>) {
     return jwt.sign({
       id: user.userId,
       scopes: [JwtBearerScope.TOKEN_REFRESH],
@@ -78,7 +78,7 @@ export class AuthService {
 
   getAccessTokenPayload(
     token: string,
-    scopes: Nullable<JwtBearerScope[]> = null,
+    scopes: Nullable<ReadonlyArray<JwtBearerScope>> = null,
     ignoreExpiration = false,
   ) {
     let payload: object | string;
@@ -134,7 +134,7 @@ export class AuthService {
 
   getUserFromRequestByAccessToken(
     request: IncomingMessage,
-    scopes: Nullable<JwtBearerScope[]> = null,
+    scopes: Nullable<ReadonlyArray<JwtBearerScope>> = null,
     ignoreExpiration = false,
   ) {
     return this.getUserFromAccessToken(
@@ -146,7 +146,7 @@ export class AuthService {
 
   async getUserFromAccessToken(
     token: string,
-    scopes: Nullable<JwtBearerScope[]> = null,
+    scopes: Nullable<ReadonlyArray<JwtBearerScope>> = null,
     ignoreExpiration = false,
   ) {
     const payload = this.getAccessTokenPayload(
@@ -158,7 +158,7 @@ export class AuthService {
   }
 
   async getUserFromPayload(
-    payload: IJwtPayload,
+    payload: DeepReadonly<IJwtPayload>,
   ) {
     const user = await this._usersModel.getOne({ userId: payload.id });
     if (!user) {

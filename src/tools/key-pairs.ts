@@ -3,7 +3,7 @@
 import '../@types';
 // It is needed to avoid TS compiler tree shaking with only-type imports
 // tslint:disable-next-line:no-duplicate-imports
-import { Nullable } from '../@types';
+import { DeepReadonly, Nullable } from '../@types';
 import * as yargs from 'yargs';
 import { isPositiveInteger } from '../utils/common';
 import {
@@ -20,7 +20,7 @@ import { exitGracefully } from '../services/exit-handler.service';
 const tokenNames = new Map<KeyType, string>([
   [KeyType.ACCESS_TOKEN, 'access token'],
   [KeyType.REFRESH_TOKEN, 'refresh token'],
-]);
+]) as ReadonlyMap<KeyType, string>;
 
 yargs
   .usage('Run this script to generate or move key pairs, used by JWT.')
@@ -192,7 +192,9 @@ function getArgsForCopyKeyPairsToConfig<T>(yargs: yargs.Argv<T>) {
     });
 }
 
-async function copyKeyPairsToConfigHandler<T>(argv: yargs.Arguments<T>) {
+async function copyKeyPairsToConfigHandler<T>(
+  argv: yargs.Arguments<T>,
+) {
   if (!argv.noAccessTokenPair) {
     const tokenName = tokenNames.get(KeyType.ACCESS_TOKEN);
     logger.info(`Copying key pair for ${tokenName} signature to config...`);

@@ -24,7 +24,7 @@ export function getTableNames() {
 
 export class TableBuilders {
   private _knex: Knex;
-  private _tableFactories: Map<TableName, () => Knex.SchemaBuilder>;
+  private _tableFactories: ReadonlyMap<TableName, () => Knex.SchemaBuilder>;
   private readonly _columnBuilders: TableColumnTypeBuilder;
 
   constructor(dbConnection: DbConnection) {
@@ -48,7 +48,9 @@ export class TableBuilders {
     return this._tableFactories.get(tableName)!();
   }
 
-  private getTableFactories() {
+  private getTableFactories(): ReadonlyMap<
+    TableName, () => Knex.SchemaBuilder
+  > {
     const c = this._columnBuilders;
     return new Map([
       [TableName.USERS, () => this._knex.schema.createTable(
@@ -170,7 +172,9 @@ export class TableBuilders {
   }
 }
 
-let allChildTables: Nullable<Map<TableName, ReadonlyArray<TableName>>> = null;
+let allChildTables: Nullable<
+  ReadonlyMap<TableName, ReadonlyArray<TableName>>
+> = null;
 export function getChildTables(
   tableNames: ReadonlyArray<TableName>,
   includeOriginal = false,

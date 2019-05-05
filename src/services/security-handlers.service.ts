@@ -1,7 +1,7 @@
 import { ErrorRequestHandler, Request } from 'express';
 import { SecurityHandlers } from 'openapi-security-handler';
 import { OpenAPIV3 } from 'openapi-types';
-import { Nullable } from '../@types';
+import { DeepReadonly, Nullable } from '../@types';
 import { getContainer } from '../di/container';
 import { IUser } from '../models/users.model';
 import {
@@ -31,7 +31,7 @@ export interface IRequestWithAuthError extends IRequestWithToken {
 
 let authService: AuthService; // not Nullable<> due to type inference flaw
 let securityHandlers: Nullable<SecurityHandlers> = null;
-export function getSecurityHandlers() {
+export function getSecurityHandlers(): Readonly<SecurityHandlers> {
   if (!securityHandlers) {
     if (!authService) {
       authService = getContainer().get<AuthService>(AuthService);

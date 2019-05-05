@@ -1,7 +1,7 @@
 import { compare, hash } from 'bcrypt';
 import { inject, injectable } from 'inversify';
 import * as randomatic from 'randomatic';
-import { Nullable } from '../@types';
+import { DeepReadonly, Nullable } from '../@types';
 import { DbConnection } from '../services/db-connection.class';
 import { ErrorCode, LogicError } from '../services/error.service';
 import { TableName } from '../utils/db-orchestrator';
@@ -9,6 +9,10 @@ import { TableName } from '../utils/db-orchestrator';
 export enum UserRole {
   EMPLOYEE = 1,
   ADMIN = 2,
+}
+
+export function getUserRoleLimits(): [number, number] {
+  return [UserRole.EMPLOYEE, UserRole.ADMIN];
 }
 
 export interface IUserCreateNoPassword {
@@ -54,7 +58,7 @@ export const bcryptOptimalHashCycles = 13;
 export class UsersModel {
   private _dbConnection: DbConnection;
 
-  public get table() {
+  get table() {
     return this._dbConnection.knex(TableName.USERS);
   }
 
@@ -62,13 +66,15 @@ export class UsersModel {
     this._dbConnection = dbConnection;
   }
 
-  getAssertedUser(userCredentials: IUserCredentials): Promise<IUser>;
   getAssertedUser(
-    userCredentials: IUserCredentials,
+    userCredentials: DeepReadonly<IUserCredentials>,
+  ): Promise<IUser>;
+  getAssertedUser<T extends Partial<IUserFromDB> = Partial<IUserFromDB>>(
+    userCredentials: DeepReadonly<IUserCredentials>,
     returning: ReadonlyArray<keyof IUserFromDB>,
-  ): Promise<Partial<IUserFromDB>>;
+  ): Promise<T>;
   async getAssertedUser(
-    userCredentials: IUserCredentials,
+    userCredentials: DeepReadonly<IUserCredentials>,
     returning = getAllSafeUserPropertyNames() as
       ReadonlyArray<keyof IUserFromDB>,
   ) {
@@ -93,18 +99,18 @@ export class UsersModel {
     return user;
   }
 
-  getOne(email: IUserEmail): Promise<Nullable<IUser>>;
-  getOne(
-    email: IUserEmail,
+  getOne(email: DeepReadonly<IUserEmail>): Promise<Nullable<IUser>>;
+  getOne<T extends Partial<IUserFromDB> = Partial<IUserFromDB>>(
+    email: DeepReadonly<IUserEmail>,
     returning: ReadonlyArray<keyof IUserFromDB>,
-  ): Promise<Nullable<Partial<IUserFromDB>>>;
-  getOne(userId: IUserId): Promise<Nullable<IUser>>;
-  getOne(
-    userId: IUserId,
+  ): Promise<Nullable<T>>;
+  getOne(userId: DeepReadonly<IUserId>): Promise<Nullable<IUser>>;
+  getOne<T extends Partial<IUserFromDB> = Partial<IUserFromDB>>(
+    userId: DeepReadonly<IUserId>,
     returning: ReadonlyArray<keyof IUserFromDB>,
-  ): Promise<Nullable<Partial<IUserFromDB>>>;
+  ): Promise<Nullable<T>>;
   async getOne(
-    emailOrUserId: IUserEmail | IUserId,
+    emailOrUserId: DeepReadonly<IUserEmail | IUserId>,
     returning = getAllSafeUserPropertyNames() as
       ReadonlyArray<keyof IUserFromDB>,
   ): Promise<Nullable<IUserFromDB | Partial<IUserFromDB>>> {
@@ -114,16 +120,19 @@ export class UsersModel {
         'Both email and user id present. Use only one of them.',
       );
     }
-    const users = await this.table.where(emailOrUserId).select();
+    const users = await this.table.where(emailOrUserId)
+      .select(returning as any);
     if (users.length === 0) {
       return null;
     }
     return users[0];
   }
 
-  deleteOne(email: IUserEmail): Promise<void>;
-  deleteOne(userId: IUserId): Promise<void>;
-  async deleteOne(emailOrUserId: IUserEmail | IUserId): Promise<void> {
+  deleteOne(email: DeepReadonly<IUserEmail>): Promise<void>;
+  deleteOne(userId: DeepReadonly<IUserId>): Promise<void>;
+  async deleteOne(
+    emailOrUserId: DeepReadonly<IUserEmail | IUserId>,
+  ): Promise<void> {
     if (!isValidUserUniqueIdentifier(emailOrUserId)) {
       throw new LogicError(
         ErrorCode.USER_EMAIL_AND_ID,
@@ -133,22 +142,22 @@ export class UsersModel {
     return this.table.where(emailOrUserId).delete();
   }
 
-  create(
-    user: Readonly<IUserCreate>,
+  create<T extends Partial<IUser> = Partial<IUser>>(
+    user: DeepReadonly<IUserCreate>,
     returning: ReadonlyArray<keyof IUserCreate>,
-  ): Promise<Partial<IUser>>;
+  ): Promise<T>;
   create(
-    user: Readonly<IUserCreate>,
+    user: DeepReadonly<IUserCreate>,
   ): Promise<void>;
-  create(
-    user: Readonly<IUserCreateNoPassword>,
+  create<T extends Partial<IUserWithPassword> = Partial<IUserWithPassword>>(
+    user: DeepReadonly<IUserCreateNoPassword>,
     returning: ReadonlyArray<keyof IUserWithPassword>,
-  ): Promise<Partial<IUserWithPassword>>;
+  ): Promise<T>;
   create(
-    user: Readonly<IUserCreateNoPassword>,
+    user: DeepReadonly<IUserCreateNoPassword>,
   ): Promise<void>;
   async create(
-    user: Readonly<IUserCreateNoPassword & IUserCreate>,
+    user: DeepReadonly<IUserCreateNoPassword & IUserCreate>,
     returning?: ReadonlyArray<keyof (IUserCreateNoPassword & IUserCreate)>,
   ): Promise<IUser | Partial<IUser> | void> {
     const { password = getRandomPassword(), ...userSeed } =
@@ -172,7 +181,7 @@ export class UsersModel {
 }
 
 export function isValidUserUniqueIdentifier(
-  emailOrUserId: IUserEmail | IUserId,
+  emailOrUserId: DeepReadonly<IUserEmail | IUserId>,
 ): emailOrUserId is (IUserEmail | IUserId) {
   return Object.keys(emailOrUserId).length === 1 && (
     'email' in emailOrUserId

@@ -1,20 +1,20 @@
-import { generateKeyPair, RSAKeyPairOptions } from 'crypto';
-import { Nullable, NullablePartial, Optional } from '../@types';
 import * as appRoot from 'app-root-path';
-import * as config from 'config';
-import * as path from 'path';
-import { constants as fsConstants, promises as fsPromises } from 'fs';
-import { oc } from 'ts-optchain';
-import * as yaml from 'yaml';
-import { logger } from '../services/logger.service';
-import {
-  updateYamlComment,
-  getUpdatedYamlNodeOrAddNew,
-  getYamlNodeAt, getYamlValueAt,
-} from './yaml';
-import { promisify } from 'util';
 import { Sema } from 'async-sema/lib';
+import * as config from 'config';
+import { generateKeyPair, RSAKeyPairOptions } from 'crypto';
+import { constants as fsConstants, promises as fsPromises } from 'fs';
+import * as path from 'path';
+import { oc } from 'ts-optchain';
+import { promisify } from 'util';
+import { DeepNullablePartial, Nullable } from '../@types';
+import { logger } from '../services/logger.service';
 import { getJwtConfig } from './auth';
+import {
+  getUpdatedYamlNodeOrAddNew,
+  getYamlValueAt,
+  loadConfigAsYamlAst,
+  updateYamlComment,
+} from './yaml';
 
 type GenerateKeyPairAsync = (type: 'rsa', options: RSAKeyPairOptions<'pem', 'pem'>) => Promise<IKeys>;
 let generateKeyPairAsync: Nullable<GenerateKeyPairAsync>;
@@ -165,7 +165,7 @@ export async function loadKeysFor(
 export async function loadKeysFromConfigFor(
   type: KeyType,
   fromCache = true,
-): Promise<NullablePartial<IKeys>> {
+): Promise<DeepNullablePartial<IKeys>> {
   const propName = getConfigPropertyFor(type);
   if (fromCache) {
     // It is needed because private and public are reserved words
@@ -193,12 +193,6 @@ function getConfigName() {
   const fileRegex = /local\.ya?ml$/;
   return oc(config.util.getConfigSources()
     .find(({ name }) => fileRegex.test(name))).name || appRoot.resolve('config/local.yaml');
-}
-
-async function loadConfigAsYamlAst(fileName: string) {
-  return yaml.parseDocument(
-    await fsPromises.readFile(fileName, 'utf8'),
-  );
 }
 
 export function loadKeysFromFilesFor(

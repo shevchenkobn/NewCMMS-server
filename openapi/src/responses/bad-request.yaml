@@ -2,4 +2,4 @@ description: A response that indicated about error in request produced either by
 content:
   application/json:
     schema:
-      $ref: '#/components/schemas/Error'
+      $ref: '../schemas/error.yaml'

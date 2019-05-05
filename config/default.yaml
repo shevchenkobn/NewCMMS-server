@@ -14,6 +14,7 @@ db:
   database: newcmms
   user: yourUser
   password: yourPass
+  debug: false # will matter only if NODE_ENV is production
 
 cors:
   whitelist:

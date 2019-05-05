@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const fs_1 = require("fs");
 const ts_optchain_1 = require("ts-optchain");
 const yaml = require("yaml");
 function getUpdatedYamlNodeOrAddNew(document, path, newValue, wrapScalars = true) {
@@ -58,4 +59,8 @@ function updateYamlComment(node, comment) {
     return node;
 }
 exports.updateYamlComment = updateYamlComment;
+async function loadConfigAsYamlAst(fileName) {
+    return yaml.parseDocument(await fs_1.promises.readFile(fileName, 'utf8'));
+}
+exports.loadConfigAsYamlAst = loadConfigAsYamlAst;
 //# sourceMappingURL=yaml.js.map

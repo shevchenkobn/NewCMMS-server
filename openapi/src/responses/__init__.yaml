@@ -2,4 +2,7 @@ OpenApiBadRequest:
   $ref: ./openapi-bad-request.yaml
 
 BadRequest:
-  $ref: ./openapi-bad-request.yaml
+  $ref: ./bad-request.yaml
+
+Unauthenticated:
+  $ref: ./unauthenticated.yaml

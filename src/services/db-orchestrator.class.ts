@@ -115,7 +115,7 @@ export class DbOrchestrator {
     const admin: IUserCreate = {
       email,
       password,
-      role: UserRole.ADMIN,
+      role: UserRole.ADMIN | UserRole.EMPLOYEE,
       fullName: name,
     };
 

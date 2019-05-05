@@ -71,7 +71,7 @@ let DbOrchestrator = class DbOrchestrator {
         const admin = {
             email,
             password,
-            role: users_model_1.UserRole.ADMIN,
+            role: users_model_1.UserRole.ADMIN | users_model_1.UserRole.EMPLOYEE,
             fullName: name,
         };
         // Doing a slight hack to preserve super admin id

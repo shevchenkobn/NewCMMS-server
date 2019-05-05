@@ -1,3 +1,4 @@
+import { promises as fsPromises } from 'fs';
 import { oc } from 'ts-optchain';
 import * as yaml from 'yaml';
 import { Nullable } from '../@types';
@@ -71,4 +72,10 @@ export function updateYamlComment(node: AstNode, comment: string) {
     ? ` <prepended_comment_from_script>: ${comment}; ${node.comment}`
     : ` ${comment}`;
   return node;
+}
+
+export async function loadConfigAsYamlAst(fileName: string) {
+  return yaml.parseDocument(
+    await fsPromises.readFile(fileName, 'utf8'),
+  );
 }
