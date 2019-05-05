@@ -31,6 +31,9 @@ auth:
       accessToken: 2h
       refreshToken: 0.5y
     issuer: NewCMMS
+    algorithms:
+      accessToken: PS256
+      refreshToken: PS512
     keys: # Keys are needed for tokens' signature
       folder: keys/
       filenames:

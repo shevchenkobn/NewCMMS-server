@@ -4,7 +4,7 @@ import { DeepNullablePartial, DeepReadonly, Nullable } from '../@types';
 import { IUser, UserRole } from '../models/users.model';
 import { ErrorCode, LogicError } from '../services/error.service';
 import { IConfigKeyPairDescriptor } from './key-pairs';
-import { JwtBearerScope } from './openapi';
+import { JwtBearerScope, jwtScopeStrings } from './openapi';
 import { TokenExpiredError, VerifyErrors } from 'jsonwebtoken';
 
 export interface IConfigTokenTypesDescriptor<T> {
@@ -14,6 +14,7 @@ export interface IConfigTokenTypesDescriptor<T> {
 
 export interface IJwtConfig {
   expiration: IConfigTokenTypesDescriptor<number>;
+  algorithms: IConfigTokenTypesDescriptor<string>;
   issuer: string;
   keys: {
     folder: string;
@@ -43,7 +44,7 @@ export function isJwtPayload(payload: any): payload is IJwtPayload {
   return typeof payload === 'object' && payload !== null
     && typeof payload.id === 'number'
     && Array.isArray(payload.scopes)
-    && payload.scopes.every((p: any) => !!JwtBearerScope[p]);
+    && payload.scopes.every((p: string) => jwtScopeStrings.includes(p));
 }
 
 export function getTokenFromRequest(request: IncomingMessage) {
@@ -90,4 +91,12 @@ export function assertRequiredScopes(
     // Scope is synonymic to user's role
     throw new LogicError(ErrorCode.AUTH_ROLE);
   }
+}
+
+export function getAlgorithmVariants() {
+  return /^[PR]S(256|384|512)$/;
+}
+
+export function isValidAlgorithm(algo: string): boolean {
+  return getAlgorithmVariants().test(algo);
 }

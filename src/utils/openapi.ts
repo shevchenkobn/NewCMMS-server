@@ -33,6 +33,8 @@ export enum JwtBearerScope {
   TOKEN_REFRESH = 'token:refresh',
 }
 
+export const jwtScopeStrings = Object.values(JwtBearerScope);
+
 export interface IOpenApiRequest extends Request {
   apiDoc: OpenAPIV3.Document & Record<string, any>;
 }

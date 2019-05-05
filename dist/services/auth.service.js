@@ -14,6 +14,12 @@ const error_service_1 = require("./error.service");
 let AuthService = class AuthService {
     constructor(usersModel, keyPaths = key_pairs_1.getDefaultKeyPaths()) {
         this._jwtConfig = auth_1.getJwtConfig();
+        if (!auth_1.isValidAlgorithm(this._jwtConfig.algorithms.accessToken)) {
+            throw new TypeError(`The access token algorithm must comply to ${auth_1.getAlgorithmVariants()}`);
+        }
+        if (!auth_1.isValidAlgorithm(this._jwtConfig.algorithms.refreshToken)) {
+            throw new TypeError(`The refresh token algorithm must comply to ${auth_1.getAlgorithmVariants()}`);
+        }
         this[types_1.ASYNC_INIT] = key_pairs_1.loadKeys(keyPaths, false).then(keys => {
             this._keys = keys;
         });
@@ -24,7 +30,7 @@ let AuthService = class AuthService {
             id: user.userId,
             scopes: auth_1.getJwtBearerScopes(user),
         }, this._keys.accessToken.privateKey, {
-            algorithm: 'RS256',
+            algorithm: this._jwtConfig.algorithms.accessToken,
             subject: user.userId.toString(),
             audience: auth_1.jwtAudience,
             expiresIn: this._jwtConfig.expiration.accessToken,
@@ -36,20 +42,20 @@ let AuthService = class AuthService {
             id: user.userId,
             scopes: [openapi_1.JwtBearerScope.TOKEN_REFRESH],
         }, this._keys.refreshToken.privateKey, {
-            algorithm: 'RS512',
+            algorithm: this._jwtConfig.algorithms.refreshToken,
             subject: user.userId.toString(),
             audience: auth_1.jwtAudience,
             expiresIn: this._jwtConfig.expiration.refreshToken,
             issuer: this._jwtConfig.issuer,
         });
     }
-    decodeAccessToken(token, scopes = null, ignoreExpiration = false) {
+    getAccessTokenPayload(token, scopes = null, ignoreExpiration = false) {
         let payload;
         try {
             payload = jwt.verify(token, this._keys.accessToken.publicKey, {
                 ignoreExpiration,
                 audience: auth_1.jwtAudience,
-                algorithms: ['RS256'],
+                algorithms: [this._jwtConfig.algorithms.accessToken],
                 issuer: this._jwtConfig.issuer,
             });
         }
@@ -57,20 +63,20 @@ let AuthService = class AuthService {
             auth_1.handleJwtError(err);
         }
         if (!auth_1.isJwtPayload(payload)) {
-            throw new error_service_1.LogicError(error_service_1.ErrorCode.AUTH_BAD_REFRESH);
+            throw new error_service_1.LogicError(error_service_1.ErrorCode.AUTH_BAD);
         }
         if (scopes) {
             auth_1.assertRequiredScopes(scopes, payload.scopes);
         }
         return payload;
     }
-    decodeRefreshToken(token, checkScope = false, ignoreExpiration = false) {
+    getRefreshTokenPayload(token, checkScope = true, ignoreExpiration = false) {
         let payload;
         try {
-            payload = jwt.verify(token, this._keys.accessToken.publicKey, {
+            payload = jwt.verify(token, this._keys.refreshToken.publicKey, {
                 ignoreExpiration,
                 audience: auth_1.jwtAudience,
-                algorithms: ['RS512'],
+                algorithms: [this._jwtConfig.algorithms.refreshToken],
                 issuer: this._jwtConfig.issuer,
             });
         }
@@ -91,7 +97,7 @@ let AuthService = class AuthService {
         return this.getUserFromAccessToken(auth_1.getTokenFromRequest(request), scopes, ignoreExpiration);
     }
     async getUserFromAccessToken(token, scopes = null, ignoreExpiration = false) {
-        const payload = this.decodeAccessToken(token, scopes, ignoreExpiration);
+        const payload = this.getAccessTokenPayload(token, scopes, ignoreExpiration);
         return this.getUserFromPayload(payload);
     }
     async getUserFromPayload(payload) {

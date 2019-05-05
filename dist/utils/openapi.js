@@ -16,6 +16,7 @@ var JwtBearerScope;
     JwtBearerScope["ADMIN"] = "admin";
     JwtBearerScope["TOKEN_REFRESH"] = "token:refresh";
 })(JwtBearerScope = exports.JwtBearerScope || (exports.JwtBearerScope = {}));
+exports.jwtScopeStrings = Object.values(JwtBearerScope);
 function loadOpenApiDoc(rootPath = appRoot.resolve('openapi/src/openapi.yaml'), copyReferenced = false) {
     return refParser[copyReferenced ? 'bundle' : 'dereference'](rootPath, {
         parse: {

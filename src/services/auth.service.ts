@@ -2,7 +2,7 @@ import { inject, injectable } from 'inversify';
 import * as jwt from 'jsonwebtoken';
 import { ASYNC_INIT } from '../di/types';
 import {
-  assertRequiredScopes,
+  assertRequiredScopes, getAlgorithmVariants,
   getJwtBearerScopes,
   getJwtConfig,
   getTokenFromRequest,
@@ -10,7 +10,7 @@ import {
   IConfigTokenTypesDescriptor,
   IJwtConfig,
   IJwtPayload,
-  isJwtPayload,
+  isJwtPayload, isValidAlgorithm,
   jwtAudience,
 } from '../utils/auth';
 import { getDefaultKeyPaths, IKeys, loadKeys } from '../utils/key-pairs';
@@ -29,7 +29,7 @@ export interface IUserForToken {
 export class AuthService {
   public static readonly [ASYNC_INIT] = true;
   public readonly [ASYNC_INIT]: Promise<void>;
-  private _jwtConfig: Pick<IJwtConfig, 'expiration' | 'issuer'>;
+  private _jwtConfig: Pick<IJwtConfig, 'expiration' | 'issuer' | 'algorithms'>;
   private _keys!: IConfigTokenTypesDescriptor<IKeys>;
   private _usersModel: UsersModel;
 
@@ -38,6 +38,12 @@ export class AuthService {
     keyPaths = getDefaultKeyPaths(),
   ) {
     this._jwtConfig = getJwtConfig();
+    if (!isValidAlgorithm(this._jwtConfig.algorithms.accessToken)) {
+      throw new TypeError(`The access token algorithm must comply to ${getAlgorithmVariants()}`);
+    }
+    if (!isValidAlgorithm(this._jwtConfig.algorithms.refreshToken)) {
+      throw new TypeError(`The refresh token algorithm must comply to ${getAlgorithmVariants()}`);
+    }
     this[ASYNC_INIT] = loadKeys(keyPaths, false).then(keys => {
       this._keys = keys;
     });
@@ -49,7 +55,7 @@ export class AuthService {
       id: user.userId,
       scopes: getJwtBearerScopes(user),
     }, this._keys.accessToken.privateKey, {
-      algorithm: 'RS256', // FIXME: RS256
+      algorithm: this._jwtConfig.algorithms.accessToken,
       subject: user.userId.toString(),
       audience: jwtAudience,
       expiresIn: this._jwtConfig.expiration.accessToken,
@@ -62,7 +68,7 @@ export class AuthService {
       id: user.userId,
       scopes: [JwtBearerScope.TOKEN_REFRESH],
     }, this._keys.refreshToken.privateKey, {
-      algorithm: 'RS512',
+      algorithm: this._jwtConfig.algorithms.refreshToken,
       subject: user.userId.toString(),
       audience: jwtAudience,
       expiresIn: this._jwtConfig.expiration.refreshToken,
@@ -70,7 +76,7 @@ export class AuthService {
     });
   }
 
-  decodeAccessToken(
+  getAccessTokenPayload(
     token: string,
     scopes: Nullable<JwtBearerScope[]> = null,
     ignoreExpiration = false,
@@ -80,14 +86,14 @@ export class AuthService {
       payload = jwt.verify(token, this._keys.accessToken.publicKey, {
         ignoreExpiration,
         audience: jwtAudience,
-        algorithms: ['RS256'],
+        algorithms: [this._jwtConfig.algorithms.accessToken],
         issuer: this._jwtConfig.issuer,
       });
     } catch (err) {
       handleJwtError(err);
     }
     if (!isJwtPayload(payload!)) {
-      throw new LogicError(ErrorCode.AUTH_BAD_REFRESH);
+      throw new LogicError(ErrorCode.AUTH_BAD);
     }
     if (scopes) {
       assertRequiredScopes(scopes, payload.scopes);
@@ -95,17 +101,17 @@ export class AuthService {
     return payload;
   }
 
-  decodeRefreshToken(
+  getRefreshTokenPayload(
     token: string,
-    checkScope = false,
+    checkScope = true,
     ignoreExpiration = false,
   ) {
     let payload: object | string;
     try {
-      payload = jwt.verify(token, this._keys.accessToken.publicKey, {
+      payload = jwt.verify(token, this._keys.refreshToken.publicKey, {
         ignoreExpiration,
         audience: jwtAudience,
-        algorithms: ['RS512'],
+        algorithms: [this._jwtConfig.algorithms.refreshToken],
         issuer: this._jwtConfig.issuer,
       });
     } catch (err) {
@@ -143,7 +149,7 @@ export class AuthService {
     scopes: Nullable<JwtBearerScope[]> = null,
     ignoreExpiration = false,
   ) {
-    const payload = this.decodeAccessToken(
+    const payload = this.getAccessTokenPayload(
       token,
       scopes,
       ignoreExpiration,

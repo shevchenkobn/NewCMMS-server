@@ -18,7 +18,7 @@ function isJwtPayload(payload) {
     return typeof payload === 'object' && payload !== null
         && typeof payload.id === 'number'
         && Array.isArray(payload.scopes)
-        && payload.scopes.every((p) => !!openapi_1.JwtBearerScope[p]);
+        && payload.scopes.every((p) => openapi_1.jwtScopeStrings.includes(p));
 }
 exports.isJwtPayload = isJwtPayload;
 function getTokenFromRequest(request) {
@@ -61,4 +61,12 @@ function assertRequiredScopes(requiredScopes, actualScopes) {
     }
 }
 exports.assertRequiredScopes = assertRequiredScopes;
+function getAlgorithmVariants() {
+    return /^[PR]S(256|384|512)$/;
+}
+exports.getAlgorithmVariants = getAlgorithmVariants;
+function isValidAlgorithm(algo) {
+    return getAlgorithmVariants().test(algo);
+}
+exports.isValidAlgorithm = isValidAlgorithm;
 //# sourceMappingURL=auth.js.map

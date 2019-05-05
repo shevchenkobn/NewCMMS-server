@@ -19,7 +19,7 @@ function getSecurityHandlers() {
                 // This is necessary due to peculiarities of error handling by openapi-security-handler: https://github.com/kogosoftwarellc/open-api/blob/db977d3ca6adbaa08c44e0db1231c74c8427eaba/packages/openapi-security-handler/index.ts
                 try {
                     if (!request.tokenPayload) {
-                        request.tokenPayload = authService.decodeAccessToken(auth_1.getTokenFromRequest(request), jwtScopes);
+                        request.tokenPayload = authService.getAccessTokenPayload(auth_1.getTokenFromRequest(request), jwtScopes);
                     }
                     else {
                         auth_1.assertRequiredScopes(jwtScopes, request.tokenPayload.scopes);
