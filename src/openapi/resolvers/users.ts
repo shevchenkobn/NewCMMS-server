@@ -47,7 +47,7 @@ pathItemHandler.post.apiDoc = {
     },
   ],
   responses: {
-    200: {
+    201: {
       description: 'Optional user object if select was provided',
       content: {
         'application/json': {
