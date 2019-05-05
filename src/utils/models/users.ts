@@ -30,3 +30,8 @@ export function isValidUserUniqueIdentifier(
 export function getAllSafeUserPropertyNames(): (keyof IUser)[] {
   return ['userId', 'email', 'role', 'fullName'];
 }
+
+export function getSortFields() {
+  return getAllSafeUserPropertyNames()
+    .flatMap(p => [`-${p}`, `+${p}`]);
+}

@@ -6,11 +6,16 @@ import {
   IUserWithPassword,
 } from '../../models/users.model';
 import {
+  getAllSafeUserPropertyNames,
+  getSortFields,
+} from '../../utils/models/users';
+import {
   IOpenApiPathItemHandler,
   jwtBearerScheme,
   JwtBearerScope,
 } from '../../utils/openapi';
 import { UsersCommon } from '../services/users.common';
+import { OpenAPIV3 } from 'openapi-types';
 
 const pathItemHandler: IOpenApiPathItemHandler = {};
 export = pathItemHandler;
@@ -27,6 +32,7 @@ pathItemHandler.post = (req, res, next) => {
 };
 pathItemHandler.post.apiDoc = {
   description: 'Create user',
+  tags: ['users'],
   security: [{
     [jwtBearerScheme]: [JwtBearerScope.ADMIN],
   }],
@@ -68,3 +74,82 @@ pathItemHandler.post.apiDoc = {
     },
   },
 };
+
+const userIdsParameterName = 'user-ids';
+
+pathItemHandler.get = (req, res, next) => {
+
+};
+pathItemHandler.get.apiDoc = ApiDoc.apiDoc;
+namespace ApiDoc {
+  const sortFields = getSortFields();
+  export const apiDoc: OpenAPIV3.OperationObject = {
+    description: 'Get users',
+    tags: ['users'],
+    parameters: [
+      {
+        $ref: '#/components/parameters/SelectUser',
+      },
+      {
+        in: 'query',
+        name: userIdsParameterName,
+        description: 'User IDs to include in result',
+        schema: {
+          $ref: '#/components/schemas/id-list.yaml',
+        },
+      },
+      {
+        $ref: '#/components/parameters/Skip',
+      },
+      {
+        $ref: '#/components/parameters/Limit',
+      },
+      {
+        in: 'query',
+        name: 'sort',
+        description: 'Sort orders',
+        schema: {
+          type: 'array',
+          items: {
+            type: 'string',
+            enum: sortFields,
+          },
+          minItems: 1,
+          maxItems: sortFields.length / 2,
+        },
+      },
+    ],
+    responses: {
+      200: {
+        description: 'Get list of users',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                cursor: {
+                  type: 'string',
+                },
+                users: {
+                  type: 'array',
+                  items: {
+                    $ref: '#/components/schemas/User',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      400: {
+        $ref: '#/components/responses/BadRequest',
+      },
+      401: {
+        $ref: '#/components/responses/Unauthenticated',
+      },
+      403: {
+        $ref: '#/components/responses/Forbidden',
+      },
+    },
+  };
+}

@@ -1,0 +1,8 @@
+in: query
+name: skip
+description: Maximum number of enitites in the list that satisfy filters you want to retrieve
+schema:
+  type: integer
+  format: int32
+  minimum: 0
+  maximum: 1000

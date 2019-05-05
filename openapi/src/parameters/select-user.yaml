@@ -10,6 +10,5 @@ schema:
       - email
       - role
       - fullName
-      - password
   uniqueItems: true
   minItems: 1

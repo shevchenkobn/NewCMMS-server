@@ -1,0 +1,8 @@
+in: query
+name: skip
+description: Number of enitites in the list that satisfy filters but must be skipped
+schema:
+  type: integer
+  format: int32
+  minimum: 0
+  maximum: 10000

@@ -1,6 +1,12 @@
 TokenPair:
   $ref: ./token-pair.yaml
 
+Id:
+  $ref: ./id.yaml
+
+IdList:
+  $ref: ./id-list.yaml
+
 UserPassword:
   $ref: ./user-password.yaml
 
