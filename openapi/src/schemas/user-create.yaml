@@ -1,6 +1,5 @@
 type: object
 required:
-  - userId
   - email
   - role
   - fullName
@@ -16,8 +15,6 @@ properties:
     maximum: 3
   fullName:
     type: string
-  userId:
-    type: integer
-    format: int32
-    minimum: 1
+  password:
+    $ref: ./user-password.yaml
 additionalProperties: false

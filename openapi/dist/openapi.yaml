@@ -18,8 +18,92 @@ tags:
   - name: users
     description: API to manage users
 paths:
+  /users:
+    parameters: []
+    post:
+      description: Create user
+      security:
+        - jwt-bearer:
+            - admin
+      requestBody:
+        description: A user to create. The password can be generated, omit this field then
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserCreate"
+        required: true
+      parameters:
+        - $ref: "#/components/parameters/SelectUserChange"
+      responses:
+        "200":
+          description: Optional user object if select was provided
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserWithPassword"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
   /auth/refresh:
     parameters: []
+    post:
+      description: Acquire a token pair
+      parameters:
+        - in: query
+          name: include-refresh-token
+          description: Whether include refresh token in response or not
+          required: false
+          schema:
+            type: boolean
+            default: false
+      requestBody:
+        description: Credentials to log in with
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TokenPair"
+        required: true
+      responses:
+        "200":
+          description: Login Successful
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - accessToken
+                properties:
+                  accessToken:
+                    type: string
+                  refreshToken:
+                    type: string
+                additionalProperties: false
+        "400":
+          $ref: "#/components/responses/OpenApiBadRequest"
+        "401":
+          description: Error in tokens provided
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /auth/identity:
+    parameters: []
+    get:
+      description: Get identity of authenticated user
+      security:
+        - jwt-bearer: []
+      responses:
+        "200":
+          description: Login Successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
   /auth:
     parameters: []
     post:
@@ -51,7 +135,7 @@ paths:
         "400":
           $ref: "#/components/responses/OpenApiBadRequest"
         "401":
-          description: Error in data provided
+          description: Error in login data provided
           content:
             application/json:
               schema:
@@ -77,6 +161,9 @@ components:
   schemas:
     TokenPair:
       type: object
+      required:
+        - accessToken
+        - refreshToken
       properties:
         accessToken:
           type: string
@@ -95,9 +182,98 @@ components:
         code:
           type: string
       additionalProperties: true
+    UserOptional:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        role:
+          description: Enum actually
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 3
+        fullName:
+          type: string
+        userId:
+          type: integer
+          format: int32
+          minimum: 1
+      additionalProperties: false
+    UserWithPassword:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        role:
+          description: Enum actually
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 3
+        fullName:
+          type: string
+        userId:
+          type: integer
+          format: int32
+          minimum: 1
+        password:
+          type: string
+          format: password
+          pattern: ^(?=.*[A-Z])(?=.*[!@#$&*])(?=.*[0-9])(?=.*[a-z]).{6,}$
+      additionalProperties: false
+    UserCreate:
+      type: object
+      required:
+        - email
+        - role
+        - fullName
+      properties:
+        email:
+          type: string
+          format: email
+        role:
+          description: Enum actually
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 3
+        fullName:
+          type: string
+        password:
+          type: string
+          format: password
+          pattern: ^(?=.*[A-Z])(?=.*[!@#$&*])(?=.*[0-9])(?=.*[a-z]).{6,}$
+      additionalProperties: false
+    User:
+      type: object
+      required:
+        - userId
+        - email
+        - role
+        - fullName
+      properties:
+        email:
+          type: string
+          format: email
+        role:
+          description: Enum actually
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 3
+        fullName:
+          type: string
+        userId:
+          type: integer
+          format: int32
+          minimum: 1
+      additionalProperties: false
   responses:
     OpenApiBadRequest:
-      description: A response that indicated about error in request produced by the OpenApi
+      description: A response that indicates about error in request produced by the OpenApi
         validation. It is not programmatical but API misuse.
       content:
         application/json:
@@ -112,8 +288,8 @@ components:
                   - OPENAPI_VALIDATION
             additionalProperties: true
     BadRequest:
-      description: A response that indicated about error in request produced by the OpenApi
-        validation. It is not programmatical but API misuse.
+      description: A response that indicates about error in request produced either by the
+        OpenApi validation or in business logic.
       content:
         application/json:
           schema:
@@ -123,9 +299,48 @@ components:
             properties:
               code:
                 type: string
-                enum:
-                  - OPENAPI_VALIDATION
             additionalProperties: true
+    Unauthenticated:
+      description: Access token is absent, malformed or expired
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - code
+            properties:
+              code:
+                type: string
+            additionalProperties: true
+    Forbidden:
+      description: The scopes provided with token or user's role doesn't allow the
+        operation.
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - code
+            properties:
+              code:
+                type: string
+            additionalProperties: true
+  parameters:
+    SelectUserChange:
+      in: query
+      name: select
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - userId
+            - email
+            - role
+            - fullName
+            - password
+        uniqueItems: true
+        minItems: 1
 x-express-openapi-disable-defaults-middleware: true
 x-express-openapi-disable-response-validation-middleware: false
 x-express-openapi-response-validation-strict: true

@@ -1,9 +1,10 @@
 import * as config from 'config';
 import { IncomingMessage } from 'http';
 import { DeepNullablePartial, DeepReadonly, Nullable } from '../@types';
-import { IUser, UserRole } from '../models/users.model';
+import { IUser} from '../models/users.model';
 import { ErrorCode, LogicError } from '../services/error.service';
 import { IConfigKeyPairDescriptor } from './key-pairs';
+import { UserRole } from './models/users';
 import { JwtBearerScope, jwtScopeStrings } from './openapi';
 import { TokenExpiredError, VerifyErrors } from 'jsonwebtoken';
 
@@ -87,7 +88,7 @@ export function assertRequiredScopes(
   requiredScopes: ReadonlyArray<JwtBearerScope>,
   actualScopes: ReadonlyArray<JwtBearerScope>,
 ) {
-  if (actualScopes.some(s => !requiredScopes.includes(s))) {
+  if (requiredScopes.some(s => !actualScopes.includes(s))) {
     // Scope is synonymic to user's role
     throw new LogicError(ErrorCode.AUTH_ROLE);
   }

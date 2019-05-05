@@ -20,7 +20,7 @@ let AuthCommon = class AuthCommon {
     }
     async getNewAccessToken(tokenPair) {
         const accessTokenPayload = this.authService
-            .getAccessTokenPayload(tokenPair.accessToken);
+            .getAccessTokenPayload(tokenPair.accessToken, null, true);
         const refreshTokenPayload = this.authService
             .getRefreshTokenPayload(tokenPair.refreshToken);
         if (accessTokenPayload.id !== refreshTokenPayload.id) {

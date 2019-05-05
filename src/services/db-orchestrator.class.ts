@@ -2,13 +2,14 @@ import * as config from 'config';
 import { inject, injectable } from 'inversify';
 import * as Knex from 'knex';
 import { Maybe, Nullable } from '../@types';
-import { IUserCreate, UserRole, UsersModel } from '../models/users.model';
+import { IUserCreate, UsersModel } from '../models/users.model';
 import {
   getChildTables,
   getTableNames,
   TableBuilders,
   TableName,
 } from '../utils/db-orchestrator';
+import { UserRole } from '../utils/models/users';
 import { DbConnection } from './db-connection.class';
 
 export type CreateTableCallback = {
@@ -124,7 +125,7 @@ export class DbOrchestrator {
       admin.userId = id;
     }
 
-    return this._usersModel.create(admin);
+    return this._usersModel.createOne(admin);
   }
 }
 

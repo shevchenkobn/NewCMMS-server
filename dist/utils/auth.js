@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const config = require("config");
-const users_model_1 = require("../models/users.model");
 const error_service_1 = require("../services/error.service");
+const users_1 = require("./models/users");
 const openapi_1 = require("./openapi");
 const jsonwebtoken_1 = require("jsonwebtoken");
 exports.jwtAudience = 'human-actors';
@@ -38,10 +38,10 @@ function getTokenFromAccessTokenString(str) {
 exports.getTokenFromAccessTokenString = getTokenFromAccessTokenString;
 function getJwtBearerScopes(user) {
     const scopes = [];
-    if (user.role & users_model_1.UserRole.EMPLOYEE) {
+    if (user.role & users_1.UserRole.EMPLOYEE) {
         scopes.push(openapi_1.JwtBearerScope.EMPLOYEE);
     }
-    if (user.role & users_model_1.UserRole.ADMIN) {
+    if (user.role & users_1.UserRole.ADMIN) {
         scopes.push(openapi_1.JwtBearerScope.ADMIN);
     }
     return scopes;
@@ -55,7 +55,7 @@ function handleJwtError(err, codeToThrow = error_service_1.ErrorCode.AUTH_BAD) {
 }
 exports.handleJwtError = handleJwtError;
 function assertRequiredScopes(requiredScopes, actualScopes) {
-    if (actualScopes.some(s => !requiredScopes.includes(s))) {
+    if (requiredScopes.some(s => !actualScopes.includes(s))) {
         // Scope is synonymic to user's role
         throw new error_service_1.LogicError(error_service_1.ErrorCode.AUTH_ROLE);
     }

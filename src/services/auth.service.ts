@@ -14,8 +14,9 @@ import {
   jwtAudience,
 } from '../utils/auth';
 import { getDefaultKeyPaths, IKeys, loadKeys } from '../utils/key-pairs';
-import { IUser, UserRole, UsersModel } from '../models/users.model';
+import { IUser, UsersModel } from '../models/users.model';
 import { IncomingMessage } from 'http';
+import { UserRole } from '../utils/models/users';
 import { JwtBearerScope } from '../utils/openapi';
 import { ErrorCode, LogicError } from './error.service';
 import { DeepReadonly, Nullable } from '../@types';

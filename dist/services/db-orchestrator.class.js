@@ -5,6 +5,7 @@ const config = require("config");
 const inversify_1 = require("inversify");
 const users_model_1 = require("../models/users.model");
 const db_orchestrator_1 = require("../utils/db-orchestrator");
+const users_1 = require("../utils/models/users");
 const db_connection_class_1 = require("./db-connection.class");
 let DbOrchestrator = class DbOrchestrator {
     constructor(dbConnection, usersModel) {
@@ -71,14 +72,14 @@ let DbOrchestrator = class DbOrchestrator {
         const admin = {
             email,
             password,
-            role: users_model_1.UserRole.ADMIN | users_model_1.UserRole.EMPLOYEE,
+            role: users_1.UserRole.ADMIN | users_1.UserRole.EMPLOYEE,
             fullName: name,
         };
         // Doing a slight hack to preserve super admin id
         if (typeof id === 'number') {
             admin.userId = id;
         }
-        return this._usersModel.create(admin);
+        return this._usersModel.createOne(admin);
     }
 };
 DbOrchestrator = tslib_1.__decorate([

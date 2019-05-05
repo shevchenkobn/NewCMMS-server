@@ -1,4 +1,4 @@
-description: A response that indicated about error in request produced either by the OpenApi validation or in business logic.
+description: A response that indicates about error in request produced either by the OpenApi validation or in business logic.
 content:
   application/json:
     schema:

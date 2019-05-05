@@ -27,4 +27,6 @@ components:
     $ref: ./schemas/__init__.yaml
   responses:
     $ref: ./responses/__init__.yaml
+  parameters:
+    $ref: ./parameters/__init__.yaml
 

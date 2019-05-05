@@ -16,7 +16,7 @@
     "start:b:brk": "npm run build && node --inspect-brk ./dist",
     "start:dev": "node --inspect=9229 ./dist",
     "start:b:dev": "npm run build && node --inspect=9229 ./dist",
-    "watch": "nodemon -w src/ -w swagger/ -w config/ -e ts,yaml -x \"npm run start:b:dev\"",
+    "watch": "nodemon -w src/ -w openapi/ -w config/ -e ts,yaml -x \"npm run start:b:dev\"",
     "db:p": "node dist/tools/db-populate",
     "db:populate": "node dist/tools/db-populate",
     "db:clear": "node dist/tools/db-clear",

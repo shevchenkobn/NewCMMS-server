@@ -1,0 +1,14 @@
+in: query
+name: select
+schema:
+  type: array
+  items:
+    type: string
+    enum:
+      - userId
+      - email
+      - role
+      - fullName
+      - password
+  uniqueItems: true
+  minItems: 1

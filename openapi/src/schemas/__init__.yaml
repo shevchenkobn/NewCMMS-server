@@ -7,5 +7,14 @@ UserPassword:
 Error:
   $ref: ./error.yaml
 
+UserOptional:
+  $ref: ./user-optional.yaml
+
+UserWithPassword:
+  $ref: ./user-with-password.yaml
+
+UserCreate:
+  $ref: ./user-create.yaml
+
 User:
   $ref: ./user.yaml

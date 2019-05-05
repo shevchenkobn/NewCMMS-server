@@ -1,7 +1,7 @@
 import { inject, injectable } from 'inversify';
 import { IUserCredentials, UsersModel } from '../../models/users.model';
 import { AuthService, IUserForToken } from '../../services/auth.service';
-import { DeepNonMayble, DeepReadonly } from '../../@types';
+import { DeepNonMaybe, DeepReadonly } from '../../@types';
 import { ErrorCode, LogicError } from '../../services/error.service';
 
 export interface ITokenPair {
@@ -25,10 +25,10 @@ export class AuthCommon {
   async getTokensForUser(
     userCredentials: DeepReadonly<IUserCredentials>,
   ): Promise<ITokenPair> {
-    const user = await this.usersModel.getAssertedUser(
+    const user = await this.usersModel.getAssertedUser<IUserForToken>(
       userCredentials,
       ['userId', 'role'],
-    ) as DeepNonMayble<IUserForToken>;
+    );
     return {
       accessToken: this.authService.generateAccessToken(user),
       refreshToken: this.authService
@@ -38,7 +38,7 @@ export class AuthCommon {
 
   async getNewAccessToken(tokenPair: ITokenPair): Promise<string> {
     const accessTokenPayload = this.authService
-      .getAccessTokenPayload(tokenPair.accessToken);
+      .getAccessTokenPayload(tokenPair.accessToken, null, true);
     const refreshTokenPayload = this.authService
       .getRefreshTokenPayload(tokenPair.refreshToken);
     if (accessTokenPayload.id !== refreshTokenPayload.id) {

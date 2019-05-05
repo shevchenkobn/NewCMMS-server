@@ -6,3 +6,6 @@ BadRequest:
 
 Unauthenticated:
   $ref: ./unauthenticated.yaml
+
+Forbidden:
+  $ref: ./forbidden.yaml

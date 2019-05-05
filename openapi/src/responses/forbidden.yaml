@@ -1,0 +1,5 @@
+description: The scopes provided with token or user's role doesn't allow the operation.
+content:
+  application/json:
+    schema:
+      $ref: '../schemas/error.yaml'

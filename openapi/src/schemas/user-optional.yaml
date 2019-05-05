@@ -1,9 +1,4 @@
 type: object
-required:
-  - userId
-  - email
-  - role
-  - fullName
 properties:
   email:
     type: string
