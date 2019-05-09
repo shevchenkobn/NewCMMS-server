@@ -1,0 +1,6 @@
+in: query
+name: cursor
+description: The cursor that was generated from the previous request to the API for pagination.
+required: false
+schema:
+  $ref: ../schemas/cursor.yaml

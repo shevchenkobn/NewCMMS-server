@@ -1,10 +1,10 @@
 import { compare, hash } from 'bcrypt';
 import { inject, injectable } from 'inversify';
-import { oc } from 'ts-optchain';
 import { DeepReadonly, Nullable } from '../@types';
 import { DbConnection } from '../services/db-connection.class';
 import { ErrorCode, LogicError } from '../services/error.service';
-import { TableName } from '../utils/db-orchestrator';
+import { getIdColumn, TableName } from '../utils/db-orchestrator';
+import { applySortingToQuery, ComparatorFilters } from '../utils/model';
 import {
   bcryptOptimalHashCycles,
   getAllSafeUserPropertyNames,
@@ -47,6 +47,15 @@ export interface IUserId {
 
 export interface IUserEmail {
   email: string;
+}
+
+export interface IUsersSelectParams {
+  select?: ReadonlyArray<keyof IUser>;
+  userIds?: ReadonlyArray<number>;
+  comparatorFilters?: DeepReadonly<ComparatorFilters<IUser>>;
+  orderBy?: ReadonlyArray<string>;
+  offset?: number;
+  limit?: number;
 }
 
 @injectable()
@@ -135,6 +144,32 @@ export class UsersModel {
     return users[0];
   }
 
+  getList<T extends Partial<IUser> = IUser>(params: IUsersSelectParams): Promise<T[]> {
+    const query = this.table;
+    if (params.userIds && params.userIds.length > 0) {
+      query.whereIn(getIdColumn(TableName.USERS), params.userIds as number[]);
+    }
+    if (params.comparatorFilters && params.comparatorFilters.length > 0) {
+      for (const filter of params.comparatorFilters) {
+        query.where(...(filter as [string, string, any]));
+      }
+    }
+    if (typeof params.offset === 'number') {
+      query.offset(params.offset);
+    }
+    if (typeof params.limit === 'number') {
+      query.limit(params.limit);
+    }
+    if (params.orderBy && params.orderBy.length > 0) {
+      applySortingToQuery(query, params.orderBy);
+    }
+    return query.select(
+      (params.select && params.select.length > 0
+        ? params.select
+        : getAllSafeUserPropertyNames()) as string[],
+    ) as any as Promise<T[]>;
+  }
+
   deleteOne(email: DeepReadonly<IUserEmail>): Promise<void>;
   deleteOne(userId: DeepReadonly<IUserId>): Promise<void>;
   async deleteOne(
@@ -197,7 +232,7 @@ export class UsersModel {
       .insert(userSeed, returning as string[])
       .catch(this._handleError)
       .then(
-        users => returning && returning.length !== 0 ? users[0] : {},
+        users => returning && returning.length !== 0 ? users[0] : undefined,
       );
   }
 }

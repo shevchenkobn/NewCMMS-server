@@ -6,6 +6,7 @@ const inversify_1 = require("inversify");
 const db_connection_class_1 = require("../services/db-connection.class");
 const error_service_1 = require("../services/error.service");
 const db_orchestrator_1 = require("../utils/db-orchestrator");
+const model_1 = require("../utils/model");
 const users_1 = require("../utils/models/users");
 let UsersModel = class UsersModel {
     constructor(dbConnection) {
@@ -57,6 +58,29 @@ let UsersModel = class UsersModel {
         }
         return users[0];
     }
+    getList(params) {
+        const query = this.table;
+        if (params.userIds && params.userIds.length > 0) {
+            query.whereIn(db_orchestrator_1.getIdColumn(db_orchestrator_1.TableName.USERS), params.userIds);
+        }
+        if (params.comparatorFilters && params.comparatorFilters.length > 0) {
+            for (const filter of params.comparatorFilters) {
+                query.where(...filter);
+            }
+        }
+        if (typeof params.offset === 'number') {
+            query.offset(params.offset);
+        }
+        if (typeof params.limit === 'number') {
+            query.limit(params.limit);
+        }
+        if (params.orderBy && params.orderBy.length > 0) {
+            model_1.applySortingToQuery(query, params.orderBy);
+        }
+        return query.select((params.select && params.select.length > 0
+            ? params.select
+            : users_1.getAllSafeUserPropertyNames()));
+    }
     async deleteOne(emailOrUserId) {
         if (!users_1.isValidUserUniqueIdentifier(emailOrUserId)) {
             throw new error_service_1.LogicError(error_service_1.ErrorCode.USER_EMAIL_AND_ID, 'Both email and user id present. Use only one of them.');
@@ -86,7 +110,7 @@ let UsersModel = class UsersModel {
         return this.table
             .insert(userSeed, returning)
             .catch(this._handleError)
-            .then(users => returning && returning.length !== 0 ? users[0] : {});
+            .then(users => returning && returning.length !== 0 ? users[0] : undefined);
     }
 };
 UsersModel = tslib_1.__decorate([

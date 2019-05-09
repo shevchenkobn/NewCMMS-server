@@ -3,6 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const tslib_1 = require("tslib");
 const inversify_1 = require("inversify");
 const users_model_1 = require("../../models/users.model");
+const error_service_1 = require("../../services/error.service");
+const common_1 = require("../../utils/common");
+const model_1 = require("../../utils/model");
 let UsersCommon = class UsersCommon {
     constructor(usersModel) {
         this.usersModel = usersModel;
@@ -15,6 +18,43 @@ let UsersCommon = class UsersCommon {
         return returning
             ? this.usersModel.createOne(userSeed, returning)
             : this.usersModel.createOne(userSeed);
+    }
+    async getUsers(params) {
+        const args = Object.assign(params, { generateCursor: true });
+        let cursor = null;
+        if (!args.sort) {
+            throw new error_service_1.LogicError(error_service_1.ErrorCode.SORT_NO);
+        }
+        cursor = new model_1.PaginationCursor(args.sort, args.cursor);
+        const modelParams = {
+            userIds: args.userIds,
+            orderBy: args.sort,
+            offset: args.skip,
+            limit: args.limit,
+        };
+        if (args.select) {
+            modelParams.select = cursor
+                ? common_1.mergeArrays(args.select, cursor.getFilteredFieldNames())
+                : args.select;
+        }
+        if (cursor) {
+            modelParams.comparatorFilters = cursor.cursorData;
+        }
+        const users = await this.usersModel.getList(modelParams);
+        if (modelParams.select
+            && args.select
+            && modelParams.select.length !== args.select.length) {
+            const propsToDelete = common_1.differenceArrays(modelParams.select, args.select);
+            for (const user of users) {
+                for (const prop of propsToDelete) {
+                    delete user[prop];
+                }
+            }
+        }
+        return {
+            users,
+            cursor: args.generateCursor ? cursor.toString() : null,
+        };
     }
 };
 UsersCommon = tslib_1.__decorate([

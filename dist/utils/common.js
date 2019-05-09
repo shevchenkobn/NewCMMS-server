@@ -20,4 +20,26 @@ function deserializeResponseBody(res, body) {
     }
 }
 exports.deserializeResponseBody = deserializeResponseBody;
+function mergeArrays(...arrays) {
+    const set = new Set();
+    for (const array of arrays) {
+        for (const item of array) {
+            set.add(item);
+        }
+    }
+    return Array.from(set.values());
+}
+exports.mergeArrays = mergeArrays;
+function differenceArrays(array, ...arrays) {
+    return array.filter(item => {
+        for (const array of arrays) {
+            const includes = array.includes(item);
+            if (includes) {
+                return false;
+            }
+        }
+        return true;
+    });
+}
+exports.differenceArrays = differenceArrays;
 //# sourceMappingURL=common.js.map

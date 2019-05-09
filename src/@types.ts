@@ -1,6 +1,15 @@
 // NOTE: Make sure to import it in every entry point you have
 import 'bluebird-global';
 
+export type primitive =
+  number
+  | string
+  | boolean
+  | symbol
+  | null
+  | undefined
+  | bigint;
+
 export type Maybe<T> = T | null | undefined;
 export type Nullable<T> = T | null;
 export type Optional<T> = T | undefined;

@@ -78,7 +78,15 @@ pathItemHandler.post.apiDoc = {
 const userIdsParameterName = 'user-ids';
 
 pathItemHandler.get = (req, res, next) => {
-
+  usersCommon.getUsers({
+    select: req.query.select,
+    userIds: req.query[userIdsParameterName],
+    skip: req.query.skip,
+    limit: req.query.limit,
+    sort: req.query.sort,
+    cursor: req.query.cursor,
+    generateCursor: !req.query['cursor-not-generate'],
+  }).then(users => res.json(users)).catch(next);
 };
 pathItemHandler.get.apiDoc = ApiDoc.apiDoc;
 namespace ApiDoc {
@@ -103,6 +111,12 @@ namespace ApiDoc {
       },
       {
         $ref: '#/components/parameters/Limit',
+      },
+      {
+        $ref: '#/components/parameters/Cursor',
+      },
+      {
+        $ref: '#/components/parameters/CursorNotGenerate',
       },
       {
         in: 'query',

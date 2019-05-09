@@ -10,6 +10,7 @@ pathItemHandler.get = (req, res, next) => {
 };
 pathItemHandler.get.apiDoc = {
     description: 'Get identity of authenticated user',
+    tags: ['auth', 'users'],
     security: [{
             [openapi_1.jwtBearerScheme]: [],
         }],

@@ -3,9 +3,28 @@ import { DeepReadonly, Nullable, Optional } from '../../@types';
 import {
   IUser,
   IUserCreate,
-  IUserCreateNoPassword, IUserWithPassword,
+  IUserCreateNoPassword, IUsersSelectParams,
+  IUserWithPassword,
   UsersModel,
 } from '../../models/users.model';
+import { ErrorCode, LogicError } from '../../services/error.service';
+import { differenceArrays, mergeArrays } from '../../utils/common';
+import { PaginationCursor } from '../../utils/model';
+
+export interface IUserList {
+  users: IUser[];
+  cursor: Nullable<string>;
+}
+
+export interface IGetUsersParams {
+  select?: ReadonlyArray<keyof IUser>;
+  userIds?: ReadonlyArray<number>;
+  skip?: number;
+  limit?: number;
+  sort?: ReadonlyArray<string>;
+  cursor?: string;
+  generateCursor?: boolean;
+}
 
 @injectable()
 export class UsersCommon {
@@ -42,5 +61,45 @@ export class UsersCommon {
     return returning
       ? this.usersModel.createOne(userSeed, returning)
       : this.usersModel.createOne(userSeed);
+  }
+
+  async getUsers(params: Readonly<IGetUsersParams>): Promise<IUserList> {
+    const args = Object.assign(params, { generateCursor: true });
+    let cursor = null;
+    if (!args.sort) {
+      throw new LogicError(ErrorCode.SORT_NO);
+    }
+    cursor = new PaginationCursor<IUser>(args.sort, args.cursor);
+    const modelParams = {
+      userIds: args.userIds,
+      orderBy: args.sort,
+      offset: args.skip,
+      limit: args.limit,
+    } as IUsersSelectParams;
+    if (args.select) {
+      modelParams.select = cursor
+        ? mergeArrays(args.select, cursor.getFilteredFieldNames())
+        : args.select;
+    }
+    if (cursor) {
+      modelParams.comparatorFilters = cursor.cursorData;
+    }
+    const users = await this.usersModel.getList(modelParams);
+    if (
+      modelParams.select
+      && args.select
+      && modelParams.select.length !== args.select.length
+    ) {
+      const propsToDelete = differenceArrays(modelParams.select, args.select);
+      for (const user of users) {
+        for (const prop of propsToDelete) {
+          delete user[prop];
+        }
+      }
+    }
+    return {
+      users,
+      cursor: args.generateCursor ? cursor.toString() : null,
+    };
   }
 }

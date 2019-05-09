@@ -1,0 +1,7 @@
+in: query
+name: cursor-not-generate
+description: Flag that says whether cursor must be generated
+required: false
+schema:
+  type: boolean
+  default: false

@@ -11,6 +11,7 @@ pathItemHandler.post = (req, res, next) => {
 };
 pathItemHandler.post.apiDoc = {
     description: 'Acquire a token pair',
+    tags: ['auth'],
     requestBody: {
         description: 'Credentials to log in with',
         content: {

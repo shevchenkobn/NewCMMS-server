@@ -19,3 +19,30 @@ export function deserializeResponseBody(res: Response, body: any) {
       return body;
   }
 }
+
+export function mergeArrays<T = any>(
+  ...arrays: ReadonlyArray<ReadonlyArray<T>>
+) {
+  const set = new Set();
+  for (const array of arrays) {
+    for (const item of array) {
+      set.add(item);
+    }
+  }
+  return Array.from(set.values());
+}
+
+export function differenceArrays<T = any>(
+  array: ReadonlyArray<T>,
+  ...arrays: ReadonlyArray<ReadonlyArray<T>>
+) {
+  return array.filter(item => {
+    for (const array of arrays) {
+      const includes = array.includes(item);
+      if (includes) {
+        return false;
+      }
+    }
+    return true;
+  });
+}

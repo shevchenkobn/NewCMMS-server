@@ -9,3 +9,9 @@ Skip:
 
 Limit:
   $ref: ./limit.yaml
+
+Cursor:
+  $ref: ./cursor.yaml
+
+CursorNotGenerate:
+  $ref: ./cursor-not-generate.yaml

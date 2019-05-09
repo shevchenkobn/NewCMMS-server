@@ -1,0 +1,3 @@
+type: string
+description: The cursor used to paginate efficiently.
+format: byte
