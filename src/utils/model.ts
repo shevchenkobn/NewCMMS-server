@@ -10,7 +10,7 @@ export type FieldValue = primitive | Date;
 export type ComparatorFilters<T> = [keyof T, ComparisonSign, FieldValue][];
 export type CursorData<T> = [keyof T, StrictComparisonSign, FieldValue][];
 
-export class PaginationCursor<T extends object> {
+export class PaginationCursor<T extends object> { // FIXME: take into account only first sorting field. I am just to sorry to remove it
   readonly sortFields: ReadonlyArray<string>;
   readonly cursorData: CursorData<T>;
 
