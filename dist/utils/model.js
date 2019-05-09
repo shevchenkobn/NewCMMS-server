@@ -7,15 +7,49 @@ class PaginationCursor {
             throw new error_service_1.LogicError(error_service_1.ErrorCode.SORT_NO);
         }
         this.sortFields = sortFields;
-        this.cursorData = this.getCursor(previousCursor
+        this._previousCursorData = previousCursor
             ? decodeCursor(previousCursor, dateFields)
-            : null);
+            : null;
+        this._cursorData = this.getCursorData();
+    }
+    get filterField() {
+        return this._cursorData[0];
     }
     toString() {
-        return encodeCursor(this.cursorData);
+        return encodeCursor(this._cursorData);
     }
     getFilteredFieldNames() {
-        return this.cursorData.map(f => f[0]);
+        return this._cursorData.map(f => f[0]);
+    }
+    removeIrrelevantFromList(list, makeNewList = false) {
+        if (!this._previousCursorData || this._previousCursorData.length === 1) {
+            return makeNewList ? list.slice() : list;
+        }
+        const length = this._previousCursorData.length;
+        const firstSuitable = list.findIndex(item => {
+            for (let i = 1; i < length; i += 1) {
+                const [prop, sign, value] = this._previousCursorData[i];
+                if (sign === '<') {
+                    if (!(item[prop] < value)) {
+                        return true;
+                    }
+                }
+                else if (sign === '>') {
+                    if (!(item[prop] > value)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        });
+        if (firstSuitable < 0) {
+            return makeNewList ? list.slice() : list;
+        }
+        if (makeNewList) {
+            return list.slice(firstSuitable);
+        }
+        list.splice(0, firstSuitable);
+        return list;
     }
     updateFromList(list) {
         if (list.length === 0) {
@@ -25,9 +59,9 @@ class PaginationCursor {
         for (const sortField of this.sortFields) {
             const direction = sortField[0];
             const fieldName = sortField.slice(1);
-            const filteredField = this.cursorData.find(([name]) => name === fieldName);
+            const filteredField = this._cursorData.find(([name]) => name === fieldName);
             if (!filteredField) {
-                this.cursorData.push([
+                this._cursorData.push([
                     fieldName,
                     direction === '<' ? '<' : '>',
                     last[fieldName],
@@ -58,13 +92,13 @@ class PaginationCursor {
         }
         return this;
     }
-    getCursor(previousCursor = null) {
+    getCursorData() {
         const cursor = [];
-        if (previousCursor) {
+        if (this._previousCursorData) {
             for (const sortField of this.sortFields) {
                 const fieldName = sortField.slice(1);
                 const direction = sortField[0];
-                const previousFilter = previousCursor
+                const previousFilter = this._previousCursorData
                     .find(([name]) => name === fieldName);
                 if (!previousFilter) {
                     continue;

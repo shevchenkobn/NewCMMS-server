@@ -1,5 +1,5 @@
 import { QueryBuilder } from 'knex';
-import { DeepReadonly, Nullable, primitive } from '../@types';
+import { DeepReadonly, Nullable, Optional, primitive } from '../@types';
 import { IUser } from '../models/users.model';
 import { ErrorCode, LogicError } from '../services/error.service';
 
@@ -10,9 +10,14 @@ export type FieldValue = primitive | Date;
 export type ComparatorFilters<T> = [keyof T, ComparisonSign, FieldValue][];
 export type CursorData<T> = [keyof T, StrictComparisonSign, FieldValue][];
 
-export class PaginationCursor<T extends object> { // FIXME: take into account only first sorting field. I am just to sorry to remove it
+export class PaginationCursor<T extends object> {
   readonly sortFields: ReadonlyArray<string>;
-  readonly cursorData: CursorData<T>;
+  protected readonly _cursorData: CursorData<T>;
+  protected readonly _previousCursorData: Nullable<CursorData<T>>;
+
+  get filterField(): Optional<DeepReadonly<CursorData<T>[0]>> {
+    return this._cursorData[0];
+  }
 
   constructor(
     sortFields: ReadonlyArray<string>,
@@ -23,19 +28,53 @@ export class PaginationCursor<T extends object> { // FIXME: take into account on
       throw new LogicError(ErrorCode.SORT_NO);
     }
     this.sortFields = sortFields;
-    this.cursorData = this.getCursor(
-      previousCursor
-        ? decodeCursor<T>(previousCursor, dateFields)
-        : null,
-    );
+    this._previousCursorData = previousCursor
+      ? decodeCursor<T>(previousCursor, dateFields)
+      : null;
+    this._cursorData = this.getCursorData();
   }
 
   toString() {
-    return encodeCursor<T>(this.cursorData);
+    return encodeCursor<T>(this._cursorData);
   }
 
   getFilteredFieldNames() {
-    return this.cursorData.map(f => f[0]);
+    return this._cursorData.map(f => f[0]);
+  }
+
+  removeIrrelevantFromList(list: T[], makeNewList?: false): T[];
+  removeIrrelevantFromList(
+    list: ReadonlyArray<T>,
+    makeNewList: true,
+  ): ReadonlyArray<T>;
+  removeIrrelevantFromList(list: T[], makeNewList = false): T[] {
+    if (!this._previousCursorData || this._previousCursorData.length === 1) {
+      return makeNewList ? list.slice() : list;
+    }
+    const length = this._previousCursorData.length;
+    const firstSuitable = list.findIndex(item => {
+      for (let i = 1; i < length; i += 1) {
+        const [prop, sign, value] = this._previousCursorData![i];
+        if (sign === '<') {
+          if (!(item[prop] < (value as any))) {
+            return true;
+          }
+        } else if (sign === '>') {
+          if (!(item[prop] > (value as any))) {
+            return true;
+          }
+        }
+      }
+      return false;
+    });
+    if (firstSuitable < 0) {
+      return makeNewList ? list.slice() : list;
+    }
+    if (makeNewList) {
+      return list.slice(firstSuitable);
+    }
+    list.splice(0, firstSuitable);
+    return list;
   }
 
   updateFromList(list: ReadonlyArray<T>) {
@@ -46,11 +85,11 @@ export class PaginationCursor<T extends object> { // FIXME: take into account on
     for (const sortField of this.sortFields) {
       const direction = sortField[0];
       const fieldName = sortField.slice(1);
-      const filteredField = this.cursorData.find(
+      const filteredField = this._cursorData.find(
         ([name]) => name === fieldName,
       );
       if (!filteredField) {
-        this.cursorData.push([
+        this._cursorData.push([
           fieldName as (keyof T),
           direction === '<' ? '<' : '>', // For flexibility of the code
           (last as any)[fieldName],
@@ -85,15 +124,13 @@ export class PaginationCursor<T extends object> { // FIXME: take into account on
     return this;
   }
 
-  protected getCursor(
-    previousCursor: Nullable<CursorData<T>> = null,
-  ): CursorData<T> {
+  protected getCursorData(): CursorData<T> {
     const cursor = [] as CursorData<T>;
-    if (previousCursor) {
+    if (this._previousCursorData) {
       for (const sortField of this.sortFields as ReadonlyArray<string>) {
         const fieldName = sortField.slice(1);
         const direction = sortField[0];
-        const previousFilter = previousCursor
+        const previousFilter = this._previousCursorData
           .find(([name]) => name === fieldName);
         if (!previousFilter) {
           continue;

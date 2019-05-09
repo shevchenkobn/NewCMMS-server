@@ -88,11 +88,16 @@ export class UsersCommon {
         : args.select;
     }
     if (cursor) {
-      modelParams.comparatorFilters = cursor.cursorData;
+      modelParams.comparatorFilters = cursor.filterField
+        ? [cursor.filterField]
+        : [];
     }
     const users = await this.usersModel.getList(modelParams);
     if (args.generateCursor) {
       cursor!.updateFromList(users);
+    }
+    if (cursor) {
+      cursor.removeIrrelevantFromList(users);
     }
     if (
       modelParams.select
