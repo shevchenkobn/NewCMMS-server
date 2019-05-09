@@ -33,5 +33,5 @@ export function getAllSafeUserPropertyNames(): (keyof IUser)[] {
 
 export function getSortFields() {
   return getAllSafeUserPropertyNames()
-    .flatMap(p => [`-${p}`, `+${p}`]);
+    .flatMap(p => [`<${p}`, `>${p}`]);
 }

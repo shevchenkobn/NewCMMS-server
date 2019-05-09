@@ -11,7 +11,7 @@
     "declarationMap": false,
     "diagnostics": false,
     "disableSizeLimit": true,
-    "downlevelIteration": false,
+    "downlevelIteration": true,
     "emitBOM": false,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
@@ -50,7 +50,7 @@
     "strictPropertyInitialization": true,
     "suppressExcessPropertyErrors": false,
     "suppressImplicitAnyIndexErrors": false,
-    "target": "esnext",
+    "target": "es2018",
     "typeRoots": ["@types"],
     "types": ["node", "bluebird-global"]
   }

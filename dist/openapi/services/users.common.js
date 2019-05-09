@@ -20,12 +20,18 @@ let UsersCommon = class UsersCommon {
             : this.usersModel.createOne(userSeed);
     }
     async getUsers(params) {
-        const args = Object.assign(params, { generateCursor: true });
+        const args = Object.assign({ generateCursor: true }, params);
         let cursor = null;
-        if (!args.sort) {
-            throw new error_service_1.LogicError(error_service_1.ErrorCode.SORT_NO);
+        if (args.sort) {
+            if (args.generateCursor) {
+                cursor = new model_1.PaginationCursor(args.sort, args.cursor);
+            }
         }
-        cursor = new model_1.PaginationCursor(args.sort, args.cursor);
+        else {
+            if (args.cursor) {
+                throw new error_service_1.LogicError(error_service_1.ErrorCode.SORT_NO);
+            }
+        }
         const modelParams = {
             userIds: args.userIds,
             orderBy: args.sort,
@@ -41,6 +47,9 @@ let UsersCommon = class UsersCommon {
             modelParams.comparatorFilters = cursor.cursorData;
         }
         const users = await this.usersModel.getList(modelParams);
+        if (args.generateCursor) {
+            cursor.updateFromList(users);
+        }
         if (modelParams.select
             && args.select
             && modelParams.select.length !== args.select.length) {
@@ -53,7 +62,9 @@ let UsersCommon = class UsersCommon {
         }
         return {
             users,
-            cursor: args.generateCursor ? cursor.toString() : null,
+            cursor: args.generateCursor
+                ? cursor.toString()
+                : null,
         };
     }
 };

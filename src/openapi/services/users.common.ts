@@ -1,4 +1,5 @@
 import { inject, injectable } from 'inversify';
+import { oc } from 'ts-optchain';
 import { DeepReadonly, Nullable, Optional } from '../../@types';
 import {
   IUser,
@@ -64,12 +65,17 @@ export class UsersCommon {
   }
 
   async getUsers(params: Readonly<IGetUsersParams>): Promise<IUserList> {
-    const args = Object.assign(params, { generateCursor: true });
+    const args = Object.assign({ generateCursor: true }, params);
     let cursor = null;
-    if (!args.sort) {
-      throw new LogicError(ErrorCode.SORT_NO);
+    if (args.sort) {
+      if (args.generateCursor) {
+        cursor = new PaginationCursor<IUser>(args.sort, args.cursor);
+      }
+    } else {
+      if (args.cursor) {
+        throw new LogicError(ErrorCode.SORT_NO);
+      }
     }
-    cursor = new PaginationCursor<IUser>(args.sort, args.cursor);
     const modelParams = {
       userIds: args.userIds,
       orderBy: args.sort,
@@ -85,6 +91,9 @@ export class UsersCommon {
       modelParams.comparatorFilters = cursor.cursorData;
     }
     const users = await this.usersModel.getList(modelParams);
+    if (args.generateCursor) {
+      cursor!.updateFromList(users);
+    }
     if (
       modelParams.select
       && args.select
@@ -99,7 +108,9 @@ export class UsersCommon {
     }
     return {
       users,
-      cursor: args.generateCursor ? cursor.toString() : null,
+      cursor: args.generateCursor
+        ? cursor!.toString()
+        : null,
     };
   }
 }

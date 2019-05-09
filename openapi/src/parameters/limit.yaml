@@ -1,5 +1,5 @@
 in: query
-name: skip
+name: limit
 description: Maximum number of enitites in the list that satisfy filters you want to retrieve
 schema:
   type: integer

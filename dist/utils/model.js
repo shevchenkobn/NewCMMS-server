@@ -18,8 +18,22 @@ class PaginationCursor {
         return this.cursorData.map(f => f[0]);
     }
     updateFromList(list) {
+        if (list.length === 0) {
+            return this;
+        }
         const last = list[list.length - 1];
-        for (const filteredField of this.cursorData) {
+        for (const sortField of this.sortFields) {
+            const direction = sortField[0];
+            const fieldName = sortField.slice(1);
+            const filteredField = this.cursorData.find(([name]) => name === fieldName);
+            if (!filteredField) {
+                this.cursorData.push([
+                    fieldName,
+                    direction === '<' ? '<' : '>',
+                    last[fieldName],
+                ]);
+                continue;
+            }
             const [prop, sign] = filteredField;
             const propValue = last[prop];
             if (propValue === null
@@ -55,8 +69,8 @@ class PaginationCursor {
                 if (!previousFilter) {
                     continue;
                 }
-                if (direction === '+' && previousFilter[1] === '<'
-                    || direction === '-' && previousFilter[1] === '>') {
+                if (direction === '>' && previousFilter[1] === '<'
+                    || direction === '<' && previousFilter[1] === '>') {
                     throw new error_service_1.LogicError(error_service_1.ErrorCode.LIST_CURSOR_BAD);
                 }
                 cursor.push(previousFilter);
@@ -94,7 +108,7 @@ function applyComparatorFiltersToQuery(query, filters) {
 exports.applyComparatorFiltersToQuery = applyComparatorFiltersToQuery;
 function applySortingToQuery(query, sortFields) {
     for (const sortField of sortFields) {
-        query.orderBy(sortField.slice(1), sortField[0] === '-' ? 'desc' : 'asc');
+        query.orderBy(sortField.slice(1), sortField[0] === '<' ? 'desc' : 'asc');
     }
     return query;
 }

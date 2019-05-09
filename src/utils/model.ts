@@ -1,5 +1,6 @@
 import { QueryBuilder } from 'knex';
 import { DeepReadonly, Nullable, primitive } from '../@types';
+import { IUser } from '../models/users.model';
 import { ErrorCode, LogicError } from '../services/error.service';
 
 export type StrictComparisonSign = '<' | '>';
@@ -38,8 +39,24 @@ export class PaginationCursor<T extends object> {
   }
 
   updateFromList(list: ReadonlyArray<T>) {
+    if (list.length === 0) {
+      return this;
+    }
     const last = list[list.length - 1];
-    for (const filteredField of this.cursorData) {
+    for (const sortField of this.sortFields) {
+      const direction = sortField[0];
+      const fieldName = sortField.slice(1);
+      const filteredField = this.cursorData.find(
+        ([name]) => name === fieldName,
+      );
+      if (!filteredField) {
+        this.cursorData.push([
+          fieldName as (keyof T),
+          direction === '<' ? '<' : '>', // For flexibility of the code
+          (last as any)[fieldName],
+        ]);
+        continue;
+      }
       const [prop, sign] = filteredField;
       const propValue = last[prop] as any;
       if (
@@ -82,8 +99,8 @@ export class PaginationCursor<T extends object> {
           continue;
         }
         if (
-          direction === '+' && previousFilter[1] === '<'
-          || direction === '-' && previousFilter[1] === '>'
+          direction === '>' && previousFilter[1] === '<'
+          || direction === '<' && previousFilter[1] === '>'
         ) {
           throw new LogicError(ErrorCode.LIST_CURSOR_BAD);
         }
@@ -130,7 +147,7 @@ export function applySortingToQuery(
   sortFields: ReadonlyArray<string>,
 ) {
   for (const sortField of sortFields) {
-    query.orderBy(sortField.slice(1), sortField[0] === '-' ? 'desc' : 'asc');
+    query.orderBy(sortField.slice(1), sortField[0] === '<' ? 'desc' : 'asc');
   }
   return query;
 }

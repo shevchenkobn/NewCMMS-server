@@ -68,7 +68,6 @@ pathItemHandler.get = (req, res, next) => {
         generateCursor: !req.query['cursor-not-generate'],
     }).then(users => res.json(users)).catch(next);
 };
-pathItemHandler.get.apiDoc = ApiDoc.apiDoc;
 var ApiDoc;
 (function (ApiDoc) {
     const sortFields = users_1.getSortFields();
@@ -84,7 +83,14 @@ var ApiDoc;
                 name: userIdsParameterName,
                 description: 'User IDs to include in result',
                 schema: {
-                    $ref: '#/components/schemas/id-list.yaml',
+                    type: 'array',
+                    items: {
+                        type: 'integer',
+                        format: 'int32',
+                        minimum: 1,
+                    },
+                    minItems: 1,
+                    uniqueItems: true,
                 },
             },
             {
@@ -124,11 +130,12 @@ var ApiDoc;
                             properties: {
                                 cursor: {
                                     type: 'string',
+                                    nullable: true,
                                 },
                                 users: {
                                     type: 'array',
                                     items: {
-                                        $ref: '#/components/schemas/User',
+                                        $ref: '#/components/schemas/UserOptional',
                                     },
                                 },
                             },
@@ -148,5 +155,6 @@ var ApiDoc;
         },
     };
 })(ApiDoc || (ApiDoc = {}));
+pathItemHandler.get.apiDoc = ApiDoc.apiDoc;
 module.exports = pathItemHandler;
 //# sourceMappingURL=users.js.map

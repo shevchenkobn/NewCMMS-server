@@ -27,7 +27,7 @@ function getAllSafeUserPropertyNames() {
 exports.getAllSafeUserPropertyNames = getAllSafeUserPropertyNames;
 function getSortFields() {
     return getAllSafeUserPropertyNames()
-        .flatMap(p => [`-${p}`, `+${p}`]);
+        .flatMap(p => [`<${p}`, `>${p}`]);
 }
 exports.getSortFields = getSortFields;
 //# sourceMappingURL=users.js.map

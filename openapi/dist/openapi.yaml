@@ -22,6 +22,8 @@ paths:
     parameters: []
     post:
       description: Create user
+      tags:
+        - users
       security:
         - jwt-bearer:
             - admin
@@ -35,7 +37,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/SelectUserChange"
       responses:
-        "200":
+        "201":
           description: Optional user object if select was provided
           content:
             application/json:
@@ -47,10 +49,72 @@ paths:
           $ref: "#/components/responses/Unauthenticated"
         "403":
           $ref: "#/components/responses/Forbidden"
+    get:
+      description: Get users
+      tags:
+        - users
+      parameters:
+        - $ref: "#/components/parameters/SelectUser"
+        - in: query
+          name: user-ids
+          description: User IDs to include in result
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+              minimum: 1
+            minItems: 1
+            uniqueItems: true
+        - $ref: "#/components/parameters/Skip"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/CursorNotGenerate"
+        - in: query
+          name: sort
+          description: Sort orders
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - <userId
+                - ">userId"
+                - <email
+                - ">email"
+                - <role
+                - ">role"
+                - <fullName
+                - ">fullName"
+            minItems: 1
+            maxItems: 4
+      responses:
+        "200":
+          description: Get list of users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cursor:
+                    type: string
+                    nullable: true
+                  users:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/UserOptional"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
   /auth/refresh:
     parameters: []
     post:
       description: Acquire a token pair
+      tags:
+        - auth
       parameters:
         - in: query
           name: include-refresh-token
@@ -93,6 +157,9 @@ paths:
     parameters: []
     get:
       description: Get identity of authenticated user
+      tags:
+        - auth
+        - users
       security:
         - jwt-bearer: []
       responses:
@@ -108,6 +175,8 @@ paths:
     parameters: []
     post:
       description: Acquire a token pair
+      tags:
+        - auth
       requestBody:
         description: Credentials to log in with
         content:
@@ -159,6 +228,20 @@ components:
           tokenUrl: "{serverUrlWithApiBase}/auth/login"
           refreshUrl: "{serverUrlWithApiBase}/auth/refresh"
   schemas:
+    Id:
+      type: integer
+      minimum: 1
+    IdList:
+      type: array
+      items:
+        type: integer
+        minimum: 1
+      minItems: 1
+      uniqueItems: true
+    Cursor:
+      type: string
+      description: The cursor used to paginate efficiently.
+      format: byte
     TokenPair:
       type: object
       required:
@@ -329,6 +412,7 @@ components:
     SelectUserChange:
       in: query
       name: select
+      description: Fields in json you want to consume
       schema:
         type: array
         items:
@@ -341,6 +425,58 @@ components:
             - password
         uniqueItems: true
         minItems: 1
+    SelectUser:
+      in: query
+      name: select
+      description: Fields in json you want to consume
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - userId
+            - email
+            - role
+            - fullName
+        uniqueItems: true
+        minItems: 1
+    Skip:
+      in: query
+      name: skip
+      description: Number of enitites in the list that satisfy filters but must be skipped
+      schema:
+        type: integer
+        format: int32
+        minimum: 0
+        maximum: 10000
+    Limit:
+      in: query
+      name: limit
+      description: Maximum number of enitites in the list that satisfy filters you want to
+        retrieve
+      schema:
+        type: integer
+        format: int32
+        minimum: 0
+        maximum: 1000
+    Cursor:
+      in: query
+      name: cursor
+      description: The cursor that was generated from the previous request to the API for
+        pagination.
+      required: false
+      schema:
+        type: string
+        description: The cursor used to paginate efficiently.
+        format: byte
+    CursorNotGenerate:
+      in: query
+      name: cursor-not-generate
+      description: Flag that says whether cursor must be generated
+      required: false
+      schema:
+        type: boolean
+        default: false
 x-express-openapi-disable-defaults-middleware: true
 x-express-openapi-disable-response-validation-middleware: false
 x-express-openapi-response-validation-strict: true

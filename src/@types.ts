@@ -1,5 +1,7 @@
 // NOTE: Make sure to import it in every entry point you have
 import 'bluebird-global';
+import { shim } from 'array.prototype.flatmap';
+shim();
 
 export type primitive =
   number
