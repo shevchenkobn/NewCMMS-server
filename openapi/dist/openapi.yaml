@@ -53,6 +53,9 @@ paths:
       description: Get users
       tags:
         - users
+      security:
+        - jwt-bearer:
+            - admin
       parameters:
         - $ref: "#/components/parameters/SelectUser"
         - in: query

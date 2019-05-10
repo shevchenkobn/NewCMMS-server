@@ -23,9 +23,7 @@ let UsersCommon = class UsersCommon {
         const args = Object.assign({ generateCursor: true }, params);
         let cursor = null;
         if (args.sort) {
-            if (args.generateCursor) {
-                cursor = new model_1.PaginationCursor(args.sort, args.cursor);
-            }
+            cursor = new model_1.PaginationCursor(args.sort, args.cursor);
         }
         else {
             if (args.cursor) {
@@ -49,10 +47,10 @@ let UsersCommon = class UsersCommon {
                 : [];
         }
         const users = await this.usersModel.getList(modelParams);
-        if (args.generateCursor) {
-            cursor.updateFromList(users);
-        }
         if (cursor) {
+            if (args.generateCursor) {
+                cursor.updateFromList(users);
+            }
             cursor.removeIrrelevantFromList(users);
         }
         if (modelParams.select
@@ -67,7 +65,7 @@ let UsersCommon = class UsersCommon {
         }
         return {
             users,
-            cursor: args.generateCursor
+            cursor: args.generateCursor && cursor
                 ? cursor.toString()
                 : null,
         };

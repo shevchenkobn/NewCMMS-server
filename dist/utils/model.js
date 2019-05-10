@@ -119,7 +119,9 @@ function decodeCursor(cursor, dateFields = null) {
         const cursorFilter = JSON.parse(Buffer.from(cursor, 'base64').toString('utf8'));
         if (dateFields && dateFields.length > 0) {
             for (const field of dateFields) {
-                cursorFilter[field] = Date.parse(cursorFilter[field]);
+                if (field in cursorFilter) {
+                    cursorFilter[field] = new Date(cursorFilter[field]);
+                }
             }
         }
         return cursorFilter;

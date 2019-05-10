@@ -74,6 +74,9 @@ var ApiDoc;
     ApiDoc.apiDoc = {
         description: 'Get users',
         tags: ['users'],
+        security: [{
+                [openapi_1.jwtBearerScheme]: [openapi_1.JwtBearerScope.ADMIN],
+            }],
         parameters: [
             {
                 $ref: '#/components/parameters/SelectUser',

@@ -68,9 +68,7 @@ export class UsersCommon {
     const args = Object.assign({ generateCursor: true }, params);
     let cursor = null;
     if (args.sort) {
-      if (args.cursor) {
-        cursor = new PaginationCursor<IUser>(args.sort, args.cursor);
-      }
+      cursor = new PaginationCursor<IUser>(args.sort, args.cursor);
     } else {
       if (args.cursor) {
         throw new LogicError(ErrorCode.SORT_NO);
@@ -93,10 +91,10 @@ export class UsersCommon {
         : [];
     }
     const users = await this.usersModel.getList(modelParams);
-    if (args.generateCursor) {
-      cursor!.updateFromList(users);
-    }
     if (cursor) {
+      if (args.generateCursor) {
+        cursor.updateFromList(users);
+      }
       cursor.removeIrrelevantFromList(users);
     }
     if (
