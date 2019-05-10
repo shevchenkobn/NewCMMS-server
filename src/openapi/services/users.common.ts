@@ -68,7 +68,7 @@ export class UsersCommon {
     const args = Object.assign({ generateCursor: true }, params);
     let cursor = null;
     if (args.sort) {
-      if (args.generateCursor) {
+      if (args.cursor) {
         cursor = new PaginationCursor<IUser>(args.sort, args.cursor);
       }
     } else {
@@ -113,8 +113,8 @@ export class UsersCommon {
     }
     return {
       users,
-      cursor: args.generateCursor
-        ? cursor!.toString()
+      cursor: args.generateCursor && cursor
+        ? cursor.toString()
         : null,
     };
   }
