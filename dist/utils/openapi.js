@@ -78,4 +78,12 @@ function isOpenApiSecurityHandlerError(err) {
         && err.errorCode === 'authentication.openapi.security';
 }
 exports.isOpenApiSecurityHandlerError = isOpenApiSecurityHandlerError;
+function getParamNameFromScriptName(fileName) {
+    const name = path.basename(fileName, path.extname(fileName));
+    if (name[0] !== '{' || name[name.length - 1] !== '}') {
+        throw new TypeError(`"${name}" must be in curve parenthesis {}`);
+    }
+    return name.slice(1, -1);
+}
+exports.getParamNameFromScriptName = getParamNameFromScriptName;
 //# sourceMappingURL=openapi.js.map

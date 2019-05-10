@@ -212,6 +212,15 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  "/users/{userId}":
+    parameters:
+      - in: path
+        name: userId
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+        required: true
 components:
   securitySchemes:
     jwt-bearer:
