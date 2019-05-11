@@ -85,7 +85,8 @@ let UsersModel = class UsersModel {
         if (!users_1.isValidUserUniqueIdentifier(emailOrUserId)) {
             throw new error_service_1.LogicError(error_service_1.ErrorCode.USER_EMAIL_AND_ID, 'Both email and user id present. Use only one of them.');
         }
-        return this.table.where(emailOrUserId).delete();
+        const affectedRows = await this.table.where(emailOrUserId).delete();
+        return affectedRows !== 0;
     }
     async createOne(user, returning) {
         const { password = users_1.getRandomPassword(), ...userSeed } = user;
@@ -110,7 +111,27 @@ let UsersModel = class UsersModel {
         return this.table
             .insert(userSeed, returning)
             .catch(this._handleError)
-            .then(users => returning && returning.length !== 0 ? users[0] : undefined);
+            .then(users => returning && returning.length !== 0 ? users[0] : {});
+    }
+    async updateOne(userId, update, returning) {
+        // tslint:disable-next-line:prefer-const
+        let { password, ...userSeed } = update;
+        const passwordIndex = returning ? returning.indexOf('password') : -1;
+        if (password === null) {
+            if (passwordIndex < 0) {
+                throw new error_service_1.LogicError(error_service_1.ErrorCode.USER_PASSWORD_SAVE_NO);
+            }
+            password = users_1.getRandomPassword();
+        }
+        else if (passwordIndex >= 0) {
+            throw new error_service_1.LogicError(error_service_1.ErrorCode.USER_PASSWORD_NO);
+        }
+        if (password) {
+            userSeed.passwordHash = await bcrypt_1.hash(password, users_1.bcryptOptimalHashCycles);
+        }
+        return this.table.where({ userId }).update(userSeed, returning)
+            .then(user => returning ? user : {})
+            .catch(this._handleError);
     }
 };
 UsersModel = tslib_1.__decorate([

@@ -221,6 +221,50 @@ paths:
           format: int32
           minimum: 1
         required: true
+    get:
+      description: Get user
+      tags:
+        - users
+      security:
+        - jwt-bearer:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/SelectUser"
+      responses:
+        "200":
+          description: Return user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserOptional"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    delete:
+      description: Delete user
+      tags:
+        - users
+      security:
+        - jwt-bearer:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/SelectUser"
+      responses:
+        "200":
+          description: Return user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserOptional"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 components:
   securitySchemes:
     jwt-bearer:

@@ -2,7 +2,7 @@ import { Optional } from '../../@types';
 import { getContainer } from '../../di/container';
 import {
   IUserCreate,
-  IUserCreateNoPassword,
+  IUserChangeNoPassword,
   IUserWithPassword,
 } from '../../models/users.model';
 import {
@@ -24,7 +24,7 @@ const usersCommon = getContainer().get<UsersCommon>(UsersCommon);
 
 pathItemHandler.post = (req, res, next) => {
   const user = req.body as
-    (IUserCreateNoPassword & { password: Optional<string> });
+    (IUserChangeNoPassword & { password: Optional<string> });
   const select = req.query.select as (keyof IUserWithPassword)[];
   usersCommon.createUser(user, select).then(user => {
     res.status(201).json(user || {});

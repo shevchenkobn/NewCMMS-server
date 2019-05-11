@@ -1,6 +1,6 @@
 import { compare, hash } from 'bcrypt';
 import { inject, injectable } from 'inversify';
-import { DeepReadonly, Nullable } from '../@types';
+import { DeepPartial, DeepReadonly, Nullable } from '../@types';
 import { DbConnection } from '../services/db-connection.class';
 import { ErrorCode, LogicError } from '../services/error.service';
 import { getIdColumn, TableName } from '../utils/db-orchestrator';
@@ -13,18 +13,22 @@ import {
   UserRole,
 } from '../utils/models/users';
 
-export interface IUserCreateNoPassword {
-  userId?: number;
+export interface IUserChangeNoPassword {
   role: UserRole;
   email: string;
   fullName: string;
 }
 
-export interface IUserCreate extends IUserCreateNoPassword {
+export interface IUserUpdate extends IUserChangeNoPassword {
+  password: Nullable<string>;
+}
+
+export interface IUserCreate extends IUserChangeNoPassword {
+  userId?: number;
   password: string;
 }
 
-export interface IUser extends IUserCreateNoPassword {
+export interface IUser extends IUserChangeNoPassword {
   userId: number;
 }
 
@@ -170,18 +174,19 @@ export class UsersModel {
     ) as any as Promise<T[]>;
   }
 
-  deleteOne(email: DeepReadonly<IUserEmail>): Promise<void>;
-  deleteOne(userId: DeepReadonly<IUserId>): Promise<void>;
+  deleteOne(email: DeepReadonly<IUserEmail>): Promise<boolean>;
+  deleteOne(userId: DeepReadonly<IUserId>): Promise<boolean>;
   async deleteOne(
     emailOrUserId: DeepReadonly<IUserEmail | IUserId>,
-  ): Promise<void> {
+  ): Promise<boolean> {
     if (!isValidUserUniqueIdentifier(emailOrUserId)) {
       throw new LogicError(
         ErrorCode.USER_EMAIL_AND_ID,
         'Both email and user id present. Use only one of them.',
       );
     }
-    return this.table.where(emailOrUserId).delete();
+    const affectedRows = await this.table.where(emailOrUserId).delete();
+    return affectedRows !== 0;
   }
 
   createOne<T extends Partial<IUser> = Partial<IUser>>(
@@ -190,17 +195,17 @@ export class UsersModel {
   ): Promise<T>;
   createOne(
     user: DeepReadonly<IUserCreate>,
-  ): Promise<void>;
+  ): Promise<{}>;
   createOne<T extends Partial<IUserWithPassword> = Partial<IUserWithPassword>>(
-    user: DeepReadonly<IUserCreateNoPassword>,
+    user: DeepReadonly<IUserChangeNoPassword>,
     returning: ReadonlyArray<keyof IUserWithPassword>,
   ): Promise<T>;
   createOne(
-    user: DeepReadonly<IUserCreateNoPassword>,
-  ): Promise<void>;
+    user: DeepReadonly<IUserChangeNoPassword>,
+  ): Promise<{}>;
   async createOne(
-    user: DeepReadonly<IUserCreateNoPassword & IUserCreate>,
-    returning?: ReadonlyArray<keyof (IUserCreateNoPassword & IUserCreate)>,
+    user: DeepReadonly<IUserChangeNoPassword & IUserCreate>,
+    returning?: ReadonlyArray<keyof (IUserWithPassword & IUserCreate)>,
   ): Promise<IUser | Partial<IUser> | void> {
     const { password = getRandomPassword(), ...userSeed } =
       user as (IUserWithPassword & IUserFromDB);
@@ -232,7 +237,54 @@ export class UsersModel {
       .insert(userSeed, returning as string[])
       .catch(this._handleError)
       .then(
-        users => returning && returning.length !== 0 ? users[0] : undefined,
+        users => returning && returning.length !== 0 ? users[0] : {},
       );
+  }
+
+  updateOne(
+    userId: number,
+    update: DeepReadonly<IUserChangeNoPassword>,
+  ): Promise<{}>;
+  updateOne<T extends DeepPartial<IUser> = DeepPartial<IUser>>(
+    userId: number,
+    update: DeepReadonly<IUserChangeNoPassword>,
+    returning: ReadonlyArray<keyof IUser>,
+  ): Promise<T>;
+  updateOne<T extends DeepPartial<IUserWithPassword> = DeepPartial<IUserWithPassword>>(
+    userId: number,
+    update: DeepReadonly<IUserChangeNoPassword & { password: null }>,
+    returning: ReadonlyArray<keyof IUserWithPassword>,
+  ): Promise<T>;
+  updateOne(
+    userId: number,
+    update: DeepReadonly<IUserChangeNoPassword & { password: string }>,
+  ): Promise<{}>;
+  updateOne<T extends DeepPartial<IUser> = DeepPartial<IUser>>(
+    userId: number,
+    update: DeepReadonly<IUserChangeNoPassword & { password: string }>,
+    returning: ReadonlyArray<keyof IUser>,
+  ): Promise<T>;
+  async updateOne<T extends DeepPartial<IUser> = DeepPartial<IUser>>(
+    userId: number,
+    update: DeepReadonly<IUserUpdate>,
+    returning?: ReadonlyArray<keyof IUserWithPassword>,
+  ): Promise<DeepPartial<IUserWithPassword> | {}> {
+    // tslint:disable-next-line:prefer-const
+    let { password, ...userSeed } = update as (IUserUpdate & IUserFromDB);
+    const passwordIndex = returning ? returning.indexOf('password') : -1;
+    if (password === null) {
+      if (passwordIndex < 0) {
+        throw new LogicError(ErrorCode.USER_PASSWORD_SAVE_NO);
+      }
+      password = getRandomPassword();
+    } else if (passwordIndex >= 0) {
+      throw new LogicError(ErrorCode.USER_PASSWORD_NO);
+    }
+    if (password) {
+      userSeed.passwordHash = await hash(password, bcryptOptimalHashCycles);
+    }
+    return this.table.where({ userId }).update(userSeed, returning as string[])
+      .then(user => returning ? user : {})
+      .catch(this._handleError);
   }
 }

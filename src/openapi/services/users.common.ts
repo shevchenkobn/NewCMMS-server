@@ -1,13 +1,14 @@
 import { inject, injectable } from 'inversify';
-import { oc } from 'ts-optchain';
-import { DeepReadonly, Nullable, Optional } from '../../@types';
+import { DeepPartial, DeepReadonly, Nullable, Optional } from '../../@types';
 import {
   IUser,
+  IUserChangeNoPassword,
   IUserCreate,
-  IUserCreateNoPassword, IUsersSelectParams,
+  IUsersSelectParams,
   IUserWithPassword,
   UsersModel,
 } from '../../models/users.model';
+import { superAdminId } from '../../services/db-orchestrator.class';
 import { ErrorCode, LogicError } from '../../services/error.service';
 import { differenceArrays, mergeArrays } from '../../utils/common';
 import { PaginationCursor } from '../../utils/model';
@@ -37,16 +38,16 @@ export class UsersCommon {
     this.usersModel = usersModel;
   }
 
-  createUser(user: DeepReadonly<IUserCreate>): Promise<void>;
+  createUser(user: DeepReadonly<IUserCreate>): Promise<{}>;
   createUser<T extends Partial<IUser> = Partial<IUser>>(
     user: DeepReadonly<IUserCreate>,
     returning: ReadonlyArray<keyof IUser>,
   ): Promise<T>;
   createUser(
-    user: DeepReadonly<IUserCreateNoPassword>,
-  ): Promise<void>;
+    user: DeepReadonly<IUserChangeNoPassword>,
+  ): Promise<{}>;
   createUser<T extends Partial<IUserWithPassword> = Partial<IUserWithPassword>>(
-    user: DeepReadonly<IUserCreateNoPassword>,
+    user: DeepReadonly<IUserChangeNoPassword>,
     returning: ReadonlyArray<keyof IUserWithPassword>,
   ): Promise<T>;
   createUser(
@@ -116,4 +117,78 @@ export class UsersCommon {
         : null,
     };
   }
+
+  getUser(id: number): Promise<IUser>;
+  getUser<T extends DeepPartial<IUser> = DeepPartial<IUser>>(
+    id: number,
+    select: ReadonlyArray<keyof IUser>,
+  ): Promise<T>;
+  async getUser(id: number, select?: ReadonlyArray<keyof IUser>) {
+    const user = await (!select || select.length === 0
+      ? this.usersModel.getOne({ userId: id })
+      : this.usersModel.getOne({ userId: id }, select));
+    if (!user) {
+      throw new LogicError(ErrorCode.NOT_FOUND);
+    }
+    return user;
+  }
+
+  deleteUser(userId: number): Promise<void>;
+  deleteUser<T extends DeepPartial<IUser> = DeepPartial<IUser>>(
+    userId: number,
+    select: ReadonlyArray<keyof IUser>,
+  ): Promise<T>;
+  async deleteUser(
+    userId: number,
+    select?: ReadonlyArray<keyof IUser>,
+  ): Promise<DeepPartial<IUser> | void> {
+    if (userId === superAdminId) {
+      throw new LogicError(ErrorCode.AUTH_ROLE);
+    }
+    const returnUser = select && select.length > 0;
+    let user;
+    if (returnUser) {
+      user = await this.usersModel.getOne({ userId }, select!);
+      if (!user) {
+        throw new LogicError(ErrorCode.NOT_FOUND);
+      }
+    }
+    const result = await this.usersModel.deleteOne({ userId });
+    if (!result) {
+      throw new LogicError(ErrorCode.NOT_FOUND);
+    }
+    if (user) {
+      return user;
+    }
+    return {};
+  }
+
+  updateUser(
+    userId: number,
+    update: DeepPartial<IUserChangeNoPassword>,
+  ): Promise<void>;
+  updateUser<T extends DeepPartial<IUser> = DeepPartial<IUser>>(
+    userId: number,
+    update: DeepPartial<IUserChangeNoPassword>,
+    select: ReadonlyArray<keyof IUser>,
+  ): Promise<T>;
+  updateUser<T extends DeepPartial<IUserWithPassword> = DeepPartial<IUserWithPassword>>(
+    userId: number,
+    update: DeepPartial<IUserCreate>,
+    select: ReadonlyArray<keyof IUser>,
+  ): Promise<T>;
+  updateUser(
+    userId: number,
+    update: DeepPartial<IUserChangeNoPassword>,
+    select?: ReadonlyArray<keyof IUserWithPassword>,
+  ): Promise<DeepPartial<IUserWithPassword> | DeepPartial<IUser> | void> {
+    return select
+      ? this.usersModel.updateOne(
+        userId,
+        update as IUserWithPassword,
+        select as ReadonlyArray<keyof IUser>,
+      )
+      : this.usersModel.updateOne(userId, update as IUserWithPassword);
+  }
+
 }

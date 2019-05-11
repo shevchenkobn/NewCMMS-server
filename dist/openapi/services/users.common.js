@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const tslib_1 = require("tslib");
 const inversify_1 = require("inversify");
 const users_model_1 = require("../../models/users.model");
+const db_orchestrator_class_1 = require("../../services/db-orchestrator.class");
 const error_service_1 = require("../../services/error.service");
 const common_1 = require("../../utils/common");
 const model_1 = require("../../utils/model");
@@ -69,6 +70,41 @@ let UsersCommon = class UsersCommon {
                 ? cursor.toString()
                 : null,
         };
+    }
+    async getUser(id, select) {
+        const user = await (!select || select.length === 0
+            ? this.usersModel.getOne({ userId: id })
+            : this.usersModel.getOne({ userId: id }, select));
+        if (!user) {
+            throw new error_service_1.LogicError(error_service_1.ErrorCode.NOT_FOUND);
+        }
+        return user;
+    }
+    async deleteUser(userId, select) {
+        if (userId === db_orchestrator_class_1.superAdminId) {
+            throw new error_service_1.LogicError(error_service_1.ErrorCode.AUTH_ROLE);
+        }
+        const returnUser = select && select.length > 0;
+        let user;
+        if (returnUser) {
+            user = await this.usersModel.getOne({ userId }, select);
+            if (!user) {
+                throw new error_service_1.LogicError(error_service_1.ErrorCode.NOT_FOUND);
+            }
+        }
+        const result = await this.usersModel.deleteOne({ userId });
+        if (!result) {
+            throw new error_service_1.LogicError(error_service_1.ErrorCode.NOT_FOUND);
+        }
+        if (user) {
+            return user;
+        }
+        return {};
+    }
+    updateUser(userId, update, select) {
+        return select
+            ? this.usersModel.updateOne(userId, update, select)
+            : this.usersModel.updateOne(userId, update);
     }
 };
 UsersCommon = tslib_1.__decorate([
