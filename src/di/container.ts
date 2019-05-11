@@ -1,4 +1,6 @@
+import { TriggerDevicesModel } from '../models/trigger-devices.model';
 import { AuthCommon } from '../openapi/services/auth.common';
+import { UsersCommon } from '../openapi/services/users.common';
 import { AuthService } from '../services/auth.service';
 import { ASYNC_INIT, TYPES } from './types';
 import {
@@ -22,8 +24,10 @@ export const typeMap: ReadonlyMap<ServiceIdentifier<any>, Newable<any>> =
     [TYPES.AuthService, AuthService],
 
     [TYPES.UsersModel, UsersModel],
+    [TYPES.TriggerDevicesModel, TriggerDevicesModel],
 
     [TYPES.AuthCommon, AuthCommon],
+    [TYPES.UsersCommon, UsersCommon],
   ]);
 
 function bindDependency<T>(

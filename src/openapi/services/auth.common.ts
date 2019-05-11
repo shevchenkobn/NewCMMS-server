@@ -1,8 +1,9 @@
 import { inject, injectable } from 'inversify';
+import { DeepReadonly } from '../../@types';
 import { IUserCredentials, UsersModel } from '../../models/users.model';
 import { AuthService, IUserForToken } from '../../services/auth.service';
-import { DeepNonMaybe, DeepReadonly } from '../../@types';
 import { ErrorCode, LogicError } from '../../services/error.service';
+import { getIdColumn, TableName } from '../../utils/db-orchestrator';
 
 export interface ITokenPair {
   accessToken: string;
@@ -27,7 +28,7 @@ export class AuthCommon {
   ): Promise<ITokenPair> {
     const user = await this.usersModel.getAssertedUser<IUserForToken>(
       userCredentials,
-      ['userId', 'role'],
+      [getIdColumn(TableName.USERS) as 'userId', 'role'],
     );
     return {
       accessToken: this.authService.generateAccessToken(user),

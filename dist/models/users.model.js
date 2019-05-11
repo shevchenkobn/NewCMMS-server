@@ -16,7 +16,10 @@ let UsersModel = class UsersModel {
                 this._handleError = err => {
                     switch (err.code) {
                         case '23505':
-                            throw new error_service_1.LogicError(error_service_1.ErrorCode.USER_EMAIL_DUPLICATE);
+                            const detailLower = err.detail.toLowerCase();
+                            if (detailLower.includes('email')) {
+                                throw new error_service_1.LogicError(error_service_1.ErrorCode.USER_EMAIL_DUPLICATE);
+                            }
                         default:
                             throw err;
                     }
@@ -47,12 +50,12 @@ let UsersModel = class UsersModel {
         }
         return user;
     }
-    async getOne(emailOrUserId, returning = users_1.getAllSafeUserPropertyNames()) {
+    async getOne(emailOrUserId, select = users_1.getAllSafeUserPropertyNames()) {
         if (!users_1.isValidUserUniqueIdentifier(emailOrUserId)) {
             throw new error_service_1.LogicError(error_service_1.ErrorCode.USER_EMAIL_AND_ID, 'Both email and user id present. Use only one of them.');
         }
         const users = await this.table.where(emailOrUserId)
-            .select(returning);
+            .select(select);
         if (users.length === 0) {
             return null;
         }
@@ -61,7 +64,7 @@ let UsersModel = class UsersModel {
     getList(params) {
         const query = this.table;
         if (params.userIds && params.userIds.length > 0) {
-            query.whereIn(db_orchestrator_1.getIdColumn(db_orchestrator_1.TableName.USERS), params.userIds);
+            query.whereIn(db_orchestrator_1.getIdColumn(db_orchestrator_1.TableName.USERS), params.userIds.slice());
         }
         if (params.comparatorFilters && params.comparatorFilters.length > 0) {
             for (const filter of params.comparatorFilters) {
@@ -78,7 +81,7 @@ let UsersModel = class UsersModel {
             model_1.applySortingToQuery(query, params.orderBy);
         }
         return query.select((params.select && params.select.length > 0
-            ? params.select
+            ? params.select.slice()
             : users_1.getAllSafeUserPropertyNames()));
     }
     async deleteOne(emailOrUserId) {

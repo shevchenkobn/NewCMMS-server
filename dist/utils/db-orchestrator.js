@@ -56,7 +56,9 @@ class TableBuilders {
                     table.increments(getIdColumn(TableName.TRIGGER_DEVICES))
                         .primary()
                         .notNullable();
-                    c.addColumn(table, 1 /* MAC_ADDRESS */, 'physicalAddress');
+                    c.addColumn(table, 1 /* MAC_ADDRESS */, 'physicalAddress')
+                        .unique()
+                        .notNullable();
                     c.addColumn(table, 0 /* UINT1 */, 'status').notNullable();
                     table.string('name', 75).unique().notNullable();
                     table.string('type', 75).notNullable();
@@ -65,7 +67,9 @@ class TableBuilders {
                     table.increments(getIdColumn(TableName.ACTION_DEVICES))
                         .primary()
                         .notNullable();
-                    c.addColumn(table, 1 /* MAC_ADDRESS */, 'physicalAddress');
+                    c.addColumn(table, 1 /* MAC_ADDRESS */, 'physicalAddress')
+                        .unique()
+                        .notNullable();
                     c.addColumn(table, 0 /* UINT1 */, 'status').notNullable();
                     table.string('name', 75).unique().notNullable();
                     table.string('type', 75).notNullable();

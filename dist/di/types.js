@@ -8,6 +8,7 @@ exports.TYPES = {
     DbOrchestrator: Symbol.for('DbOrchestrator'),
     AuthService: Symbol.for('AuthService'),
     UsersModel: Symbol.for('UsersModel'),
+    TriggerDevicesModel: Symbol.for('TriggerDevicesModel'),
     AuthCommon: Symbol.for('AuthCommon'),
     UsersCommon: Symbol.for('UsersCommon'),
 };

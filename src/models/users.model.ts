@@ -78,7 +78,10 @@ export class UsersModel {
         this._handleError = err => {
           switch (err.code) {
             case '23505':
-              throw new LogicError(ErrorCode.USER_EMAIL_DUPLICATE);
+              const detailLower = err.detail.toLowerCase();
+              if (detailLower.includes('email')) {
+                throw new LogicError(ErrorCode.USER_EMAIL_DUPLICATE);
+              }
             default:
               throw err;
           }
@@ -122,16 +125,16 @@ export class UsersModel {
   getOne(email: DeepReadonly<IUserEmail>): Promise<Nullable<IUser>>;
   getOne<T extends Partial<IUserFromDB> = Partial<IUserFromDB>>(
     email: DeepReadonly<IUserEmail>,
-    returning: ReadonlyArray<keyof IUserFromDB>,
+    select: ReadonlyArray<keyof IUserFromDB>,
   ): Promise<Nullable<T>>;
   getOne(userId: DeepReadonly<IUserId>): Promise<Nullable<IUser>>;
   getOne<T extends Partial<IUserFromDB> = Partial<IUserFromDB>>(
     userId: DeepReadonly<IUserId>,
-    returning: ReadonlyArray<keyof IUserFromDB>,
+    select: ReadonlyArray<keyof IUserFromDB>,
   ): Promise<Nullable<T>>;
   async getOne(
     emailOrUserId: DeepReadonly<IUserEmail | IUserId>,
-    returning = getAllSafeUserPropertyNames() as
+    select = getAllSafeUserPropertyNames() as
       ReadonlyArray<keyof IUserFromDB>,
   ): Promise<Nullable<IUserFromDB | Partial<IUserFromDB>>> {
     if (!isValidUserUniqueIdentifier(emailOrUserId)) {
@@ -141,7 +144,7 @@ export class UsersModel {
       );
     }
     const users = await this.table.where(emailOrUserId)
-      .select(returning as any);
+      .select(select as any);
     if (users.length === 0) {
       return null;
     }
@@ -151,7 +154,7 @@ export class UsersModel {
   getList<T extends Partial<IUser> = IUser>(params: IUsersSelectParams): Promise<T[]> {
     const query = this.table;
     if (params.userIds && params.userIds.length > 0) {
-      query.whereIn(getIdColumn(TableName.USERS), params.userIds as number[]);
+      query.whereIn(getIdColumn(TableName.USERS), params.userIds.slice());
     }
     if (params.comparatorFilters && params.comparatorFilters.length > 0) {
       for (const filter of params.comparatorFilters) {
@@ -169,7 +172,7 @@ export class UsersModel {
     }
     return query.select(
       (params.select && params.select.length > 0
-        ? params.select
+        ? params.select.slice()
         : getAllSafeUserPropertyNames()) as string[],
     ) as any as Promise<T[]>;
   }

@@ -5,13 +5,14 @@ const inversify_1 = require("inversify");
 const users_model_1 = require("../../models/users.model");
 const auth_service_1 = require("../../services/auth.service");
 const error_service_1 = require("../../services/error.service");
+const db_orchestrator_1 = require("../../utils/db-orchestrator");
 let AuthCommon = class AuthCommon {
     constructor(authService, usersModel) {
         this.authService = authService;
         this.usersModel = usersModel;
     }
     async getTokensForUser(userCredentials) {
-        const user = await this.usersModel.getAssertedUser(userCredentials, ['userId', 'role']);
+        const user = await this.usersModel.getAssertedUser(userCredentials, [db_orchestrator_1.getIdColumn(db_orchestrator_1.TableName.USERS), 'role']);
         return {
             accessToken: this.authService.generateAccessToken(user),
             refreshToken: this.authService

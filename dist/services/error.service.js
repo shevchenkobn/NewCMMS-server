@@ -3,6 +3,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var ErrorCode;
 (function (ErrorCode) {
     ErrorCode["JSON_BAD"] = "JSON_BAD";
+    ErrorCode["SELECT_BAD"] = "SELECT_BAD";
+    ErrorCode["SORT_NO"] = "SORT_NO";
+    ErrorCode["SORT_BAD"] = "SORT_BAD";
+    ErrorCode["LIST_CURSOR_BAD"] = "LIST_CURSOR_BAD";
+    ErrorCode["OPENAPI_VALIDATION"] = "OPENAPI_VALIDATION";
+    ErrorCode["SERVER"] = "SERVER";
+    ErrorCode["SERVER_OPENAPI_RESPONSE_VALIDATION"] = "SERVER_OPENAPI_RESPONSE_VALIDATION";
+    ErrorCode["NOT_FOUND"] = "NOT_FOUND";
     ErrorCode["AUTH_NO"] = "AUTH_NO";
     ErrorCode["AUTH_ROLE"] = "AUTH_ROLE";
     ErrorCode["AUTH_BAD"] = "AUTH_BAD";
@@ -17,14 +25,9 @@ var ErrorCode;
     ErrorCode["USER_PASSWORD_NO"] = "USER_PASSWORD_NO";
     ErrorCode["USER_PASSWORD_SAVE_NO"] = "USER_PASSWORD_SAVE_NO";
     ErrorCode["USER_PASSWORD_PROVIDED"] = "USER_PASSWORD_PROVIDED";
-    ErrorCode["SELECT_BAD"] = "SELECT_BAD";
-    ErrorCode["SORT_NO"] = "SORT_NO";
-    ErrorCode["SORT_BAD"] = "SORT_BAD";
-    ErrorCode["LIST_CURSOR_BAD"] = "LIST_CURSOR_BAD";
-    ErrorCode["OPENAPI_VALIDATION"] = "OPENAPI_VALIDATION";
-    ErrorCode["SERVER"] = "SERVER";
-    ErrorCode["SERVER_OPENAPI_RESPONSE_VALIDATION"] = "SERVER_OPENAPI_RESPONSE_VALIDATION";
-    ErrorCode["NOT_FOUND"] = "NOT_FOUND";
+    ErrorCode["TRIGGER_DEVICE_NAME_DUPLICATE"] = "TRIGGER_DEVICE_NAME_DUPLICATE";
+    ErrorCode["TRIGGER_DEVICE_MAC_DUPLICATE"] = "TRIGGER_DEVICE_MAC_DUPLICATE";
+    ErrorCode["TRIGGER_DEVICE_ID_AND_NAME"] = "TRIGGER_DEVICE_ID_AND_NAME";
 })(ErrorCode = exports.ErrorCode || (exports.ErrorCode = {}));
 class LogicError extends TypeError {
     constructor(code, message, innerError) {
