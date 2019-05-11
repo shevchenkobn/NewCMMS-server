@@ -134,4 +134,67 @@ export class TriggerDevicesModel {
     }
     return users[0];
   }
+
+  createOne(triggerDevice: ITriggerDeviceChange): Promise<{}>;
+  createOne<T extends DeepPartial<ITriggerDevice> = DeepPartial<ITriggerDevice>>(
+    triggerDevice: ITriggerDeviceChange,
+    returning: ReadonlyArray<keyof ITriggerDevice>,
+  ): Promise<T>;
+  createOne(
+    triggerDevice: ITriggerDeviceChange,
+    returning?: ReadonlyArray<keyof ITriggerDevice>,
+  ): Promise<DeepPartial<ITriggerDevice> | {}> {
+    const returnNew = returning && returning.length > 0;
+    return this.table.insert(triggerDevice, returning as string[])
+      .then(devices => {
+        if (!returnNew) {
+          return {};
+        }
+        return devices[0];
+      })
+      .catch(this._handleError) as any;
+  }
+
+  updateOne(
+    triggerDeviceId: number,
+    update: DeepReadonly<ITriggerDeviceChange>,
+  ): Promise<Nullable<{}>>;
+  updateOne<T extends DeepPartial<ITriggerDevice> = DeepPartial<ITriggerDevice>>(
+    triggerDeviceId: number,
+    update: DeepReadonly<ITriggerDeviceChange>,
+    returning: ReadonlyArray<keyof ITriggerDevice>,
+  ): Promise<Nullable<T>>;
+  updateOne(
+    triggerDeviceId: number,
+    update: DeepPartial<ITriggerDeviceChange>,
+    returning?: ReadonlyArray<keyof ITriggerDevice>,
+  ): Promise<Nullable<{} | DeepPartial<ITriggerDevice>>> {
+    return this.table.where({ triggerDeviceId })
+      .update(update, returning as string[])
+      .then(devices => {
+        if (!returning || returning.length === 0) {
+          return devices === 0 ? null : {};
+        }
+        return devices.length === 0 ? null : devices[0];
+      })
+      .catch(this._handleError) as any;
+  }
+
+  deleteOne(triggerDeviceId: number): Promise<Nullable<{}>>;
+  deleteOne<T extends DeepPartial<ITriggerDevice> = DeepPartial<ITriggerDevice>>(
+    triggerDeviceId: number,
+    returning: ReadonlyArray<keyof ITriggerDevice>,
+  ): Promise<Nullable<T>>;
+  deleteOne(
+    triggerDeviceId: number,
+    returning?: ReadonlyArray<keyof ITriggerDevice>,
+  ): Promise<Nullable<DeepPartial<ITriggerDevice> | {}>> {
+    return this.table.where({ triggerDeviceId }).delete(returning as string[])
+      .then(devices => {
+        if (!returning || returning.length === 0) {
+          return devices === 0 ? null : {};
+        }
+        return devices.length === 0 ? null : devices[0];
+      }) as any;
+  }
 }

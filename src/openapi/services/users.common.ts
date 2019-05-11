@@ -4,6 +4,7 @@ import {
   IUser,
   IUserChangeNoPassword,
   IUserCreate,
+  IUserFromDB,
   IUsersSelectParams,
   IUserWithPassword,
   UsersModel,
@@ -54,15 +55,9 @@ export class UsersCommon {
     user: DeepReadonly<IUserCreate>,
     returning?: ReadonlyArray<keyof IUserWithPassword>,
   ) {
-    const userSeed = { ...user } as
-      (IUserCreate & { password: Optional<string> });
-    if (!userSeed.password) {
-      delete userSeed.password;
-    }
-
     return returning
-      ? this.usersModel.createOne(userSeed, returning)
-      : this.usersModel.createOne(userSeed);
+      ? this.usersModel.createOne(user, returning)
+      : this.usersModel.createOne(user);
   }
 
   async getUsers(params: Readonly<IGetUsersParams>): Promise<IUserList> {
@@ -118,15 +113,15 @@ export class UsersCommon {
     };
   }
 
-  getUser(id: number): Promise<IUser>;
+  getUser(userId: number): Promise<IUser>;
   getUser<T extends DeepPartial<IUser> = DeepPartial<IUser>>(
-    id: number,
+    userId: number,
     select: ReadonlyArray<keyof IUser>,
   ): Promise<T>;
-  async getUser(id: number, select?: ReadonlyArray<keyof IUser>) {
+  async getUser(userId: number, select?: ReadonlyArray<keyof IUser>) {
     const user = await (!select || select.length === 0
-      ? this.usersModel.getOne({ userId: id })
-      : this.usersModel.getOne({ userId: id }, select));
+      ? this.usersModel.getOne({ userId })
+      : this.usersModel.getOne({ userId }, select));
     if (!user) {
       throw new LogicError(ErrorCode.NOT_FOUND);
     }
@@ -145,22 +140,14 @@ export class UsersCommon {
     if (userId === superAdminId) {
       throw new LogicError(ErrorCode.AUTH_ROLE);
     }
-    const returnUser = select && select.length > 0;
-    let user;
-    if (returnUser) {
-      user = await this.usersModel.getOne({ userId }, select!);
-      if (!user) {
-        throw new LogicError(ErrorCode.NOT_FOUND);
-      }
-    }
-    const result = await this.usersModel.deleteOne({ userId });
-    if (!result) {
+    const user = await this.usersModel.deleteOne(
+      { userId },
+      select as ReadonlyArray<keyof IUserFromDB>,
+    );
+    if (!user) {
       throw new LogicError(ErrorCode.NOT_FOUND);
     }
-    if (user) {
-      return user;
-    }
-    return {};
+    return user;
   }
 
   updateUser(

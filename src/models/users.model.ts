@@ -177,19 +177,34 @@ export class UsersModel {
     ) as any as Promise<T[]>;
   }
 
-  deleteOne(email: DeepReadonly<IUserEmail>): Promise<boolean>;
-  deleteOne(userId: DeepReadonly<IUserId>): Promise<boolean>;
-  async deleteOne(
+  deleteOne(email: DeepReadonly<IUserEmail>): Promise<Nullable<{}>>;
+  deleteOne<T extends DeepPartial<IUserFromDB> = DeepPartial<IUserFromDB>>(
+    email: DeepReadonly<IUserEmail>,
+    returning: ReadonlyArray<keyof IUserFromDB>,
+  ): Promise<Nullable<T>>;
+  deleteOne(userId: DeepReadonly<IUserId>): Promise<Nullable<{}>>;
+  deleteOne<T extends DeepPartial<IUserFromDB> = DeepPartial<IUserFromDB>>(
+    userId: DeepReadonly<IUserId>,
+    returning: ReadonlyArray<keyof IUserFromDB>,
+  ): Promise<Nullable<T>>;
+  deleteOne(
     emailOrUserId: DeepReadonly<IUserEmail | IUserId>,
-  ): Promise<boolean> {
+    returning?: ReadonlyArray<keyof IUserFromDB>,
+  ): Promise<Nullable<DeepPartial<IUserFromDB> | {}>> {
     if (!isValidUserUniqueIdentifier(emailOrUserId)) {
       throw new LogicError(
         ErrorCode.USER_EMAIL_AND_ID,
         'Both email and user id present. Use only one of them.',
       );
     }
-    const affectedRows = await this.table.where(emailOrUserId).delete();
-    return affectedRows !== 0;
+    return this.table.where(emailOrUserId).delete(returning as string[])
+      .then(users => {
+        if (!returning || returning.length === 0) {
+          return users === 0 ? null : {};
+        }
+        return users.length === 0 ? null : users[0];
+      })
+      .catch(this._handleError) as any;
   }
 
   createOne<T extends Partial<IUser> = Partial<IUser>>(

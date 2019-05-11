@@ -84,12 +84,18 @@ let UsersModel = class UsersModel {
             ? params.select.slice()
             : users_1.getAllSafeUserPropertyNames()));
     }
-    async deleteOne(emailOrUserId) {
+    deleteOne(emailOrUserId, returning) {
         if (!users_1.isValidUserUniqueIdentifier(emailOrUserId)) {
             throw new error_service_1.LogicError(error_service_1.ErrorCode.USER_EMAIL_AND_ID, 'Both email and user id present. Use only one of them.');
         }
-        const affectedRows = await this.table.where(emailOrUserId).delete();
-        return affectedRows !== 0;
+        return this.table.where(emailOrUserId).delete(returning)
+            .then(users => {
+            if (!returning || returning.length === 0) {
+                return users === 0 ? null : {};
+            }
+            return users.length === 0 ? null : users[0];
+        })
+            .catch(this._handleError);
     }
     async createOne(user, returning) {
         const { password = users_1.getRandomPassword(), ...userSeed } = user;

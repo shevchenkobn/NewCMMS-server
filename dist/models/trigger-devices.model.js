@@ -68,6 +68,37 @@ let TriggerDevicesModel = class TriggerDevicesModel {
         }
         return users[0];
     }
+    createOne(triggerDevice, returning) {
+        const returnNew = returning && returning.length > 0;
+        return this.table.insert(triggerDevice, returning)
+            .then(devices => {
+            if (!returnNew) {
+                return {};
+            }
+            return devices[0];
+        })
+            .catch(this._handleError);
+    }
+    updateOne(triggerDeviceId, update, returning) {
+        return this.table.where({ triggerDeviceId })
+            .update(update, returning)
+            .then(devices => {
+            if (!returning || returning.length === 0) {
+                return devices === 0 ? null : {};
+            }
+            return devices.length === 0 ? null : devices[0];
+        })
+            .catch(this._handleError);
+    }
+    deleteOne(triggerDeviceId, returning) {
+        return this.table.where({ triggerDeviceId }).delete(returning)
+            .then(devices => {
+            if (!returning || returning.length === 0) {
+                return devices === 0 ? null : {};
+            }
+            return devices.length === 0 ? null : devices[0];
+        });
+    }
 };
 TriggerDevicesModel = tslib_1.__decorate([
     inversify_1.injectable(),

@@ -12,13 +12,9 @@ let UsersCommon = class UsersCommon {
         this.usersModel = usersModel;
     }
     createUser(user, returning) {
-        const userSeed = { ...user };
-        if (!userSeed.password) {
-            delete userSeed.password;
-        }
         return returning
-            ? this.usersModel.createOne(userSeed, returning)
-            : this.usersModel.createOne(userSeed);
+            ? this.usersModel.createOne(user, returning)
+            : this.usersModel.createOne(user);
     }
     async getUsers(params) {
         const args = Object.assign({ generateCursor: true }, params);
@@ -71,10 +67,10 @@ let UsersCommon = class UsersCommon {
                 : null,
         };
     }
-    async getUser(id, select) {
+    async getUser(userId, select) {
         const user = await (!select || select.length === 0
-            ? this.usersModel.getOne({ userId: id })
-            : this.usersModel.getOne({ userId: id }, select));
+            ? this.usersModel.getOne({ userId })
+            : this.usersModel.getOne({ userId }, select));
         if (!user) {
             throw new error_service_1.LogicError(error_service_1.ErrorCode.NOT_FOUND);
         }
@@ -84,22 +80,11 @@ let UsersCommon = class UsersCommon {
         if (userId === db_orchestrator_class_1.superAdminId) {
             throw new error_service_1.LogicError(error_service_1.ErrorCode.AUTH_ROLE);
         }
-        const returnUser = select && select.length > 0;
-        let user;
-        if (returnUser) {
-            user = await this.usersModel.getOne({ userId }, select);
-            if (!user) {
-                throw new error_service_1.LogicError(error_service_1.ErrorCode.NOT_FOUND);
-            }
-        }
-        const result = await this.usersModel.deleteOne({ userId });
-        if (!result) {
+        const user = await this.usersModel.deleteOne({ userId }, select);
+        if (!user) {
             throw new error_service_1.LogicError(error_service_1.ErrorCode.NOT_FOUND);
         }
-        if (user) {
-            return user;
-        }
-        return {};
+        return user;
     }
     async updateUser(userId, update, select) {
         const user = await (select
