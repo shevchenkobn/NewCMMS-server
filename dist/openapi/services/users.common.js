@@ -101,10 +101,14 @@ let UsersCommon = class UsersCommon {
         }
         return {};
     }
-    updateUser(userId, update, select) {
-        return select
+    async updateUser(userId, update, select) {
+        const user = await (select
             ? this.usersModel.updateOne(userId, update, select)
-            : this.usersModel.updateOne(userId, update);
+            : this.usersModel.updateOne(userId, update));
+        if (!user) {
+            throw new error_service_1.LogicError(error_service_1.ErrorCode.NOT_FOUND);
+        }
+        return user;
     }
 };
 UsersCommon = tslib_1.__decorate([

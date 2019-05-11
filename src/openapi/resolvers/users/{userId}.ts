@@ -108,3 +108,57 @@ pathItemHandler.delete.apiDoc = {
     },
   },
 };
+
+pathItemHandler.patch = (req, res, next) => {
+  usersCommon.updateUser(
+    req.params[userIdParamName],
+    req.body,
+    req.query.select,
+  )
+    .then(user => res.json(user))
+    .catch(next);
+};
+pathItemHandler.patch.apiDoc = {
+  description: 'Update user',
+  tags: ['users'],
+  security: [{
+    [jwtBearerScheme]: [JwtBearerScope.ADMIN],
+  }],
+  parameters: [
+    {
+      $ref: '#/components/parameters/SelectUserChange',
+    },
+  ],
+  requestBody: {
+    description: 'A user update. The password can be generated, put null then',
+    content: {
+      'application/json': {
+        schema: {
+          $ref: '#/components/schemas/UserUpdate',
+        },
+      },
+    },
+    required: true,
+  },
+  responses: {
+    200: {
+      description: 'Return user',
+      content: {
+        'application/json': {
+          schema: {
+            $ref: '#/components/schemas/UserWithPassword',
+          },
+        },
+      },
+    },
+    400: {
+      $ref: '#/components/responses/BadRequest',
+    },
+    401: {
+      $ref: '#/components/responses/Unauthenticated',
+    },
+    403: {
+      $ref: '#/components/responses/Forbidden',
+    },
+  },
+};

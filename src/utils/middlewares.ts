@@ -1,6 +1,5 @@
 import { ErrorRequestHandler, Handler } from 'express';
 import { OpenAPIResponseValidatorValidationError } from 'openapi-response-validator';
-import { oc } from 'ts-optchain';
 import { Optional } from '../@types';
 import {
   coerceLogicError,
@@ -104,7 +103,10 @@ export const errorHandlingPipeline: ErrorRequestHandler[] = [
       }
       res.json(err);
     } else {
-      if (isOpenApiFinalError(err)) {
+      if (err instanceof SyntaxError && err.message.includes('JSON')) {
+        res.status(400)
+          .json(new LogicError(ErrorCode.JSON_BAD, err.message, err));
+      } else if (isOpenApiFinalError(err)) {
         const error = coerceLogicError(err);
         res.status(err.status).json(error);
       } else {

@@ -1,0 +1,16 @@
+type: object
+properties:
+  email:
+    type: string
+    format: email
+  role:
+    description: Enum actually
+    type: integer
+    format: int32
+    minimum: 1
+    maximum: 3
+  fullName:
+    type: string
+  password:
+    $ref: ./user-password-nullable.yaml
+additionalProperties: false

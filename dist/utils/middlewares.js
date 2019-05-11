@@ -76,7 +76,11 @@ exports.errorHandlingPipeline = [
             res.json(err);
         }
         else {
-            if (openapi_1.isOpenApiFinalError(err)) {
+            if (err instanceof SyntaxError && err.message.includes('JSON')) {
+                res.status(400)
+                    .json(new error_service_1.LogicError(error_service_1.ErrorCode.JSON_BAD, err.message, err));
+            }
+            else if (openapi_1.isOpenApiFinalError(err)) {
                 const error = error_service_1.coerceLogicError(err);
                 res.status(err.status).json(error);
             }

@@ -1,10 +1,12 @@
 import { OpenAPIRequestValidatorArgs, OpenAPIRequestValidatorError } from 'openapi-request-validator';
 import { OpenAPIResponseValidatorValidationError } from 'openapi-response-validator';
-import { DeepReadonly, Nullable } from '../@types';
+import { DeepReadonly, Nullable, Optional } from '../@types';
 import * as Ajv from 'ajv';
 import { IOpenApiFinalError } from '../utils/openapi';
 
 export enum ErrorCode {
+  JSON_BAD = 'JSON_BAD',
+
   AUTH_NO = 'AUTH_NO',
   AUTH_ROLE = 'AUTH_ROLE',
   AUTH_BAD = 'AUTH_BAD',
@@ -46,14 +48,18 @@ export interface IOpenApiFinalLogicError extends ILogicError, IOpenApiFinalError
 
 export class LogicError extends TypeError implements ILogicError {
   readonly code: ErrorCode;
+  readonly innerError?: any;
 
-  constructor(code: ErrorCode, message?: string) {
+  constructor(code: ErrorCode, message?: string, innerError?: any) {
     if (!message) {
       super(code);
     } else {
       super(message);
     }
     this.code = code;
+    if (innerError !== undefined) {
+      this.innerError = innerError;
+    }
   }
 }
 

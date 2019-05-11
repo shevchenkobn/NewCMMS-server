@@ -166,7 +166,7 @@ export class UsersCommon {
   updateUser(
     userId: number,
     update: DeepPartial<IUserChangeNoPassword>,
-  ): Promise<void>;
+  ): Promise<{}>;
   updateUser<T extends DeepPartial<IUser> = DeepPartial<IUser>>(
     userId: number,
     update: DeepPartial<IUserChangeNoPassword>,
@@ -177,18 +177,22 @@ export class UsersCommon {
     update: DeepPartial<IUserCreate>,
     select: ReadonlyArray<keyof IUser>,
   ): Promise<T>;
-  updateUser(
+  async updateUser(
     userId: number,
     update: DeepPartial<IUserChangeNoPassword>,
     select?: ReadonlyArray<keyof IUserWithPassword>,
-  ): Promise<DeepPartial<IUserWithPassword> | DeepPartial<IUser> | void> {
-    return select
+  ): Promise<DeepPartial<IUserWithPassword> | DeepPartial<IUser> | {}> {
+    const user = await (select
       ? this.usersModel.updateOne(
         userId,
         update as IUserWithPassword,
         select as ReadonlyArray<keyof IUser>,
       )
-      : this.usersModel.updateOne(userId, update as IUserWithPassword);
+      : this.usersModel.updateOne(userId, update as IUserWithPassword));
+    if (!user) {
+      throw new LogicError(ErrorCode.NOT_FOUND);
+    }
+    return user;
   }
 
 }

@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var ErrorCode;
 (function (ErrorCode) {
+    ErrorCode["JSON_BAD"] = "JSON_BAD";
     ErrorCode["AUTH_NO"] = "AUTH_NO";
     ErrorCode["AUTH_ROLE"] = "AUTH_ROLE";
     ErrorCode["AUTH_BAD"] = "AUTH_BAD";
@@ -26,7 +27,7 @@ var ErrorCode;
     ErrorCode["NOT_FOUND"] = "NOT_FOUND";
 })(ErrorCode = exports.ErrorCode || (exports.ErrorCode = {}));
 class LogicError extends TypeError {
-    constructor(code, message) {
+    constructor(code, message, innerError) {
         if (!message) {
             super(code);
         }
@@ -34,6 +35,9 @@ class LogicError extends TypeError {
             super(message);
         }
         this.code = code;
+        if (innerError !== undefined) {
+            this.innerError = innerError;
+        }
     }
 }
 exports.LogicError = LogicError;
