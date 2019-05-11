@@ -130,7 +130,7 @@ pathItemHandler.patch.apiDoc = {
     },
   ],
   requestBody: {
-    description: 'A user update. The password can be generated, put null then',
+    description: 'A user update. The password can be generated, put "" then',
     content: {
       'application/json': {
         schema: {

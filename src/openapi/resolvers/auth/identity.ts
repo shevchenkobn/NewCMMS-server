@@ -1,15 +1,15 @@
 import { IRequestWithUser } from '../../../services/security-handlers.service';
 import {
   IOpenApiPathItemHandler,
-  jwtBearerScheme,
+  jwtBearerScheme, JwtBearerScope,
 } from '../../../utils/openapi';
 import { getContainer } from '../../../di/container';
-import { AuthCommon } from '../../services/auth.common';
+import { UsersCommon } from '../../services/users.common';
 
 const pathItemHandler: IOpenApiPathItemHandler = {};
 export = pathItemHandler;
 
-const authCommon = getContainer().get<AuthCommon>(AuthCommon);
+const usersCommon = getContainer().get<UsersCommon>(UsersCommon);
 
 pathItemHandler.get = (req, res, next) => {
   // This handler does not utilize authCommon because it would be counterintuitive and redundant
@@ -34,6 +34,94 @@ pathItemHandler.get.apiDoc = {
     },
     401: {
       $ref: '#/components/responses/Unauthenticated',
+    },
+  },
+};
+
+pathItemHandler.patch = (req, res, next) => {
+  const request = req as IRequestWithUser;
+  usersCommon.updateUser(request.user.userId, req.body, req.query.select)
+    .then(user => res.json(user))
+    .catch(next);
+};
+pathItemHandler.patch.apiDoc = {
+  description: 'Update user',
+  tags: ['users', 'auth'],
+  security: [{
+    [jwtBearerScheme]: [],
+  }],
+  parameters: [
+    {
+      $ref: '#/components/parameters/SelectUserChange',
+    },
+  ],
+  requestBody: {
+    description: 'A user update. The password can be generated, put "" then',
+    content: {
+      'application/json': {
+        schema: {
+          $ref: '#/components/schemas/UserUpdate',
+        },
+      },
+    },
+    required: true,
+  },
+  responses: {
+    200: {
+      description: 'Return user',
+      content: {
+        'application/json': {
+          schema: {
+            $ref: '#/components/schemas/UserWithPassword',
+          },
+        },
+      },
+    },
+    400: {
+      $ref: '#/components/responses/BadRequest',
+    },
+    401: {
+      $ref: '#/components/responses/Unauthenticated',
+    },
+  },
+};
+
+pathItemHandler.delete = (req, res, next) => {
+  const request = req as IRequestWithUser;
+  usersCommon.deleteUser(request.user.userId, req.query.select)
+    .then(user => res.json(user))
+    .catch(next);
+};
+pathItemHandler.delete.apiDoc = {
+  description: 'Delete current user account',
+  tags: ['users', 'auth'],
+  security: [{
+    [jwtBearerScheme]: [],
+  }],
+  parameters: [
+    {
+      $ref: '#/components/parameters/SelectUser',
+    },
+  ],
+  responses: {
+    200: {
+      description: 'Return user',
+      content: {
+        'application/json': {
+          schema: {
+            $ref: '#/components/schemas/UserOptional',
+          },
+        },
+      },
+    },
+    400: {
+      $ref: '#/components/responses/BadRequest',
+    },
+    401: {
+      $ref: '#/components/responses/Unauthenticated',
+    },
+    403: {
+      $ref: '#/components/responses/Forbidden',
     },
   },
 };
