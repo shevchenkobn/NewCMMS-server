@@ -11,7 +11,9 @@ let TriggerDevicesCommon = class TriggerDevicesCommon {
         this.triggerDevicesModel = triggerDevicesModel;
     }
     createTriggerDevice(device, returning) {
-        return this.triggerDevicesModel.createOne(device, returning);
+        return (returning
+            ? this.triggerDevicesModel.createOne(device, returning)
+            : this.triggerDevicesModel.createOne(device));
     }
     async getTriggerDevices(params) {
         const args = Object.assign({ generateCursor: true }, params);
@@ -68,6 +70,24 @@ let TriggerDevicesCommon = class TriggerDevicesCommon {
         const device = await (!select || select.length === 0
             ? this.triggerDevicesModel.getOne({ triggerDeviceId })
             : this.triggerDevicesModel.getOne({ triggerDeviceId }, select));
+        if (!device) {
+            throw new error_service_1.LogicError(error_service_1.ErrorCode.NOT_FOUND);
+        }
+        return device;
+    }
+    async updateTriggerDevice(triggerDeviceId, update, select) {
+        const device = await (select
+            ? this.triggerDevicesModel.updateOne(triggerDeviceId, update, select)
+            : this.triggerDevicesModel.updateOne(triggerDeviceId, update));
+        if (!device) {
+            throw new error_service_1.LogicError(error_service_1.ErrorCode.NOT_FOUND);
+        }
+        return device;
+    }
+    async deleteTriggerDevice(triggerDeviceId, select) {
+        const device = await (select
+            ? this.triggerDevicesModel.deleteOne(triggerDeviceId, select)
+            : this.triggerDevicesModel.deleteOne(triggerDeviceId));
         if (!device) {
             throw new error_service_1.LogicError(error_service_1.ErrorCode.NOT_FOUND);
         }

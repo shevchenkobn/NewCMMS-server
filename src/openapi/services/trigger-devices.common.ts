@@ -36,15 +36,20 @@ export class TriggerDevicesCommon {
   }
 
   createTriggerDevice(device: DeepReadonly<ITriggerDeviceChange>): Promise<{}>;
-  createTriggerDevice<T extends DeepPartial<ITriggerDevice> = DeepPartial<ITriggerDevice>>(device: DeepReadonly<ITriggerDeviceChange>, returning: ReadonlyArray<keyof ITriggerDevice>): Promise<T>;
+  createTriggerDevice<T extends DeepPartial<ITriggerDevice> = DeepPartial<ITriggerDevice>>(
+    device: DeepReadonly<ITriggerDeviceChange>,
+    returning: ReadonlyArray<keyof ITriggerDevice>,
+  ): Promise<T>;
   createTriggerDevice(
     device: DeepReadonly<ITriggerDeviceChange>,
     returning?: ReadonlyArray<keyof ITriggerDevice>,
   ): Promise<DeepPartial<ITriggerDevice> | {}> {
-    return this.triggerDevicesModel.createOne(
-      device,
-      returning as ReadonlyArray<keyof ITriggerDevice>,
-    );
+    return (returning
+      ? this.triggerDevicesModel.createOne(
+        device,
+        returning,
+      )
+      : this.triggerDevicesModel.createOne(device));
   }
 
   async getTriggerDevices(
@@ -107,10 +112,61 @@ export class TriggerDevicesCommon {
     triggerDeviceId: number,
     select: ReadonlyArray<keyof ITriggerDevice>,
   ): Promise<T>;
-  async getTriggerDevice(triggerDeviceId: number, select?: ReadonlyArray<keyof ITriggerDevice>) {
+  async getTriggerDevice(
+    triggerDeviceId: number,
+    select?: ReadonlyArray<keyof ITriggerDevice>,
+  ) {
     const device = await (!select || select.length === 0
       ? this.triggerDevicesModel.getOne({ triggerDeviceId })
       : this.triggerDevicesModel.getOne({ triggerDeviceId }, select));
+    if (!device) {
+      throw new LogicError(ErrorCode.NOT_FOUND);
+    }
+    return device;
+  }
+
+  updateTriggerDevice(
+    triggerDeviceId: number,
+    device: ITriggerDeviceChange,
+  ): Promise<{}>;
+  updateTriggerDevice<T extends DeepPartial<ITriggerDevice> = DeepPartial<ITriggerDevice>>(
+    triggerDeviceId: number,
+    device: ITriggerDeviceChange,
+    select: ReadonlyArray<keyof ITriggerDevice>,
+  ): Promise<T>;
+  async updateTriggerDevice(
+    triggerDeviceId: number,
+    update: ITriggerDeviceChange,
+    select?: ReadonlyArray<keyof ITriggerDevice>,
+  ): Promise<DeepReadonly<ITriggerDevice> | {}> {
+    const device = await (select
+      ? this.triggerDevicesModel.updateOne(
+        triggerDeviceId,
+        update,
+        select,
+      )
+      : this.triggerDevicesModel.updateOne(triggerDeviceId, update));
+    if (!device) {
+      throw new LogicError(ErrorCode.NOT_FOUND);
+    }
+    return device;
+  }
+
+  deleteTriggerDevice(triggerDeviceId: number): Promise<{}>;
+  deleteTriggerDevice<T extends DeepPartial<ITriggerDevice> = DeepPartial<ITriggerDevice>>(
+    triggerDeviceId: number,
+    select: ReadonlyArray<keyof ITriggerDevice>,
+  ): Promise<T>;
+  async deleteTriggerDevice(
+    triggerDeviceId: number,
+    select?: ReadonlyArray<keyof ITriggerDevice>,
+  ): Promise<DeepPartial<ITriggerDevice> | {}> {
+    const device = await (select
+      ? this.triggerDevicesModel.deleteOne(
+        triggerDeviceId,
+        select,
+      )
+      : this.triggerDevicesModel.deleteOne(triggerDeviceId));
     if (!device) {
       throw new LogicError(ErrorCode.NOT_FOUND);
     }
