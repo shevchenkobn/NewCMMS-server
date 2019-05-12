@@ -104,7 +104,7 @@ class TableBuilders {
                         .onDelete('CASCADE');
                     table.dateTime('startedAt').notNullable();
                     table.dateTime('finishedAt').nullable();
-                    table.dateTime('sum').nullable();
+                    table.decimal('sum', 10, 6).nullable();
                 })],
             [TableName.BILL_RATES, () => this._knex.schema.createTable(TableName.BILL_RATES, table => {
                     table.increments(getIdColumn(TableName.BILL_RATES))
@@ -122,6 +122,7 @@ class TableBuilders {
                         .references(actionDeviceId)
                         .inTable(TableName.ACTION_DEVICES)
                         .onDelete('SET NULL');
+                    table.decimal('hourlyRate', 10, 6).notNullable();
                 })],
             [TableName.USER_STATISTICS, () => this._knex.schema.createTable(TableName.USER_STATISTICS, table => {
                     table.increments(getIdColumn(TableName.USER_STATISTICS))

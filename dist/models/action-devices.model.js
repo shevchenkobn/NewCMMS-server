@@ -6,8 +6,8 @@ const db_connection_class_1 = require("../services/db-connection.class");
 const error_service_1 = require("../services/error.service");
 const db_orchestrator_1 = require("../utils/db-orchestrator");
 const model_1 = require("../utils/model");
-const trigger_devices_1 = require("../utils/models/trigger-devices");
-let TriggerDevicesModel = class TriggerDevicesModel {
+const action_devices_1 = require("../utils/models/action-devices");
+let ActionDevicesModel = class ActionDevicesModel {
     constructor(dbConnection) {
         this._dbConnection = dbConnection;
         switch (this._dbConnection.config.client) {
@@ -32,12 +32,12 @@ let TriggerDevicesModel = class TriggerDevicesModel {
         }
     }
     get table() {
-        return this._dbConnection.knex(db_orchestrator_1.TableName.TRIGGER_DEVICES);
+        return this._dbConnection.knex(db_orchestrator_1.TableName.ACTION_DEVICES);
     }
     getList(params) {
         const query = this.table;
-        if (params.triggerDeviceIds && params.triggerDeviceIds.length > 0) {
-            query.whereIn(db_orchestrator_1.getIdColumn(db_orchestrator_1.TableName.TRIGGER_DEVICES), params.triggerDeviceIds.slice());
+        if (params.actionDeviceIds && params.actionDeviceIds.length > 0) {
+            query.whereIn(db_orchestrator_1.getIdColumn(db_orchestrator_1.TableName.ACTION_DEVICES), params.actionDeviceIds.slice());
         }
         if (params.comparatorFilters && params.comparatorFilters.length > 0) {
             for (const filter of params.comparatorFilters) {
@@ -55,21 +55,18 @@ let TriggerDevicesModel = class TriggerDevicesModel {
         }
         return query.select((params.select && params.select.length > 0
             ? params.select.slice()
-            : trigger_devices_1.getAllTriggerDevicePropertyNames()));
+            : action_devices_1.getAllActionDevicePropertyNames()));
     }
-    async getOne(nameOrTriggerDeviceId, select = trigger_devices_1.getAllTriggerDevicePropertyNames()) {
-        if (!trigger_devices_1.isValidTriggerDeviceUniqueIdentifier(nameOrTriggerDeviceId)) {
-            throw new error_service_1.LogicError(error_service_1.ErrorCode.TRIGGER_DEVICE_ID_AND_NAME, 'Both id and name present. Use only one of them.');
-        }
-        const users = await this.table.where(nameOrTriggerDeviceId)
+    async getOne(actionDeviceId, select) {
+        const devices = await this.table.where({ actionDeviceId })
             .select(select);
-        if (users.length === 0) {
+        if (devices.length) {
             return null;
         }
-        return users[0];
+        return devices[0];
     }
-    createOne(triggerDevice, returning) {
-        return this.table.insert(triggerDevice, returning)
+    createOne(actionDevice, returning) {
+        return this.table.insert(actionDevice, returning)
             .then(devices => {
             if (!returning || returning.length === 0) {
                 return {};
@@ -78,19 +75,18 @@ let TriggerDevicesModel = class TriggerDevicesModel {
         })
             .catch(this._handleError);
     }
-    updateOne(triggerDeviceId, update, returning) {
-        return this.table.where({ triggerDeviceId })
+    updateOne(actionDeviceId, update, returning) {
+        return this.table.where({ actionDeviceId })
             .update(update, returning)
             .then(devices => {
             if (!returning || returning.length === 0) {
                 return devices === 0 ? null : {};
             }
             return devices.length === 0 ? null : devices[0];
-        })
-            .catch(this._handleError);
+        });
     }
-    deleteOne(triggerDeviceId, returning) {
-        return this.table.where({ triggerDeviceId }).delete(returning)
+    deleteOne(actionDeviceId, returning) {
+        return this.table.where({ actionDeviceId }).delete(returning)
             .then(devices => {
             if (!returning || returning.length === 0) {
                 return devices === 0 ? null : {};
@@ -100,10 +96,10 @@ let TriggerDevicesModel = class TriggerDevicesModel {
             .catch(this._handleError);
     }
 };
-TriggerDevicesModel = tslib_1.__decorate([
+ActionDevicesModel = tslib_1.__decorate([
     inversify_1.injectable(),
     tslib_1.__param(0, inversify_1.inject(db_connection_class_1.DbConnection)),
     tslib_1.__metadata("design:paramtypes", [db_connection_class_1.DbConnection])
-], TriggerDevicesModel);
-exports.TriggerDevicesModel = TriggerDevicesModel;
-//# sourceMappingURL=trigger-devices.model.js.map
+], ActionDevicesModel);
+exports.ActionDevicesModel = ActionDevicesModel;
+//# sourceMappingURL=action-devices.model.js.map

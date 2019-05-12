@@ -12,5 +12,6 @@ exports.TYPES = {
     AuthCommon: Symbol.for('AuthCommon'),
     UsersCommon: Symbol.for('UsersCommon'),
     TriggerDevicesCommon: Symbol.for('TriggerDevicesCommon'),
+    ActionDevicesCommon: Symbol.for('ActionDevicesCommon'),
 };
 //# sourceMappingURL=types.js.map

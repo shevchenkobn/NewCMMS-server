@@ -1,4 +1,5 @@
 import { TriggerDevicesModel } from '../models/trigger-devices.model';
+import { ActionDevicesCommon } from '../openapi/services/action-devices.common';
 import { AuthCommon } from '../openapi/services/auth.common';
 import { TriggerDevicesCommon } from '../openapi/services/trigger-devices.common';
 import { UsersCommon } from '../openapi/services/users.common';
@@ -30,6 +31,7 @@ export const typeMap: ReadonlyMap<ServiceIdentifier<any>, Newable<any>> =
     [TYPES.AuthCommon, AuthCommon],
     [TYPES.UsersCommon, UsersCommon],
     [TYPES.TriggerDevicesCommon, TriggerDevicesCommon],
+    [TYPES.ActionDevicesCommon, ActionDevicesCommon],
   ]);
 
 function bindDependency<T>(

@@ -1,0 +1,16 @@
+in: query
+name: select
+description: Fields in json you want to consume
+schema:
+  type: array
+  items:
+    type: string
+    enum:
+      - actionDeviceId
+      - physicalAddress
+      - status
+      - name
+      - type
+      - hourlyRate
+  uniqueItems: true
+  minItems: 1

@@ -81,10 +81,20 @@ export function loadOpenApiDoc(
 
 export namespace CustomFormats {
   const physicalAddressRegex = /^[\dA-F]{12}$/i;
+  const decimalRegex = /^(\d+|\d*\.\d+)$/;
   export const formats = {
     // tslint:disable-next-line:function-name
     ['physical-address'](value: string) {
       return physicalAddressRegex.test(value);
+    },
+    // tslint:disable-next-line:function-name
+    ['decimal-10-6'](value: string) {
+      const isDecimal = decimalRegex.test(value);
+      if (!isDecimal) {
+        return false;
+      }
+      const partLengths = value.split('.').map(p => p.length);
+      return partLengths[1] <= 6 && partLengths[0] + partLengths[1] <= 10;
     },
   };
 }

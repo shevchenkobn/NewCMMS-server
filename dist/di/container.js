@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const trigger_devices_model_1 = require("../models/trigger-devices.model");
+const action_devices_common_1 = require("../openapi/services/action-devices.common");
 const auth_common_1 = require("../openapi/services/auth.common");
 const trigger_devices_common_1 = require("../openapi/services/trigger-devices.common");
 const users_common_1 = require("../openapi/services/users.common");
@@ -19,6 +20,7 @@ exports.typeMap = new Map([
     [types_1.TYPES.AuthCommon, auth_common_1.AuthCommon],
     [types_1.TYPES.UsersCommon, users_common_1.UsersCommon],
     [types_1.TYPES.TriggerDevicesCommon, trigger_devices_common_1.TriggerDevicesCommon],
+    [types_1.TYPES.ActionDevicesCommon, action_devices_common_1.ActionDevicesCommon],
 ]);
 function bindDependency(typeId, type) {
     container

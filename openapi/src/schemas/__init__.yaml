@@ -1,6 +1,9 @@
 Id:
   $ref: ./id.yaml
 
+Decimal_10_6:
+  $ref: ./decimal-10-6.yaml
+
 IdList:
   $ref: ./id-list.yaml
 
@@ -45,3 +48,12 @@ TriggerDeviceOptional:
 
 TriggerDevice:
   $ref: ./trigger-device.yaml
+
+ActionDeviceCreate:
+  $ref: ./action-device-create.yaml
+
+ActionDeviceUpdate:
+  $ref: ./action-device-update.yaml
+
+ActionDeviceOptional:
+  $ref: ./action-device-optional.yaml

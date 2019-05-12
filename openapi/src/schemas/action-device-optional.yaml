@@ -1,10 +1,7 @@
 type: object
-required:
-  - physicalAddress
-  - status
-  - name
-  - type
 properties:
+  actionDeviceId:
+    $ref: ./id.yaml
   physicalAddress:
     type: string
     format: physical-address
@@ -12,9 +9,11 @@ properties:
     type: integer
     format: int32
     minimum: 1
-    maximum: 2
+    maximum: 3
   name:
     type: string
   type:
     type: string
+  hourlyRate:
+    $ref: ./decimal-10-6.yaml
 additionalProperties: false

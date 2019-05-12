@@ -58,7 +58,7 @@ export class TriggerDevicesModel {
               if (detailLower.includes('name')) {
                 throw new LogicError(ErrorCode.TRIGGER_DEVICE_NAME_DUPLICATE);
               }
-              if (detailLower.includes('physicalAddress')) {
+              if (detailLower.includes('physicaladdress')) {
                 throw new LogicError(ErrorCode.TRIGGER_DEVICE_MAC_DUPLICATE);
               }
             default:
@@ -144,10 +144,9 @@ export class TriggerDevicesModel {
     triggerDevice: ITriggerDeviceChange,
     returning?: ReadonlyArray<keyof ITriggerDevice>,
   ): Promise<DeepPartial<ITriggerDevice> | {}> {
-    const returnNew = returning && returning.length > 0;
     return this.table.insert(triggerDevice, returning as string[])
       .then(devices => {
-        if (!returnNew) {
+        if (!returning || returning.length === 0) {
           return {};
         }
         return devices[0];
@@ -195,6 +194,7 @@ export class TriggerDevicesModel {
           return devices === 0 ? null : {};
         }
         return devices.length === 0 ? null : devices[0];
-      }) as any;
+      })
+      .catch(this._handleError) as any;
   }
 }
