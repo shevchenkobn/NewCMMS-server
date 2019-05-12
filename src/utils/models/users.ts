@@ -31,8 +31,3 @@ export function isValidUserUniqueIdentifier(
 export function getAllSafeUserPropertyNames(): (keyof IUser)[] {
   return [getIdColumn(TableName.USERS) as 'userId', 'email', 'role', 'fullName'];
 }
-
-export function getSortFields() {
-  return getAllSafeUserPropertyNames()
-    .flatMap(p => [`<${p}`, `>${p}`]);
-}

@@ -1,23 +1,24 @@
+import { getContainer } from '../../../di/container';
 import {
   getParamNameFromScriptName,
   IOpenApiPathItemHandler, jwtBearerScheme, JwtBearerScope,
 } from '../../../utils/openapi';
-import { getContainer } from '../../../di/container';
-import { UsersCommon } from '../../services/users.common';
+import { TriggerDevicesCommon } from '../../services/trigger-devices.common';
 
 const pathItemHandler: IOpenApiPathItemHandler = {};
 export = pathItemHandler;
 
-const usersCommon = getContainer().get<UsersCommon>(UsersCommon);
+const triggerDevicesCommon = getContainer().get<TriggerDevicesCommon>(
+  TriggerDevicesCommon,
+);
 
-const userIdParamName = getParamNameFromScriptName(__filename);
+const triggerDeviceIdParamName = getParamNameFromScriptName(__filename);
 
 pathItemHandler.parameters = [
   {
     in: 'path',
-    name: userIdParamName,
+    name: triggerDeviceIdParamName,
     schema: {
-      // $ref: '#/components/schemas/Id', // TODO: report a bug
       type: 'integer',
       format: 'int32',
       minimum: 1,
@@ -27,28 +28,31 @@ pathItemHandler.parameters = [
 ];
 
 pathItemHandler.get = (req, res, next) => {
-  usersCommon.getUser(req.params[userIdParamName], req.query.select)
-    .then(user => res.json(user))
+  triggerDevicesCommon.getTriggerDevice(
+    req.params[triggerDeviceIdParamName],
+    req.query.select,
+  )
+    .then(device => res.json(device))
     .catch(next);
 };
 pathItemHandler.get.apiDoc = {
-  description: 'Get user',
-  tags: ['users'],
+  description: 'Get trigger device',
+  tags: ['trigger-devices'],
   security: [{
     [jwtBearerScheme]: [JwtBearerScope.ADMIN],
   }],
   parameters: [
     {
-      $ref: '#/components/parameters/SelectUser',
+      $ref: '#/components/parameters/SelectTriggerDevice',
     },
   ],
   responses: {
     200: {
-      description: 'Return user',
+      description: 'Return trigger device',
       content: {
         'application/json': {
           schema: {
-            $ref: '#/components/schemas/UserOptional',
+            $ref: '#/components/schemas/TriggerDeviceOptional',
           },
         },
       },
@@ -69,30 +73,31 @@ pathItemHandler.get.apiDoc = {
 };
 
 pathItemHandler.delete = (req, res, next) => {
-  usersCommon.deleteUser(req.params[userIdParamName], req.query.select)
-    .then(user => {
-      res.json(user);
-    })
+  triggerDevicesCommon.deleteTriggerDevice(
+    req.params[triggerDeviceIdParamName],
+    req.query.select,
+  )
+    .then(device => res.json(device))
     .catch(next);
 };
 pathItemHandler.delete.apiDoc = {
-  description: 'Delete user',
-  tags: ['users'],
+  description: 'Delete trigger device',
+  tags: ['trigger-devices'],
   security: [{
     [jwtBearerScheme]: [JwtBearerScope.ADMIN],
   }],
   parameters: [
     {
-      $ref: '#/components/parameters/SelectUser',
+      $ref: '#/components/parameters/SelectTriggerDevice',
     },
   ],
   responses: {
     200: {
-      description: 'Return user',
+      description: 'Return trigger device',
       content: {
         'application/json': {
           schema: {
-            $ref: '#/components/schemas/UserOptional',
+            $ref: '#/components/schemas/TriggerDeviceOptional',
           },
         },
       },
@@ -113,31 +118,31 @@ pathItemHandler.delete.apiDoc = {
 };
 
 pathItemHandler.patch = (req, res, next) => {
-  usersCommon.updateUser(
-    req.params[userIdParamName],
+  triggerDevicesCommon.updateTriggerDevice(
+    req.params[triggerDeviceIdParamName],
     req.body,
     req.query.select,
   )
-    .then(user => res.json(user))
+    .then(device => res.json(device))
     .catch(next);
 };
 pathItemHandler.patch.apiDoc = {
-  description: 'Update user',
-  tags: ['users'],
+  description: 'Update trigger device',
+  tags: ['trigger-devices'],
   security: [{
     [jwtBearerScheme]: [JwtBearerScope.ADMIN],
   }],
   parameters: [
     {
-      $ref: '#/components/parameters/SelectUserChange',
+      $ref: '#/components/parameters/SelectTriggerDevice',
     },
   ],
   requestBody: {
-    description: 'A user update. The password can be generated, put "" then',
+    description: 'A trigger device update',
     content: {
       'application/json': {
         schema: {
-          $ref: '#/components/schemas/UserUpdate',
+          $ref: '#/components/schemas/TriggerDeviceUpdate',
         },
       },
     },
@@ -145,11 +150,11 @@ pathItemHandler.patch.apiDoc = {
   },
   responses: {
     200: {
-      description: 'Return user',
+      description: 'Return trigger device',
       content: {
         'application/json': {
           schema: {
-            $ref: '#/components/schemas/UserWithPassword',
+            $ref: '#/components/schemas/TriggerDeviceOptional',
           },
         },
       },

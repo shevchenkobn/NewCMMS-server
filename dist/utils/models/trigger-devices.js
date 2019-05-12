@@ -3,8 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const db_orchestrator_1 = require("../db-orchestrator");
 var TriggerDeviceStatus;
 (function (TriggerDeviceStatus) {
-    TriggerDeviceStatus["CONNECTED"] = "CONNECTED";
-    TriggerDeviceStatus["DISCONNECTED"] = "DISCONNECTED";
+    TriggerDeviceStatus[TriggerDeviceStatus["CONNECTED"] = 1] = "CONNECTED";
+    TriggerDeviceStatus[TriggerDeviceStatus["DISCONNECTED"] = 2] = "DISCONNECTED";
 })(TriggerDeviceStatus = exports.TriggerDeviceStatus || (exports.TriggerDeviceStatus = {}));
 function getAllTriggerDevicePropertyNames() {
     return [

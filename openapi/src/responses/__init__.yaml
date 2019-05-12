@@ -9,3 +9,6 @@ Unauthenticated:
 
 Forbidden:
   $ref: ./forbidden.yaml
+
+NotFound:
+  $ref: ./not-found.yaml

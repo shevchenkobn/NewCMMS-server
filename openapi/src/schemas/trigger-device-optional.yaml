@@ -1,0 +1,17 @@
+type: object
+properties:
+  triggerDeviceId:
+    $ref: ./id.yaml
+  physicalAddress:
+    type: string
+    pattern: ^[\da-f]{2}(:[\da-f]{2}){5}$
+  status:
+    type: integer
+    format: int32
+    minimum: 1
+    maximum: 2
+  name:
+    type: string
+  type:
+    type: string
+additionalProperties: false

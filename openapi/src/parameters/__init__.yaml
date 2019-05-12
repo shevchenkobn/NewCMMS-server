@@ -1,9 +1,3 @@
-SelectUserChange:
-  $ref: ./select-user-change.yaml
-
-SelectUser:
-  $ref: ./select-user.yaml
-
 Skip:
   $ref: ./skip.yaml
 
@@ -15,3 +9,12 @@ Cursor:
 
 CursorNotGenerate:
   $ref: ./cursor-not-generate.yaml
+
+SelectUserChange:
+  $ref: ./select-user-change.yaml
+
+SelectUser:
+  $ref: ./select-user.yaml
+
+SelectTriggerDevice:
+  $ref: ./select-trigger-device.yaml

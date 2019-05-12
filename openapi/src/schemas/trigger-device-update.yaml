@@ -1,0 +1,16 @@
+type: object
+properties:
+  physicalAddress:
+    type: string
+    format: physical-address
+  status:
+    type: integer
+    format: int32
+    minimum: 1
+    maximum: 2
+  name:
+    type: string
+  type:
+    type: string
+minProperties: 1
+additionalProperties: false

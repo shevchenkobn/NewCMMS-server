@@ -8,6 +8,10 @@ const openapi_1 = require("./openapi");
 exports.validateResponses = (req, res, next) => {
     const request = req;
     const response = res;
+    if (!request.apiDoc) {
+        next();
+        return;
+    }
     const strictValidation = !!request.apiDoc['x-express-openapi-response-validation-strict'];
     if (typeof response.validateResponse === 'function') {
         const send = res.send;
@@ -18,7 +22,7 @@ exports.validateResponses = (req, res, next) => {
             }
             const body = common_1.deserializeResponseBody(res, args[0]);
             const validation = response.validateResponse(res.statusCode, body);
-            if (!validation || !validation.errors) {
+            if (!validation) {
                 send.apply(res, args);
                 return;
             }

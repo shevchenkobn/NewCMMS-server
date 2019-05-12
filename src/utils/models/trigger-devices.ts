@@ -7,8 +7,8 @@ import {
 import { getIdColumn, TableName } from '../db-orchestrator';
 
 export enum TriggerDeviceStatus {
-  CONNECTED = 'CONNECTED',
-  DISCONNECTED = 'DISCONNECTED',
+  CONNECTED = 1,
+  DISCONNECTED = 2,
 }
 
 export function getAllTriggerDevicePropertyNames(): (keyof ITriggerDevice)[] {

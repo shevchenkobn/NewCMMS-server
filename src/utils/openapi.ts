@@ -79,6 +79,16 @@ export function loadOpenApiDoc(
   }) as Promise<any>;
 }
 
+export namespace CustomFormats {
+  const physicalAddressRegex = /^[\dA-F]{12}$/i;
+  export const formats = {
+    // tslint:disable-next-line:function-name
+    ['physical-address'](value: string) {
+      return physicalAddressRegex.test(value);
+    },
+  };
+}
+
 export function getOpenApiOptions(
   app: Express,
   apiDoc: any,
@@ -92,7 +102,7 @@ export function getOpenApiOptions(
         strict: false,
       } as any),
     },
-    customFormats: {} as any,
+    customFormats: CustomFormats.formats as any,
     enableObjectCoercion: true,
     errorTransformer: errorTransformer as any,
     exposeApiDocs: true,

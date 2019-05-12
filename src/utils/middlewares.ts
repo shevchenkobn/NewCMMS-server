@@ -21,6 +21,10 @@ export const validateResponses: Handler = (req, res, next) => {
   const request = req as IOpenApiRequest;
   const response = res as IOpenApiResponse;
 
+  if (!request.apiDoc) {
+    next();
+    return;
+  }
   const strictValidation = !!request.apiDoc['x-express-openapi-response-validation-strict'];
   if (typeof response.validateResponse === 'function') {
     const send = res.send;
@@ -36,7 +40,7 @@ export const validateResponses: Handler = (req, res, next) => {
         res.statusCode as any as string,
         body,
       ) as any;
-      if (!validation || !validation.errors) {
+      if (!validation) {
         send.apply(res, args);
         return;
       }

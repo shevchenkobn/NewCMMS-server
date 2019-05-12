@@ -1,30 +1,26 @@
 "use strict";
 const container_1 = require("../../di/container");
 const model_1 = require("../../utils/model");
-const users_1 = require("../../utils/models/users");
+const trigger_devices_1 = require("../../utils/models/trigger-devices");
 const openapi_1 = require("../../utils/openapi");
-const users_common_1 = require("../services/users.common");
+const trigger_devices_common_1 = require("../services/trigger-devices.common");
 const pathItemHandler = {};
-const usersCommon = container_1.getContainer().get(users_common_1.UsersCommon);
+const triggerDevicesCommon = container_1.getContainer().get(trigger_devices_common_1.TriggerDevicesCommon);
 pathItemHandler.post = (req, res, next) => {
-    const user = req.body;
-    const select = req.query.select;
-    usersCommon.createUser(user, select).then(user => {
-        res.status(201).json(user || {});
-    }).catch(next);
+    triggerDevicesCommon.createTriggerDevice(req.body, req.query.select).then(device => res.status(201).json(device)).catch(next);
 };
 pathItemHandler.post.apiDoc = {
-    description: 'Create user',
-    tags: ['users'],
+    description: 'Create trigger device',
+    tags: ['trigger-devices'],
     security: [{
             [openapi_1.jwtBearerScheme]: [openapi_1.JwtBearerScope.ADMIN],
         }],
     requestBody: {
-        description: 'A user to create. The password can be generated, omit this field then',
+        description: 'A trigger device to create',
         content: {
             'application/json': {
                 schema: {
-                    $ref: '#/components/schemas/UserCreate',
+                    $ref: '#/components/schemas/TriggerDeviceCreate',
                 },
             },
         },
@@ -32,16 +28,16 @@ pathItemHandler.post.apiDoc = {
     },
     parameters: [
         {
-            $ref: '#/components/parameters/SelectUserChange',
+            $ref: '#/components/parameters/SelectTriggerDevice',
         },
     ],
     responses: {
         201: {
-            description: 'Optional user object if select was provided',
+            description: 'The trigger device was created. Optional object of it',
             content: {
                 'application/json': {
                     schema: {
-                        $ref: '#/components/schemas/UserWithPassword',
+                        $ref: '#/components/schemas/TriggerDeviceOptional',
                     },
                 },
             },
@@ -57,35 +53,35 @@ pathItemHandler.post.apiDoc = {
         },
     },
 };
-const userIdsParameterName = 'user-ids';
+const triggerDeviceIdsParameterName = 'trigger-device-ids';
 pathItemHandler.get = (req, res, next) => {
-    usersCommon.getUsers({
+    triggerDevicesCommon.getTriggerDevices({
         select: req.query.select,
-        userIds: req.query[userIdsParameterName],
+        triggerDeviceIds: req.query[triggerDeviceIdsParameterName],
         skip: req.query.skip,
         limit: req.query.limit,
         sort: req.query.sort,
         cursor: req.query.cursor,
         generateCursor: !req.query['cursor-not-generate'],
-    }).then(users => res.json(users)).catch(next);
+    }).then(devices => res.json(devices)).catch(next);
 };
 var ApiDoc;
 (function (ApiDoc) {
-    const sortFields = model_1.getSortFields(users_1.getAllSafeUserPropertyNames());
+    const sortFields = model_1.getSortFields(trigger_devices_1.getAllTriggerDevicePropertyNames());
     ApiDoc.apiDoc = {
-        description: 'Get users',
-        tags: ['users'],
+        description: 'Get trigger',
+        tags: ['trigger-devices'],
         security: [{
                 [openapi_1.jwtBearerScheme]: [openapi_1.JwtBearerScope.ADMIN],
             }],
         parameters: [
             {
-                $ref: '#/components/parameters/SelectUser',
+                $ref: '#/components/parameters/SelectTriggerDevice',
             },
             {
                 in: 'query',
-                name: userIdsParameterName,
-                description: 'User IDs to include in result',
+                name: triggerDeviceIdsParameterName,
+                description: 'Trigger device IDs to include in result',
                 schema: {
                     type: 'array',
                     items: {
@@ -126,7 +122,7 @@ var ApiDoc;
         ],
         responses: {
             200: {
-                description: 'Get list of users',
+                description: 'Get list of trigger devices',
                 content: {
                     'application/json': {
                         schema: {
@@ -135,10 +131,10 @@ var ApiDoc;
                                 cursor: {
                                     $ref: '#/components/schemas/Cursor',
                                 },
-                                users: {
+                                triggerDevices: {
                                     type: 'array',
                                     items: {
-                                        $ref: '#/components/schemas/UserOptional',
+                                        $ref: '#/components/schemas/TriggerDeviceOptional',
                                     },
                                 },
                             },
@@ -161,4 +157,4 @@ var ApiDoc;
 })(ApiDoc || (ApiDoc = {}));
 pathItemHandler.get.apiDoc = ApiDoc.apiDoc;
 module.exports = pathItemHandler;
-//# sourceMappingURL=users.js.map
+//# sourceMappingURL=trigger-devices.js.map

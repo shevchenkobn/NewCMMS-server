@@ -160,4 +160,8 @@ function assertValidSortFields(sortFields) {
     }
 }
 exports.assertValidSortFields = assertValidSortFields;
+function getSortFields(columnNames) {
+    return columnNames.flatMap(p => [`<${p}`, `>${p}`]);
+}
+exports.getSortFields = getSortFields;
 //# sourceMappingURL=model.js.map

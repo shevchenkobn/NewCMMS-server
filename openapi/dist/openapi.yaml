@@ -15,6 +15,8 @@ servers:
 tags:
   - name: auth
     description: API to manage auth tokens
+  - name: trigger-devices
+    description: API to manage trigger devices
   - name: users
     description: API to manage users
 paths:
@@ -100,12 +102,108 @@ paths:
                 type: object
                 properties:
                   cursor:
-                    type: string
-                    nullable: true
+                    $ref: "#/components/schemas/Cursor"
                   users:
                     type: array
                     items:
                       $ref: "#/components/schemas/UserOptional"
+                additionalProperties: false
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /trigger-devices:
+    parameters: []
+    post:
+      description: Create trigger device
+      tags:
+        - trigger-devices
+      security:
+        - jwt-bearer:
+            - admin
+      requestBody:
+        description: A trigger device to create
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TriggerDeviceCreate"
+        required: true
+      parameters:
+        - $ref: "#/components/parameters/SelectTriggerDevice"
+      responses:
+        "201":
+          description: The trigger device was created. Optional object of it
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TriggerDeviceOptional"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    get:
+      description: Get trigger
+      tags:
+        - trigger-devices
+      security:
+        - jwt-bearer:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/SelectTriggerDevice"
+        - in: query
+          name: trigger-device-ids
+          description: Trigger device IDs to include in result
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+              minimum: 1
+            minItems: 1
+            uniqueItems: true
+        - $ref: "#/components/parameters/Skip"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/CursorNotGenerate"
+        - in: query
+          name: sort
+          description: Sort orders
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - <triggerDeviceId
+                - ">triggerDeviceId"
+                - <physicalAddress
+                - ">physicalAddress"
+                - <status
+                - ">status"
+                - <name
+                - ">name"
+                - <type
+                - ">type"
+            minItems: 1
+            maxItems: 5
+      responses:
+        "200":
+          description: Get list of trigger devices
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cursor:
+                    $ref: "#/components/schemas/Cursor"
+                  triggerDevices:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/TriggerDeviceOptional"
+                additionalProperties: false
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -292,6 +390,8 @@ paths:
           $ref: "#/components/responses/Unauthenticated"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
     delete:
       description: Delete user
       tags:
@@ -314,6 +414,8 @@ paths:
           $ref: "#/components/responses/Unauthenticated"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
     patch:
       description: Update user
       tags:
@@ -343,6 +445,96 @@ paths:
           $ref: "#/components/responses/Unauthenticated"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  "/trigger-devices/{triggerDeviceId}":
+    parameters:
+      - in: path
+        name: triggerDeviceId
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+        required: true
+    get:
+      description: Get trigger device
+      tags:
+        - trigger-devices
+      security:
+        - jwt-bearer:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/SelectTriggerDevice"
+      responses:
+        "200":
+          description: Return trigger device
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TriggerDeviceOptional"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      description: Delete trigger device
+      tags:
+        - trigger-devices
+      security:
+        - jwt-bearer:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/SelectTriggerDevice"
+      responses:
+        "200":
+          description: Return trigger device
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TriggerDeviceOptional"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      description: Update trigger device
+      tags:
+        - trigger-devices
+      security:
+        - jwt-bearer:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/SelectTriggerDevice"
+      requestBody:
+        description: A trigger device update
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TriggerDeviceUpdate"
+        required: true
+      responses:
+        "200":
+          description: Return trigger device
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TriggerDeviceOptional"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 components:
   securitySchemes:
     jwt-bearer:
@@ -376,6 +568,15 @@ components:
       type: string
       description: The cursor used to paginate efficiently.
       format: byte
+      nullable: true
+    Error:
+      type: object
+      required:
+        - code
+      properties:
+        code:
+          type: string
+      additionalProperties: true
     TokenPair:
       type: object
       required:
@@ -395,14 +596,6 @@ components:
       type: string
       format: password
       pattern: ^((?=.*[A-Z])(?=.*[!@#$&*])(?=.*[0-9])(?=.*[a-z]).{6,}|)$
-    Error:
-      type: object
-      required:
-        - code
-      properties:
-        code:
-          type: string
-      additionalProperties: true
     UserOptional:
       type: object
       properties:
@@ -486,6 +679,7 @@ components:
           type: string
           format: password
           pattern: ^((?=.*[A-Z])(?=.*[!@#$&*])(?=.*[0-9])(?=.*[a-z]).{6,}|)$
+      minProperties: 1
       additionalProperties: false
     User:
       type: object
@@ -510,6 +704,89 @@ components:
           type: integer
           format: int32
           minimum: 1
+      additionalProperties: false
+    TriggerDeviceCreate:
+      type: object
+      required:
+        - physicalAddress
+        - status
+        - name
+        - type
+      properties:
+        physicalAddress:
+          type: string
+          format: physical-address
+        status:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 2
+        name:
+          type: string
+        type:
+          type: string
+      minProperties: 1
+      additionalProperties: false
+    TriggerDeviceUpdate:
+      type: object
+      properties:
+        physicalAddress:
+          type: string
+          format: physical-address
+        status:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 2
+        name:
+          type: string
+        type:
+          type: string
+      minProperties: 1
+      additionalProperties: false
+    TriggerDeviceOptional:
+      type: object
+      properties:
+        triggerDeviceId:
+          type: integer
+          minimum: 1
+        physicalAddress:
+          type: string
+          pattern: ^[\da-f]{2}(:[\da-f]{2}){5}$
+        status:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 2
+        name:
+          type: string
+        type:
+          type: string
+      additionalProperties: false
+    TriggerDevice:
+      type: object
+      required:
+        - triggerDeviceId
+        - physicalAddress
+        - status
+        - name
+        - type
+      properties:
+        triggerDeviceId:
+          type: integer
+          minimum: 1
+        physicalAddress:
+          type: string
+          pattern: ^[\da-f]{2}(:[\da-f]{2}){5}$
+        status:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 2
+        name:
+          type: string
+        type:
+          type: string
       additionalProperties: false
   responses:
     OpenApiBadRequest:
@@ -565,7 +842,57 @@ components:
               code:
                 type: string
             additionalProperties: true
+    NotFound:
+      description: The entity does not exist
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - code
+            properties:
+              code:
+                type: string
+            additionalProperties: true
   parameters:
+    Skip:
+      in: query
+      name: skip
+      description: Number of enitites in the list that satisfy filters but must be skipped
+      schema:
+        type: integer
+        format: int32
+        minimum: 0
+        maximum: 10000
+    Limit:
+      in: query
+      name: limit
+      description: Maximum number of enitites in the list that satisfy filters you want to
+        retrieve
+      schema:
+        type: integer
+        format: int32
+        minimum: 0
+        maximum: 1000
+    Cursor:
+      in: query
+      name: cursor
+      description: The cursor that was generated from the previous request to the API for
+        pagination.
+      required: false
+      schema:
+        type: string
+        description: The cursor used to paginate efficiently.
+        format: byte
+        nullable: true
+    CursorNotGenerate:
+      in: query
+      name: cursor-not-generate
+      description: Flag that says whether cursor must be generated
+      required: false
+      schema:
+        type: boolean
+        default: false
     SelectUserChange:
       in: query
       name: select
@@ -597,43 +924,22 @@ components:
             - fullName
         uniqueItems: true
         minItems: 1
-    Skip:
+    SelectTriggerDevice:
       in: query
-      name: skip
-      description: Number of enitites in the list that satisfy filters but must be skipped
+      name: select
+      description: Fields in json you want to consume
       schema:
-        type: integer
-        format: int32
-        minimum: 0
-        maximum: 10000
-    Limit:
-      in: query
-      name: limit
-      description: Maximum number of enitites in the list that satisfy filters you want to
-        retrieve
-      schema:
-        type: integer
-        format: int32
-        minimum: 0
-        maximum: 1000
-    Cursor:
-      in: query
-      name: cursor
-      description: The cursor that was generated from the previous request to the API for
-        pagination.
-      required: false
-      schema:
-        type: string
-        description: The cursor used to paginate efficiently.
-        format: byte
-    CursorNotGenerate:
-      in: query
-      name: cursor-not-generate
-      description: Flag that says whether cursor must be generated
-      required: false
-      schema:
-        type: boolean
-        default: false
+        type: array
+        items:
+          type: string
+          enum:
+            - triggerDeviceId
+            - physicalAddress
+            - status
+            - name
+            - type
+        uniqueItems: true
+        minItems: 1
 x-express-openapi-disable-defaults-middleware: true
 x-express-openapi-disable-response-validation-middleware: false
 x-express-openapi-response-validation-strict: true

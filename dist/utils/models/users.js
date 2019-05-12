@@ -26,9 +26,4 @@ function getAllSafeUserPropertyNames() {
     return [db_orchestrator_1.getIdColumn(db_orchestrator_1.TableName.USERS), 'email', 'role', 'fullName'];
 }
 exports.getAllSafeUserPropertyNames = getAllSafeUserPropertyNames;
-function getSortFields() {
-    return getAllSafeUserPropertyNames()
-        .flatMap(p => [`<${p}`, `>${p}`]);
-}
-exports.getSortFields = getSortFields;
 //# sourceMappingURL=users.js.map

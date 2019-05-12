@@ -1,6 +1,5 @@
 import { QueryBuilder } from 'knex';
 import { DeepReadonly, Nullable, Optional, primitive } from '../@types';
-import { IUser } from '../models/users.model';
 import { ErrorCode, LogicError } from '../services/error.service';
 
 export type StrictComparisonSign = '<' | '>';
@@ -200,4 +199,8 @@ export function assertValidSortFields(sortFields: ReadonlyArray<string>) {
     }
     found.add(field);
   }
+}
+
+export function getSortFields<T>(columnNames: ReadonlyArray<keyof T>) {
+  return columnNames.flatMap(p => [`<${p}`, `>${p}`]);
 }

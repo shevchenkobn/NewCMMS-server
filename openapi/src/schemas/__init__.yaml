@@ -7,6 +7,9 @@ IdList:
 Cursor:
   $ref: ./cursor.yaml
 
+Error:
+  $ref: ./error.yaml
+
 TokenPair:
   $ref: ./token-pair.yaml
 
@@ -15,9 +18,6 @@ UserPassword:
 
 UserPasswordNullable:
   $ref: ./user-password-nullable.yaml
-
-Error:
-  $ref: ./error.yaml
 
 UserOptional:
   $ref: ./user-optional.yaml
@@ -33,3 +33,15 @@ UserUpdate:
 
 User:
   $ref: ./user.yaml
+
+TriggerDeviceCreate:
+  $ref: ./trigger-device-create.yaml
+
+TriggerDeviceUpdate:
+  $ref: ./trigger-device-update.yaml
+
+TriggerDeviceOptional:
+  $ref: ./trigger-device-optional.yaml
+
+TriggerDevice:
+  $ref: ./trigger-device.yaml

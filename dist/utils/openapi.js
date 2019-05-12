@@ -39,6 +39,16 @@ function loadOpenApiDoc(rootPath = appRoot.resolve('openapi/src/openapi.yaml'), 
     });
 }
 exports.loadOpenApiDoc = loadOpenApiDoc;
+var CustomFormats;
+(function (CustomFormats) {
+    const physicalAddressRegex = /^[\dA-F]{12}$/i;
+    CustomFormats.formats = {
+        // tslint:disable-next-line:function-name
+        ['physical-address'](value) {
+            return physicalAddressRegex.test(value);
+        },
+    };
+})(CustomFormats = exports.CustomFormats || (exports.CustomFormats = {}));
 function getOpenApiOptions(app, apiDoc) {
     return {
         app,
@@ -49,7 +59,7 @@ function getOpenApiOptions(app, apiDoc) {
                 strict: false,
             }),
         },
-        customFormats: {},
+        customFormats: CustomFormats.formats,
         enableObjectCoercion: true,
         errorTransformer: error_service_1.errorTransformer,
         exposeApiDocs: true,

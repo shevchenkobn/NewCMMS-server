@@ -13,4 +13,5 @@ properties:
     type: string
   password:
     $ref: ./user-password-nullable.yaml
+minProperties: 1
 additionalProperties: false
