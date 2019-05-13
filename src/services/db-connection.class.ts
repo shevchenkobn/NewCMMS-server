@@ -20,6 +20,7 @@ export interface IDBConfig {
   debug: boolean;
 }
 
+// For more information about error codes of Postgres see https://github.com/postgres/postgres/blob/master/src/backend/utils/errcodes.txt
 @injectable()
 export class DbConnection {
   readonly config: DeepReadonly<Knex.Config>;

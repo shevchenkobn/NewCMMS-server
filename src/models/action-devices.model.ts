@@ -1,4 +1,5 @@
 import { inject, injectable } from 'inversify';
+import { PostgresError } from 'pg-error-enum';
 import { DeepPartial, DeepReadonly, Nullable } from '../@types';
 import { DbConnection } from '../services/db-connection.class';
 import { ErrorCode, LogicError } from '../services/error.service';
@@ -45,13 +46,13 @@ export class ActionDevicesModel {
       case 'pg':
         this._handleError = err => {
           switch (err.code) {
-            case '23505':
+            case PostgresError.UNIQUE_VIOLATION:
               const detailLower = err.detail.toLowerCase();
               if (detailLower.includes('name')) {
-                throw new LogicError(ErrorCode.TRIGGER_DEVICE_NAME_DUPLICATE);
+                throw new LogicError(ErrorCode.ACTION_DEVICE_NAME_DUPLICATE);
               }
               if (detailLower.includes('physicaladdress')) {
-                throw new LogicError(ErrorCode.TRIGGER_DEVICE_MAC_DUPLICATE);
+                throw new LogicError(ErrorCode.ACTION_DEVICE_MAC_DUPLICATE);
               }
             default:
               throw err;

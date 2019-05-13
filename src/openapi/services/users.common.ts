@@ -11,7 +11,11 @@ import {
 } from '../../models/users.model';
 import { superAdminId } from '../../services/db-orchestrator.class';
 import { ErrorCode, LogicError } from '../../services/error.service';
-import { differenceArrays, mergeArrays } from '../../utils/common';
+import {
+  deletePropsFromArray,
+  differenceArrays,
+  mergeArrays,
+} from '../../utils/common';
 import { PaginationCursor } from '../../utils/model';
 
 export interface IUserList {
@@ -98,12 +102,10 @@ export class UsersCommon {
       && args.select
       && modelParams.select.length !== args.select.length
     ) {
-      const propsToDelete = differenceArrays(modelParams.select, args.select);
-      for (const user of users) {
-        for (const prop of propsToDelete) {
-          delete user[prop];
-        }
-      }
+      deletePropsFromArray(
+        users,
+        differenceArrays(modelParams.select, args.select),
+      );
     }
     return {
       users,

@@ -1,5 +1,6 @@
 import { compare, hash } from 'bcrypt';
 import { inject, injectable } from 'inversify';
+import { PostgresError } from 'pg-error-enum';
 import { DeepPartial, DeepReadonly, Nullable } from '../@types';
 import { DbConnection } from '../services/db-connection.class';
 import { ErrorCode, LogicError } from '../services/error.service';
@@ -77,7 +78,7 @@ export class UsersModel {
       case 'pg':
         this._handleError = err => {
           switch (err.code) {
-            case '23505':
+            case PostgresError.UNIQUE_VIOLATION:
               const detailLower = err.detail.toLowerCase();
               if (detailLower.includes('email')) {
                 throw new LogicError(ErrorCode.USER_EMAIL_DUPLICATE);

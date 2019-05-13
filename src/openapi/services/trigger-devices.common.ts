@@ -7,7 +7,11 @@ import {
   TriggerDevicesModel,
 } from '../../models/trigger-devices.model';
 import { ErrorCode, LogicError } from '../../services/error.service';
-import { differenceArrays, mergeArrays } from '../../utils/common';
+import {
+  deletePropsFromArray,
+  differenceArrays,
+  mergeArrays,
+} from '../../utils/common';
 import { PaginationCursor } from '../../utils/model';
 
 export interface ITriggerDeviceList {
@@ -92,12 +96,10 @@ export class TriggerDevicesCommon {
       && args.select
       && modelParams.select.length !== args.select.length
     ) {
-      const propsToDelete = differenceArrays(modelParams.select, args.select);
-      for (const device of devices) {
-        for (const prop of propsToDelete) {
-          delete device[prop];
-        }
-      }
+      deletePropsFromArray(
+        devices,
+        differenceArrays(modelParams.select, args.select),
+      );
     }
     return {
       triggerDevices: devices,

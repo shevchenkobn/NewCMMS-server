@@ -46,3 +46,30 @@ export function differenceArrays<T = any>(
     return true;
   });
 }
+
+export function getLazyMapper<TIn, TOut>(mapper: (item: TIn) => TOut) {
+  return function* (arr: ReadonlyArray<TIn>) {
+    for (const item of arr) {
+      yield mapper(item);
+    }
+  };
+}
+
+export function deletePropsFromArray<
+  T extends Record<string, any>, K extends keyof T
+>(objects: ReadonlyArray<T>, keys: ReadonlyArray<K>) {
+  for (const obj of objects) {
+    deleteProps(obj, keys);
+  }
+  return objects;
+}
+
+export function deleteProps<T extends Record<string, any>, K extends keyof T>(
+  obj: T,
+  keys: ReadonlyArray<K>,
+): Extract<T, Pick<T, K>> {
+  for (const key of keys) {
+    delete obj[key];
+  }
+  return obj;
+}
