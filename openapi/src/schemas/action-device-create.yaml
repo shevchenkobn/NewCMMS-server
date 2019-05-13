@@ -19,5 +19,5 @@ properties:
   type:
     type: string
   hourlyRate:
-    $ref: ./decimal-10-6.yaml
+    $ref: ./decimal-13-6.yaml
 additionalProperties: false

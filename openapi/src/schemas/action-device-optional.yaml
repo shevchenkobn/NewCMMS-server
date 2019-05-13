@@ -4,7 +4,7 @@ properties:
     $ref: ./id.yaml
   physicalAddress:
     type: string
-    format: physical-address
+    pattern: ^[\da-f]{2}(:[\da-f]{2}){5}$
   status:
     type: integer
     format: int32
@@ -15,5 +15,5 @@ properties:
   type:
     type: string
   hourlyRate:
-    $ref: ./decimal-10-6.yaml
+    $ref: ./decimal-13-6.yaml
 additionalProperties: false

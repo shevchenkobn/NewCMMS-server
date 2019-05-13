@@ -60,7 +60,7 @@ let ActionDevicesModel = class ActionDevicesModel {
     async getOne(actionDeviceId, select) {
         const devices = await this.table.where({ actionDeviceId })
             .select(select);
-        if (devices.length) {
+        if (devices.length === 0) {
             return null;
         }
         return devices[0];

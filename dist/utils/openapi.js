@@ -49,13 +49,13 @@ var CustomFormats;
             return physicalAddressRegex.test(value);
         },
         // tslint:disable-next-line:function-name
-        ['decimal-10-6'](value) {
+        ['decimal-13-6'](value) {
             const isDecimal = decimalRegex.test(value);
             if (!isDecimal) {
                 return false;
             }
             const partLengths = value.split('.').map(p => p.length);
-            return partLengths[1] <= 6 && partLengths[0] + partLengths[1] <= 10;
+            return partLengths[1] <= 6 && partLengths[0] <= 7;
         },
     };
 })(CustomFormats = exports.CustomFormats || (exports.CustomFormats = {}));

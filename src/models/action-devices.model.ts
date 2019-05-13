@@ -103,7 +103,7 @@ export class ActionDevicesModel {
   ): Promise<Nullable<IActionDevice>> {
     const devices = await this.table.where({ actionDeviceId })
       .select(select as any);
-    if (devices.length) {
+    if (devices.length === 0) {
       return null;
     }
     return devices[0];

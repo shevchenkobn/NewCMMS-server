@@ -1,8 +1,8 @@
 Id:
   $ref: ./id.yaml
 
-Decimal_10_6:
-  $ref: ./decimal-10-6.yaml
+Decimal_13_6:
+  $ref: ./decimal-13-6.yaml
 
 IdList:
   $ref: ./id-list.yaml

@@ -82,7 +82,7 @@ pathItemHandler.get = (req, res, next) => {
 namespace ApiDoc {
   const sortFields = getSortFields(getAllTriggerDevicePropertyNames());
   export const apiDoc: OpenAPIV3.OperationObject = {
-    description: 'Get trigger',
+    description: 'Get trigger devices',
     tags: ['trigger-devices'],
     security: [{
       [jwtBearerScheme]: [JwtBearerScope.ADMIN],
@@ -139,7 +139,7 @@ namespace ApiDoc {
         content: {
           'application/json': {
             schema: {
-              type: 'object', // FIXME: doesn't validate response
+              type: 'object',
               properties: {
                 cursor: {
                   $ref: '#/components/schemas/Cursor',

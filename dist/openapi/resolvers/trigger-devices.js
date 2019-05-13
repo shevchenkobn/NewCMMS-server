@@ -69,7 +69,7 @@ var ApiDoc;
 (function (ApiDoc) {
     const sortFields = model_1.getSortFields(trigger_devices_1.getAllTriggerDevicePropertyNames());
     ApiDoc.apiDoc = {
-        description: 'Get trigger',
+        description: 'Get trigger devices',
         tags: ['trigger-devices'],
         security: [{
                 [openapi_1.jwtBearerScheme]: [openapi_1.JwtBearerScope.ADMIN],

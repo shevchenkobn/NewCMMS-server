@@ -13,6 +13,8 @@ servers:
   - url: /api/v1
     description: The server will be served from the same host as this document.
 tags:
+  - name: action-devices
+    description: API to manage action devices
   - name: auth
     description: API to manage auth tokens
   - name: trigger-devices
@@ -146,7 +148,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
     get:
-      description: Get trigger
+      description: Get trigger devices
       tags:
         - trigger-devices
       security:
@@ -364,7 +366,7 @@ paths:
     post:
       description: Create action device
       tags:
-        - trigger-devices
+        - action-devices
       security:
         - jwt-bearer:
             - admin
@@ -384,6 +386,73 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ActionDeviceOptional"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    get:
+      description: Get action devices
+      tags:
+        - action-devices
+      security:
+        - jwt-bearer:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/SelectActionDevice"
+        - in: query
+          name: action-device-ids
+          description: Action device IDs to include in result
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+              minimum: 1
+            minItems: 1
+            uniqueItems: true
+        - $ref: "#/components/parameters/Skip"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/CursorNotGenerate"
+        - in: query
+          name: sort
+          description: Sort orders
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - <actionDeviceId
+                - ">actionDeviceId"
+                - <physicalAddress
+                - ">physicalAddress"
+                - <status
+                - ">status"
+                - <hourlyRate
+                - ">hourlyRate"
+                - <name
+                - ">name"
+                - <type
+                - ">type"
+            minItems: 1
+            maxItems: 6
+      responses:
+        "200":
+          description: Get list of action devices
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cursor:
+                    $ref: "#/components/schemas/Cursor"
+                  actionDevices:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ActionDeviceOptional"
+                additionalProperties: false
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -567,7 +636,93 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
   "/action-devices/{actionDeviceId}":
-    parameters: []
+    parameters:
+      - in: path
+        name: actionDeviceId
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+        required: true
+    get:
+      description: Get action device
+      tags:
+        - action-devices
+      security:
+        - jwt-bearer:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/SelectActionDevice"
+      responses:
+        "200":
+          description: Return action device
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionDeviceOptional"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      description: Delete action device
+      tags:
+        - action-devices
+      security:
+        - jwt-bearer:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/SelectActionDevice"
+      responses:
+        "200":
+          description: Return action device
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionDeviceOptional"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      description: Update action device
+      tags:
+        - action-devices
+      security:
+        - jwt-bearer:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/SelectActionDevice"
+      requestBody:
+        description: An action device update
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ActionDeviceUpdate"
+        required: true
+      responses:
+        "200":
+          description: Return action device
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionDeviceOptional"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 components:
   securitySchemes:
     jwt-bearer:
@@ -590,9 +745,9 @@ components:
     Id:
       type: integer
       minimum: 1
-    Decimal_10_6:
+    Decimal_13_6:
       type: string
-      format: decimal-10-6
+      format: decimal-13-6
     IdList:
       type: array
       items:
@@ -846,7 +1001,7 @@ components:
           type: string
         hourlyRate:
           type: string
-          format: decimal-10-6
+          format: decimal-13-6
       additionalProperties: false
     ActionDeviceUpdate:
       type: object
@@ -865,7 +1020,7 @@ components:
           type: string
         hourlyRate:
           type: string
-          format: decimal-10-6
+          format: decimal-13-6
       minProperties: 1
       additionalProperties: false
     ActionDeviceOptional:
@@ -876,7 +1031,7 @@ components:
           minimum: 1
         physicalAddress:
           type: string
-          format: physical-address
+          pattern: ^[\da-f]{2}(:[\da-f]{2}){5}$
         status:
           type: integer
           format: int32
@@ -888,7 +1043,7 @@ components:
           type: string
         hourlyRate:
           type: string
-          format: decimal-10-6
+          format: decimal-13-6
       additionalProperties: false
   responses:
     OpenApiBadRequest:
@@ -976,6 +1131,7 @@ components:
         format: int32
         minimum: 0
         maximum: 1000
+        default: 1000
     Cursor:
       in: query
       name: cursor
