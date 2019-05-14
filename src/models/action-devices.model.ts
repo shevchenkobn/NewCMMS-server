@@ -150,14 +150,15 @@ export class ActionDevicesModel {
           return devices === 0 ? null : {};
         }
         return devices.length === 0 ? null : devices[0];
-      }) as any;
+      })
+      .catch(this._handleError) as any;
   }
 
   deleteOne(actionDeviceId: number): Promise<Nullable<{}>>;
   deleteOne<T extends DeepPartial<IActionDevice> = DeepPartial<IActionDevice>>(
     actionDeviceId: number,
     returning: ReadonlyArray<keyof IActionDevice>,
-  ): Promise<Nullable<DeepPartial<IActionDevice>>>;
+  ): Promise<Nullable<T>>;
   deleteOne(
     actionDeviceId: number,
     returning?: ReadonlyArray<keyof IActionDevice>,

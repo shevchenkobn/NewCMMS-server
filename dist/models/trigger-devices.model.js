@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const tslib_1 = require("tslib");
 const inversify_1 = require("inversify");
+const pg_error_enum_1 = require("pg-error-enum");
 const db_connection_class_1 = require("../services/db-connection.class");
 const error_service_1 = require("../services/error.service");
 const db_orchestrator_1 = require("../utils/db-orchestrator");
@@ -14,7 +15,7 @@ let TriggerDevicesModel = class TriggerDevicesModel {
             case 'pg':
                 this._handleError = err => {
                     switch (err.code) {
-                        case '23505':
+                        case pg_error_enum_1.PostgresError.UNIQUE_VIOLATION:
                             const detailLower = err.detail.toLowerCase();
                             if (detailLower.includes('name')) {
                                 throw new error_service_1.LogicError(error_service_1.ErrorCode.TRIGGER_DEVICE_NAME_DUPLICATE);

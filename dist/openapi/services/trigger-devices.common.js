@@ -52,12 +52,7 @@ let TriggerDevicesCommon = class TriggerDevicesCommon {
         if (modelParams.select
             && args.select
             && modelParams.select.length !== args.select.length) {
-            const propsToDelete = common_1.differenceArrays(modelParams.select, args.select);
-            for (const device of devices) {
-                for (const prop of propsToDelete) {
-                    delete device[prop];
-                }
-            }
+            common_1.deletePropsFromArray(devices, common_1.differenceArrays(modelParams.select, args.select));
         }
         return {
             triggerDevices: devices,

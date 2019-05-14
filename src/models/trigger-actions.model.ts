@@ -1,6 +1,6 @@
 import { inject, injectable } from 'inversify';
 import { PostgresError } from 'pg-error-enum';
-import { DeepPartial, DeepReadonly } from '../@types';
+import { DeepPartial, DeepReadonly, Nullable } from '../@types';
 import { DbConnection } from '../services/db-connection.class';
 import { ErrorCode, LogicError } from '../services/error.service';
 import { getIdColumn, TableName } from '../utils/db-orchestrator';
@@ -39,7 +39,7 @@ export interface ITriggerActionWithDevices<
 > extends ITriggerActionWithActionDevice<A>, ITriggerActionWithTriggerDevice<T> {}
 
 export interface ITriggerActionsSelectParams {
-  select?: ReadonlyArray<keyof ITriggerActionWithDevices>;
+  select?: ReadonlyArray<keyof ITriggerAction>;
   triggerActionIds?: ReadonlyArray<number>;
   comparatorFilters?: DeepReadonly<ComparatorFilters<ITriggerAction>>;
   orderBy?: ReadonlyArray<string>;
@@ -72,11 +72,15 @@ export class TriggerActionsModel {
           switch (err.code) {
             case PostgresError.FOREIGN_KEY_VIOLATION:
               const detailLower = err.detail.toLowerCase();
-              if (detailLower.includes('name')) {
-                throw new LogicError(ErrorCode.TRIGGER_DEVICE_NAME_DUPLICATE);
+              if (detailLower.includes('triggerdeviceid')) {
+                throw new LogicError(
+                  ErrorCode.TRIGGER_ACTION_BAD_TRIGGER_DEVICE_ID,
+                );
               }
-              if (detailLower.includes('physicaladdress')) {
-                throw new LogicError(ErrorCode.TRIGGER_DEVICE_MAC_DUPLICATE);
+              if (detailLower.includes('actiondeviceid')) {
+                throw new LogicError(
+                  ErrorCode.TRIGGER_ACTION_BAD_ACTION_DEVICE_ID,
+                );
               }
             default:
               throw err;
@@ -89,7 +93,7 @@ export class TriggerActionsModel {
   }
 
   async getList<
-    T extends DeepPartial<ITriggerAction> = DeepPartial<ITriggerAction>
+    T extends DeepPartial<ITriggerAction> = ITriggerAction
   >(params: ITriggerActionsSelectParams): Promise<T[]> {
     const query = this.table;
     if (params.triggerActionIds && params.triggerActionIds.length > 0) {
@@ -115,5 +119,84 @@ export class TriggerActionsModel {
     return query.select((params.select && params.select.length > 0
       ? params.select.slice()
       : getAllTriggerActionPropertyNames()) as string[]);
+  }
+
+  getOne(triggerActionId: number): Promise<Nullable<ITriggerAction>>;
+  getOne<T extends DeepPartial<ITriggerAction> = DeepPartial<ITriggerAction>>(
+    triggerActionId: number,
+    select: ReadonlyArray<keyof ITriggerAction>,
+  ): Promise<Nullable<T>>;
+  async getOne(
+    triggerActionId: number,
+    select?: ReadonlyArray<keyof ITriggerAction>,
+  ): Promise<Nullable<DeepPartial<ITriggerAction>>> {
+    const triggerActions = await this.table.where({ triggerActionId })
+      .select(select as any);
+    if (triggerActions.length === 0) {
+      return null;
+    }
+    return triggerActions[0];
+  }
+
+  createOne(triggerAction: ITriggerActionChange): Promise<{}>;
+  createOne<T extends DeepPartial<ITriggerAction> = DeepPartial<ITriggerAction>>(
+    triggerAction: ITriggerActionChange,
+    returning: ReadonlyArray<keyof ITriggerAction>,
+  ): Promise<T>;
+  createOne(
+    triggerAction: ITriggerActionChange,
+    returning?: ReadonlyArray<keyof ITriggerAction>,
+  ): Promise<DeepPartial<ITriggerAction>> {
+    return this.table.insert(triggerAction, returning as string[])
+      .then(triggerActions => {
+        if (!returning || returning.length === 0) {
+          return {};
+        }
+        return triggerActions[0];
+      })
+      .catch(this._handleError) as any;
+  }
+
+  updateOne(
+    triggerActionId: number,
+    update: DeepReadonly<ITriggerActionChange>,
+  ): Promise<Nullable<{}>>;
+  updateOne<T extends DeepPartial<ITriggerAction> = DeepPartial<ITriggerAction>>(
+    triggerActionId: number,
+    update: DeepReadonly<ITriggerActionChange>,
+    returning: ReadonlyArray<keyof ITriggerAction>,
+  ): Promise<Nullable<{}>>;
+  updateOne(
+    triggerActionId: number,
+    update: DeepReadonly<ITriggerActionChange>,
+    returning?: ReadonlyArray<keyof ITriggerAction>,
+  ): Promise<Nullable<DeepPartial<ITriggerAction>>> {
+    return this.table.where({ triggerActionId })
+      .update(update, returning as string[])
+      .then(triggerActions => {
+        if (!returning || returning.length === 0) {
+          return triggerActions === 0 ? null : {};
+        }
+        return triggerActions.length === 0 ? null : triggerActions[0];
+      }) as any;
+  }
+
+  deleteOne(triggerActionId: number): Promise<Nullable<{}>>;
+  deleteOne<T extends DeepPartial<ITriggerAction> = DeepPartial<ITriggerAction>>(
+    triggerActionId: number,
+    returning: ReadonlyArray<keyof ITriggerAction>,
+  ): Promise<Nullable<T>>;
+  deleteOne(
+    triggerActionId: number,
+    returning?: ReadonlyArray<keyof ITriggerAction>,
+  ): Promise<Nullable<DeepPartial<ITriggerAction>>> {
+    return this.table.where({ triggerActionId }).delete(returning as string[])
+      .then(triggerActions => {
+        if (!returning || returning.length === 0) {
+          return triggerActions === 0 ? null : {};
+        }
+        return triggerActions.length === 0 ? null : triggerActions[0];
+      })
+      .catch(this._handleError) as any;
   }
 }

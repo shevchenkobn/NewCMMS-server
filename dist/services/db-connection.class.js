@@ -10,6 +10,7 @@ const logger_service_1 = require("./logger.service");
 exports.availableDbTypes = [
     'pg', 'mssql', 'oracle',
 ];
+// For more information about error codes of Postgres see https://github.com/postgres/postgres/blob/master/src/backend/utils/errcodes.txt
 let DbConnection = class DbConnection {
     constructor(dbConfig = config.get('db')) {
         if (!exports.availableDbTypes.includes(dbConfig.type)) {

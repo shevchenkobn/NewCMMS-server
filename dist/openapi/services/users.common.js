@@ -53,12 +53,7 @@ let UsersCommon = class UsersCommon {
         if (modelParams.select
             && args.select
             && modelParams.select.length !== args.select.length) {
-            const propsToDelete = common_1.differenceArrays(modelParams.select, args.select);
-            for (const user of users) {
-                for (const prop of propsToDelete) {
-                    delete user[prop];
-                }
-            }
+            common_1.deletePropsFromArray(users, common_1.differenceArrays(modelParams.select, args.select));
         }
         return {
             users,

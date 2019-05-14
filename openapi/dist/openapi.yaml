@@ -17,6 +17,9 @@ tags:
     description: API to manage action devices
   - name: auth
     description: API to manage auth tokens
+  - name: trigger-action
+  - name: trigger-actions
+    description: API to manage trigger actions
   - name: trigger-devices
     description: API to manage trigger devices
   - name: users
@@ -205,6 +208,98 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/TriggerDeviceOptional"
+                additionalProperties: false
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /trigger-actions:
+    parameters: []
+    post:
+      description: Create trigger action
+      tags:
+        - trigger-actions
+      security:
+        - jwt-bearer:
+            - admin
+      requestBody:
+        description: An trigger action to create
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TriggerActionCreate"
+        required: true
+      parameters:
+        - $ref: "#/components/parameters/SelectTriggerAction"
+      responses:
+        "201":
+          description: The trigger action was created. Optional object of it
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TriggerActionOptional"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    get:
+      description: Get trigger action
+      tags:
+        - trigger-actions
+      security:
+        - jwt-bearer:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/SelectTriggerAction"
+        - in: query
+          name: trigger-action-ids
+          description: Trigger action IDs to include in result
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+              minimum: 1
+            minItems: 1
+            uniqueItems: true
+        - $ref: "#/components/parameters/Skip"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/CursorNotGenerate"
+        - in: query
+          name: sort
+          description: Sort orders
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - <triggerActionId
+                - ">triggerActionId"
+                - <triggerDeviceId
+                - ">triggerDeviceId"
+                - <actionDeviceId
+                - ">actionDeviceId"
+            minItems: 1
+            maxItems: 3
+      responses:
+        "200":
+          description: Get list of trigger actions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cursor:
+                    $ref: "#/components/schemas/Cursor"
+                  triggerActions:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/TriggerActionOptional"
                 additionalProperties: false
         "400":
           $ref: "#/components/responses/BadRequest"
@@ -635,6 +730,94 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+  "/trigger-actions/{triggerActionId}":
+    parameters:
+      - in: path
+        name: triggerActionId
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+        required: true
+    get:
+      description: Get trigger action
+      tags:
+        - trigger-actions
+      security:
+        - jwt-bearer:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/SelectTriggerAction"
+      responses:
+        "200":
+          description: Return trigger action
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TriggerActionOptional"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      description: Delete trigger action
+      tags:
+        - trigger-action
+      security:
+        - jwt-bearer:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/SelectTriggerAction"
+      responses:
+        "200":
+          description: Return trigger action
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TriggerActionOptional"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      description: Update trigger action
+      tags:
+        - trigger-action
+      security:
+        - jwt-bearer:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/SelectTriggerAction"
+      requestBody:
+        description: An trigger action update
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TriggerActionUpdate"
+        required: true
+      responses:
+        "200":
+          description: Return trigger action
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TriggerActionOptional"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   "/action-devices/{actionDeviceId}":
     parameters:
       - in: path
@@ -714,7 +897,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ActionDeviceOptional"
+                $ref: "#/components/schemas/ActionDeviceUpdate"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1045,6 +1228,43 @@ components:
           type: string
           format: decimal-13-6
       additionalProperties: false
+    TriggerActionCreate:
+      type: object
+      required:
+        - triggerDeviceId
+        - actionDeviceId
+      properties:
+        triggerDeviceId:
+          type: integer
+          minimum: 1
+        actionDeviceId:
+          type: integer
+          minimum: 1
+      additionalProperties: false
+    TriggerActionUpdate:
+      type: object
+      properties:
+        triggerDeviceId:
+          type: integer
+          minimum: 1
+        actionDeviceId:
+          type: integer
+          minimum: 1
+      minProperties: 1
+      additionalProperties: false
+    TriggerActionOptional:
+      type: object
+      properties:
+        triggerActionId:
+          type: integer
+          minimum: 1
+        triggerDeviceId:
+          type: integer
+          minimum: 1
+        actionDeviceId:
+          type: integer
+          minimum: 1
+      additionalProperties: false
   responses:
     OpenApiBadRequest:
       description: A response that indicates about error in request produced by the OpenApi
@@ -1213,6 +1433,20 @@ components:
             - name
             - type
             - hourlyRate
+        uniqueItems: true
+        minItems: 1
+    SelectTriggerAction:
+      in: query
+      name: select
+      description: Fields in json you want to consume
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - triggerActionId
+            - triggerDeviceId
+            - actionDeviceId
         uniqueItems: true
         minItems: 1
 x-express-openapi-disable-defaults-middleware: true

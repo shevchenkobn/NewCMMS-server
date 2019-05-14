@@ -9,9 +9,12 @@ exports.TYPES = {
     AuthService: Symbol.for('AuthService'),
     UsersModel: Symbol.for('UsersModel'),
     TriggerDevicesModel: Symbol.for('TriggerDevicesModel'),
+    ActionDevicesModel: Symbol.for('ActionDevicesModel'),
+    TriggerActionsModel: Symbol.for('TriggerActionsModel'),
     AuthCommon: Symbol.for('AuthCommon'),
     UsersCommon: Symbol.for('UsersCommon'),
     TriggerDevicesCommon: Symbol.for('TriggerDevicesCommon'),
     ActionDevicesCommon: Symbol.for('ActionDevicesCommon'),
+    TriggerActionsCommon: Symbol.for('TriggerActionsCommon'),
 };
 //# sourceMappingURL=types.js.map

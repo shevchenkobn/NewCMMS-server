@@ -140,7 +140,7 @@ export class ActionDevicesCommon {
     actionDeviceId: number,
     update: IActionDeviceChange,
     select?: ReadonlyArray<keyof IActionDevice>,
-  ): Promise<DeepReadonly<IActionDevice> | {}> {
+  ): Promise<DeepPartial<IActionDevice> | {}> {
     const device = await (select
       ? this.actionDevicesModel.updateOne(
         actionDeviceId,
@@ -155,7 +155,10 @@ export class ActionDevicesCommon {
   }
 
   deleteActionDevice(actionDeviceId: number): Promise<{}>;
-  deleteActionDevice<T extends DeepPartial<IActionDevice> = DeepPartial<IActionDevice>>(actionDeviceId: number, select: ReadonlyArray<keyof IActionDevice>): Promise<T>;
+  deleteActionDevice<T extends DeepPartial<IActionDevice> = DeepPartial<IActionDevice>>(
+    actionDeviceId: number,
+    select: ReadonlyArray<keyof IActionDevice>,
+  ): Promise<T>;
   async deleteActionDevice(
     actionDeviceId: number,
     select?: ReadonlyArray<keyof IActionDevice>,

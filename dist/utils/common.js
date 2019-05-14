@@ -42,4 +42,26 @@ function differenceArrays(array, ...arrays) {
     });
 }
 exports.differenceArrays = differenceArrays;
+function getLazyMapper(mapper) {
+    return function* (arr) {
+        for (const item of arr) {
+            yield mapper(item);
+        }
+    };
+}
+exports.getLazyMapper = getLazyMapper;
+function deletePropsFromArray(objects, keys) {
+    for (const obj of objects) {
+        deleteProps(obj, keys);
+    }
+    return objects;
+}
+exports.deletePropsFromArray = deletePropsFromArray;
+function deleteProps(obj, keys) {
+    for (const key of keys) {
+        delete obj[key];
+    }
+    return obj;
+}
+exports.deleteProps = deleteProps;
 //# sourceMappingURL=common.js.map

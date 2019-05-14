@@ -57,3 +57,12 @@ ActionDeviceUpdate:
 
 ActionDeviceOptional:
   $ref: ./action-device-optional.yaml
+
+TriggerActionCreate:
+  $ref: ./trigger-action-create.yaml
+
+TriggerActionUpdate:
+  $ref: ./trigger-action-update.yaml
+
+TriggerActionOptional:
+  $ref: ./trigger-action-optional.yaml

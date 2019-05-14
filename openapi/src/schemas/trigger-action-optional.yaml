@@ -1,0 +1,9 @@
+type: object
+properties:
+  triggerActionId:
+    $ref: ./id.yaml
+  triggerDeviceId:
+    $ref: ./id.yaml
+  actionDeviceId:
+    $ref: ./id.yaml
+additionalProperties: false

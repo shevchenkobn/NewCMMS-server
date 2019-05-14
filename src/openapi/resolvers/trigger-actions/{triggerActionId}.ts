@@ -3,21 +3,21 @@ import {
   getParamNameFromScriptName,
   IOpenApiPathItemHandler, jwtBearerScheme, JwtBearerScope,
 } from '../../../utils/openapi';
-import { ActionDevicesCommon } from '../../services/action-devices.common';
+import { TriggerActionsCommon } from '../../services/trigger-actions.common';
 
 const pathItemHandler: IOpenApiPathItemHandler = {};
 export = pathItemHandler;
 
-const actionDevicesCommon = getContainer().get<ActionDevicesCommon>(
-  ActionDevicesCommon,
+const triggerActionsCommon = getContainer().get<TriggerActionsCommon>(
+  TriggerActionsCommon,
 );
 
-const actionDeviceIdParamName = getParamNameFromScriptName(__filename);
+const triggerActionIdParamName = getParamNameFromScriptName(__filename);
 
 pathItemHandler.parameters = [
   {
     in: 'path',
-    name: actionDeviceIdParamName,
+    name: triggerActionIdParamName,
     schema: {
       type: 'integer',
       format: 'int32',
@@ -28,31 +28,31 @@ pathItemHandler.parameters = [
 ];
 
 pathItemHandler.get = (req, res, next) => {
-  actionDevicesCommon.getActionDevice(
-    req.params[actionDeviceIdParamName],
+  triggerActionsCommon.getTriggerAction(
+    req.params[triggerActionIdParamName],
     req.query.select,
   )
-    .then(device => res.json(device))
+    .then(triggerAction => res.json(triggerAction))
     .catch(next);
 };
 pathItemHandler.get.apiDoc = {
-  description: 'Get action device',
-  tags: ['action-devices'],
+  description: 'Get trigger action',
+  tags: ['trigger-actions'],
   security: [{
     [jwtBearerScheme]: [JwtBearerScope.ADMIN],
   }],
   parameters: [
     {
-      $ref: '#/components/parameters/SelectActionDevice',
+      $ref: '#/components/parameters/SelectTriggerAction',
     },
   ],
   responses: {
     200: {
-      description: 'Return action device',
+      description: 'Return trigger action',
       content: {
         'application/json': {
           schema: {
-            $ref: '#/components/schemas/ActionDeviceOptional',
+            $ref: '#/components/schemas/TriggerActionOptional',
           },
         },
       },
@@ -73,31 +73,31 @@ pathItemHandler.get.apiDoc = {
 };
 
 pathItemHandler.delete = (req, res, next) => {
-  actionDevicesCommon.deleteActionDevice(
-    req.params[actionDeviceIdParamName],
+  triggerActionsCommon.deleteTriggerAction(
+    req.params[triggerActionIdParamName],
     req.query.select,
   )
-    .then(device => res.json(device))
+    .then(triggerAction => res.json(triggerAction))
     .catch(next);
 };
 pathItemHandler.delete.apiDoc = {
-  description: 'Delete action device',
-  tags: ['action-devices'],
+  description: 'Delete trigger action',
+  tags: ['trigger-action'],
   security: [{
     [jwtBearerScheme]: [JwtBearerScope.ADMIN],
   }],
   parameters: [
     {
-      $ref: '#/components/parameters/SelectActionDevice',
+      $ref: '#/components/parameters/SelectTriggerAction',
     },
   ],
   responses: {
     200: {
-      description: 'Return action device',
+      description: 'Return trigger action',
       content: {
         'application/json': {
           schema: {
-            $ref: '#/components/schemas/ActionDeviceOptional',
+            $ref: '#/components/schemas/TriggerActionOptional',
           },
         },
       },
@@ -118,31 +118,31 @@ pathItemHandler.delete.apiDoc = {
 };
 
 pathItemHandler.patch = (req, res, next) => {
-  actionDevicesCommon.updateActionDevice(
-    req.params[actionDeviceIdParamName],
+  triggerActionsCommon.updateTriggerAction(
+    req.params[triggerActionIdParamName],
     req.body,
     req.query.select,
   )
-    .then(device => res.json(device))
+    .then(triggerAction => res.json(triggerAction))
     .catch(next);
 };
 pathItemHandler.patch.apiDoc = {
-  description: 'Update action device',
-  tags: ['action-devices'],
+  description: 'Update trigger action',
+  tags: ['trigger-action'],
   security: [{
     [jwtBearerScheme]: [JwtBearerScope.ADMIN],
   }],
   parameters: [
     {
-      $ref: '#/components/parameters/SelectActionDevice',
+      $ref: '#/components/parameters/SelectTriggerAction',
     },
   ],
   requestBody: {
-    description: 'An action device update',
+    description: 'An trigger action update',
     content: {
       'application/json': {
         schema: {
-          $ref: '#/components/schemas/ActionDeviceUpdate',
+          $ref: '#/components/schemas/TriggerActionUpdate',
         },
       },
     },
@@ -150,11 +150,11 @@ pathItemHandler.patch.apiDoc = {
   },
   responses: {
     200: {
-      description: 'Return action device',
+      description: 'Return trigger action',
       content: {
         'application/json': {
           schema: {
-            $ref: '#/components/schemas/ActionDeviceUpdate',
+            $ref: '#/components/schemas/TriggerActionOptional',
           },
         },
       },

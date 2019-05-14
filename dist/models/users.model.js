@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const tslib_1 = require("tslib");
 const bcrypt_1 = require("bcrypt");
 const inversify_1 = require("inversify");
+const pg_error_enum_1 = require("pg-error-enum");
 const db_connection_class_1 = require("../services/db-connection.class");
 const error_service_1 = require("../services/error.service");
 const db_orchestrator_1 = require("../utils/db-orchestrator");
@@ -15,7 +16,7 @@ let UsersModel = class UsersModel {
             case 'pg':
                 this._handleError = err => {
                     switch (err.code) {
-                        case '23505':
+                        case pg_error_enum_1.PostgresError.UNIQUE_VIOLATION:
                             const detailLower = err.detail.toLowerCase();
                             if (detailLower.includes('email')) {
                                 throw new error_service_1.LogicError(error_service_1.ErrorCode.USER_EMAIL_DUPLICATE);

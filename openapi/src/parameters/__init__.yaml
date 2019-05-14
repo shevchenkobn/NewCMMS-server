@@ -21,3 +21,6 @@ SelectTriggerDevice:
 
 SelectActionDevice:
   $ref: ./select-action-device.yaml
+
+SelectTriggerAction:
+  $ref: ./select-trigger-action.yaml

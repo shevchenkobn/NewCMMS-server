@@ -1,0 +1,8 @@
+type: object
+properties:
+  triggerDeviceId:
+    $ref: ./id.yaml
+  actionDeviceId:
+    $ref: ./id.yaml
+minProperties: 1
+additionalProperties: false
