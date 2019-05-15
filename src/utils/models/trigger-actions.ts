@@ -43,7 +43,7 @@ export function mergeActionDevicesIntoTriggerActions<
       DeepPartial<IActionDevice> & { actionDeviceId: number },
   Ta extends DeepPartial<ITriggerAction> & { actionDeviceId: number } =
       DeepPartial<ITriggerAction> & { actionDeviceId: number }
-  >(
+>(
   triggerActions: Ta[],
   triggerDevices: ReadonlyArray<A>,
 ): ITriggerActionWithActionDevice<A>[] {

@@ -134,9 +134,9 @@ export class TableBuilders {
       [TableName.BILL_RATES, () => this._knex.schema.createTable(
         TableName.BILL_RATES,
         table => {
-          table.increments(getIdColumn(TableName.BILL_RATES))
-            .primary()
-            .notNullable();
+//          table.increments(getIdColumn(TableName.BILL_RATES))
+//            .primary()
+//            .notNullable();
           const billId = getIdColumn(TableName.BILLS);
           table.integer(billId)
             .notNullable()
@@ -145,7 +145,7 @@ export class TableBuilders {
             .onDelete('CASCADE');
           const actionDeviceId = getIdColumn(TableName.ACTION_DEVICES);
           table.integer(actionDeviceId)
-            .notNullable()
+            .nullable()
             .references(actionDeviceId)
             .inTable(TableName.ACTION_DEVICES)
             .onDelete('SET NULL');
