@@ -165,7 +165,7 @@ export class TriggerActionsModel {
     triggerActionId: number,
     update: DeepReadonly<ITriggerActionChange>,
     returning: ReadonlyArray<keyof ITriggerAction>,
-  ): Promise<Nullable<{}>>;
+  ): Promise<Nullable<T>>;
   updateOne(
     triggerActionId: number,
     update: DeepReadonly<ITriggerActionChange>,
@@ -178,7 +178,8 @@ export class TriggerActionsModel {
           return triggerActions === 0 ? null : {};
         }
         return triggerActions.length === 0 ? null : triggerActions[0];
-      }) as any;
+      })
+      .catch(this._handleError) as any;
   }
 
   deleteOne(triggerActionId: number): Promise<Nullable<{}>>;

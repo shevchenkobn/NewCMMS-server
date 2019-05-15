@@ -1,43 +1,49 @@
-import { IBill, IBillRate } from '../../models/bills.model';
+import { IBill } from '../../models/bills.model';
 import { getIdColumn, TableName } from '../db-orchestrator';
 import { DeepPartial, DeepReadonly } from '../../@types';
 
-export function getNonObjectBillPropertyNames(): (Exclude<keyof IBill, 'billRates'>)[] {
+export function getAllBillPropertyNames(): (keyof IBill)[] {
   return [
     getIdColumn(TableName.BILLS) as 'billId',
     'startedAt', 'triggerDeviceId', 'finishedAt', 'sum',
   ];
 }
 
-export function mergeBillRatesSortedByBillIdIntoBills<
-  B extends DeepPartial<IBill> & { billId: number } =
-    DeepPartial<IBill> & { billId: number },
-  R extends DeepPartial<IBillRate> & { billId: number } =
-    DeepPartial<IBillRate> & { billId: number }
->(
-  bills: B[],
-  billRates: ReadonlyArray<DeepReadonly<R>>,
-  deleteBillRateBillId?: false,
-): Promise<(B & { billRates: R[] })[]>;
-export function mergeBillRatesSortedByBillIdIntoBills<
-  B extends DeepPartial<IBill> & { billId: number } =
-      DeepPartial<IBill> & { billId: number },
-  R extends DeepPartial<IBillRate> & { billId: number } =
-      DeepPartial<IBillRate> & { billId: number }
->(
-  bills: B[],
-  billRates: ReadonlyArray<R>,
-  deleteBillRateBillId: true,
-): Promise<(B & { billRates: Exclude<R, { billId: number }>[] })[]>;
-export function mergeBillRatesSortedByBillIdIntoBills<
-  B extends DeepPartial<IBill> & { billId: number } =
-      DeepPartial<IBill> & { billId: number },
-  R extends DeepPartial<IBillRate> & { billId: number } =
-      DeepPartial<IBillRate> & { billId: number }
->(
-  bills: B[],
-  billRates: ReadonlyArray<R>,
-  deleteBillRateBillId?: boolean,
-): Promise<(B & { billRates: R[] })[]> {
-  const map = new Map<number, ReadonlyArray<R>>();
-}
+// export function mergeBillRatesSortedByBillIdIntoBills<
+//   R extends DeepPartial<IBillRateFromDB> & { billId: number } =
+//     DeepPartial<IBillRateFromDB> & { billId: number },
+//   B extends Partial<IBill<R>> & { billId: number } =
+//     Partial<IBill<R>> & { billId: number }
+// >(
+//   bills: ReadonlyArray<B>,
+//   billRates: ReadonlyArray<R>,
+//   deleteBillRateBillId: true,
+// ): ReadonlyArray<B & { billRates: Exclude<R, { billId: number }>[] }> {
+//   const map = clusterSortedBillRatesByBillId(billRates);
+//   for (const bill of bills) {
+//     bill.billRates = map.get(bill.billId)!;
+//   }
+//   return bills as any;
+// }
+
+// function clusterSortedBillRatesByBillId<
+//   R extends DeepPartial<IBillRate> & { billId: number } =
+//     DeepPartial<IBillRate> & { billId: number }
+// >(billRates: ReadonlyArray<R>): Map<number, R[]> {
+//   const map = new Map<number, R[]>();
+//   let list: R[] = undefined as unknown as R[];
+//   let id = -1;
+//   for (const billRate of billRates) {
+//     if (billRate.billId !== id) {
+//       if (id > 0) {
+//         map.set(id, list);
+//       }
+//       id = billRate.billId;
+//       list = [billRate];
+//     } else {
+//       list.push(billRate);
+//     }
+//     delete billRate.billId;
+//   }
+//   return map;
+// }
