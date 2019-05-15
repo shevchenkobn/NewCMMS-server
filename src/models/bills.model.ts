@@ -73,7 +73,7 @@ export class BillsModel {
 
   getList<
     T extends DeepPartial<IBill> = IBill
-  >(params: IBillsSelectParams): Promise<T[]> {
+  >(params = {} as IBillsSelectParams): Promise<T[]> {
     const query = this.table;
     if (params.billIds && params.billIds.length > 0) {
       query.whereIn(
@@ -100,13 +100,19 @@ export class BillsModel {
       : getAllBillPropertyNames()) as string[]) as any;
   }
 
-  createOneWithBillRates(bill: IBillChange): Promise<{}>;
+  getOne(billId: number): Promise<Nullable<IBill>> {
+    return this.table.where({ billId })
+      .then(bills => bills.length === 0 ? null : bills[0])
+      .catch(this._handleError) as any;
+  }
+
+  createOneWithBillRates(bill: DeepReadonly<IBillChange>): Promise<{}>;
   createOneWithBillRates<T extends DeepPartial<IBill> = DeepPartial<IBill>>(
-    bill: IBillChange,
+    bill: DeepReadonly<IBillChange>,
     returning: ReadonlyArray<keyof IBill>,
   ): Promise<T>;
   async createOneWithBillRates(
-    bill: IBillChange,
+    bill: DeepReadonly<IBillChange>,
   ): Promise<IBill> {
     let newBill: IBill;
     const trx = this._dbConnection.knex.transaction(trx => {
@@ -145,13 +151,13 @@ export class BillsModel {
     return newBill!;
   }
 
-  createOne(bill: IBillChange): Promise<{}>;
+  createOne(bill: DeepReadonly<IBillChange>): Promise<{}>;
   createOne<T extends DeepPartial<IBill> = DeepPartial<IBill>>(
-    bill: IBillChange,
+    bill: DeepReadonly<IBillChange>,
     returning: ReadonlyArray<keyof IBill>,
   ): Promise<T>;
   createOne(
-    bill: IBillChange,
+    bill: DeepReadonly<IBillChange>,
     returning?: ReadonlyArray<keyof IBill>,
   ): Promise<DeepPartial<IBill>> {
     const query = this.table.insert(bill, returning as string[]);
