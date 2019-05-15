@@ -23,7 +23,7 @@ let BillsModel = class BillsModel {
                         case pg_error_enum_1.PostgresError.FOREIGN_KEY_VIOLATION:
                             const detailLower = err.detail.toLowerCase();
                             if (detailLower.includes('triggerdeviceid')) {
-                                throw new error_service_1.LogicError(error_service_1.ErrorCode.BILL_BAD_TRIGGER_DEVICE_ID);
+                                throw new error_service_1.LogicError(error_service_1.ErrorCode.BILL_TRIGGER_DEVICE_ID_BAD);
                             }
                         default:
                             throw err;

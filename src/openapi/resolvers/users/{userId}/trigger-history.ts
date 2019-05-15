@@ -1,31 +1,41 @@
 import { getContainer } from '../../../../di/container';
 import {
   getParamNamesFromScriptPath,
-  IOpenApiPathItemHandler, jwtBearerScheme, JwtBearerScope,
+  IOpenApiPathItemHandler,
+  jwtBearerScheme, JwtBearerScope,
 } from '../../../../utils/openapi';
-import { BillRatesCommon } from '../../../services/bill-rates.common';
+import { UserTriggerHistoryCommon } from '../../../services/user-trigger-history.common';
 
 const pathItemHandler: IOpenApiPathItemHandler = {};
 export = pathItemHandler;
 
-const billRatesCommon = getContainer().get<BillRatesCommon>(BillRatesCommon);
+const userTriggerHistoryCommon = getContainer().get<UserTriggerHistoryCommon>(
+  UserTriggerHistoryCommon,
+);
 
-const [billIdParamName] = getParamNamesFromScriptPath(__filename);
+const [userIdParamName] = getParamNamesFromScriptPath(__filename);
 
 pathItemHandler.get = (req, res, next) => {
-  billRatesCommon.getBillRatesForBill(req.params[billIdParamName])
-    .then(billRates => res.json(billRates))
+  userTriggerHistoryCommon.getUserTriggers(
+    req.params[userIdParamName],
+  )
+    .then(userTrigger => res.json(userTrigger))
     .catch(next);
 };
 pathItemHandler.get.apiDoc = {
-  description: 'Get bill rates',
-  tags: ['bill-rates'],
-  security: [{
-    [jwtBearerScheme]: [JwtBearerScope.ADMIN],
-  }],
+  description: 'Get user trigger history',
+  tags: ['user-trigger-history'],
+  security: [
+    {
+      [jwtBearerScheme]: [JwtBearerScope.EMPLOYEE],
+    },
+    {
+      [jwtBearerScheme]: [JwtBearerScope.ADMIN],
+    },
+  ],
   responses: {
     200: {
-      description: 'Get list of trigger actions',
+      description: 'Get user trigger history',
       content: {
         'application/json': {
           schema: {
@@ -34,10 +44,10 @@ pathItemHandler.get.apiDoc = {
               cursor: {
                 $ref: '#/components/schemas/Cursor',
               },
-              billRates: {
+              userTriggers: {
                 type: 'array',
                 items: {
-                  $ref: '#/components/schemas/BillRate',
+                  $ref: '#/components/schemas/UserTrigger',
                 },
               },
             },

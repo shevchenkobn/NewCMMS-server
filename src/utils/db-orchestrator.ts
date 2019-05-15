@@ -11,7 +11,7 @@ export enum TableName {
   TRIGGER_ACTIONS = 'triggerActions',
   BILLS = 'bills',
   BILL_RATES = 'billRates',
-  USER_STATISTICS = 'userStatistics',
+  USER_TRIGGER_HISTORY = 'userTriggerHistory',
 }
 
 let tableNames: Nullable<ReadonlyArray<TableName>> = null;
@@ -74,7 +74,9 @@ export class TableBuilders {
           c.addColumn(table, SpecificDBDataTypes.MAC_ADDRESS, 'physicalAddress')
             .unique()
             .notNullable();
-          c.addColumn(table, SpecificDBDataTypes.UINT1, 'status').notNullable();
+          c.addColumn(table, SpecificDBDataTypes.UINT1, 'status')
+            .notNullable()
+            .defaultTo(1);
           table.string('name', 75).unique().notNullable();
           table.string('type', 75).notNullable();
         },
@@ -88,7 +90,9 @@ export class TableBuilders {
           c.addColumn(table, SpecificDBDataTypes.MAC_ADDRESS, 'physicalAddress')
             .unique()
             .notNullable();
-          c.addColumn(table, SpecificDBDataTypes.UINT1, 'status').notNullable();
+          c.addColumn(table, SpecificDBDataTypes.UINT1, 'status')
+            .notNullable()
+            .defaultTo(1);
           table.string('name', 75).unique().notNullable();
           table.string('type', 75).notNullable();
           table.decimal('hourlyRate', 10, 6).notNullable();
@@ -152,10 +156,10 @@ export class TableBuilders {
           table.decimal('hourlyRate', 10, 6).notNullable();
         },
       )],
-      [TableName.USER_STATISTICS, () => this._knex.schema.createTable(
-        TableName.USER_STATISTICS,
+      [TableName.USER_TRIGGER_HISTORY, () => this._knex.schema.createTable(
+        TableName.USER_TRIGGER_HISTORY,
         table => {
-          table.increments(getIdColumn(TableName.USER_STATISTICS))
+          table.increments(getIdColumn(TableName.USER_TRIGGER_HISTORY))
             .primary()
             .notNullable();
           const userId = getIdColumn(TableName.USERS);
@@ -170,7 +174,14 @@ export class TableBuilders {
             .references(triggerDeviceId)
             .inTable(TableName.TRIGGER_DEVICES)
             .onDelete('CASCADE');
-          table.dateTime('triggerTime').notNullable();
+          table.dateTime('triggerTime')
+            .notNullable()
+            .defaultTo((
+              this._knex.fn.now as any
+            )(6));
+          c.addColumn(table, SpecificDBDataTypes.UINT1, 'triggerType')
+            .notNullable()
+            .defaultTo(0);
         },
       )],
     ]);
@@ -205,10 +216,14 @@ export function getChildTables(
 }
 function getAllChildTables() {
   return new Map<TableName, ReadonlyArray<TableName>>([
-    [TableName.USERS, [TableName.USER_STATISTICS]],
+    [TableName.USERS, [TableName.USER_TRIGGER_HISTORY]],
     [
       TableName.TRIGGER_DEVICES,
-      [TableName.TRIGGER_ACTIONS, TableName.BILLS, TableName.USER_STATISTICS],
+      [
+        TableName.TRIGGER_ACTIONS,
+        TableName.BILLS,
+        TableName.USER_TRIGGER_HISTORY,
+      ],
     ],
     [
       TableName.ACTION_DEVICES,
@@ -217,7 +232,7 @@ function getAllChildTables() {
     [TableName.TRIGGER_ACTIONS, []],
     [TableName.BILLS, [TableName.BILL_RATES]],
     [TableName.BILL_RATES, []],
-    [TableName.USER_STATISTICS, []],
+    [TableName.USER_TRIGGER_HISTORY, []],
   ]);
 }
 
@@ -236,7 +251,7 @@ function getTableIdColumns(): Map<TableName, string> {
     [TableName.TRIGGER_ACTIONS, 'triggerActionId'],
     [TableName.BILLS, 'billId'],
     [TableName.BILL_RATES, 'billRateId'],
-    [TableName.USER_STATISTICS, 'userStatisticsId'],
+    [TableName.USER_TRIGGER_HISTORY, 'userTriggerId'],
   ]);
 }
 

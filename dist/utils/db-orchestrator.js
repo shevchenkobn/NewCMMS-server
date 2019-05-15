@@ -10,7 +10,7 @@ var TableName;
     TableName["TRIGGER_ACTIONS"] = "triggerActions";
     TableName["BILLS"] = "bills";
     TableName["BILL_RATES"] = "billRates";
-    TableName["USER_STATISTICS"] = "userStatistics";
+    TableName["USER_TRIGGER_HISTORY"] = "userTriggerHistory";
 })(TableName = exports.TableName || (exports.TableName = {}));
 let tableNames = null;
 function getTableNames() {
@@ -59,7 +59,9 @@ class TableBuilders {
                     c.addColumn(table, 1 /* MAC_ADDRESS */, 'physicalAddress')
                         .unique()
                         .notNullable();
-                    c.addColumn(table, 0 /* UINT1 */, 'status').notNullable();
+                    c.addColumn(table, 0 /* UINT1 */, 'status')
+                        .notNullable()
+                        .defaultTo(1);
                     table.string('name', 75).unique().notNullable();
                     table.string('type', 75).notNullable();
                 })],
@@ -70,7 +72,9 @@ class TableBuilders {
                     c.addColumn(table, 1 /* MAC_ADDRESS */, 'physicalAddress')
                         .unique()
                         .notNullable();
-                    c.addColumn(table, 0 /* UINT1 */, 'status').notNullable();
+                    c.addColumn(table, 0 /* UINT1 */, 'status')
+                        .notNullable()
+                        .defaultTo(1);
                     table.string('name', 75).unique().notNullable();
                     table.string('type', 75).notNullable();
                     table.decimal('hourlyRate', 10, 6).notNullable();
@@ -124,8 +128,8 @@ class TableBuilders {
                         .onDelete('SET NULL');
                     table.decimal('hourlyRate', 10, 6).notNullable();
                 })],
-            [TableName.USER_STATISTICS, () => this._knex.schema.createTable(TableName.USER_STATISTICS, table => {
-                    table.increments(getIdColumn(TableName.USER_STATISTICS))
+            [TableName.USER_TRIGGER_HISTORY, () => this._knex.schema.createTable(TableName.USER_TRIGGER_HISTORY, table => {
+                    table.increments(getIdColumn(TableName.USER_TRIGGER_HISTORY))
                         .primary()
                         .notNullable();
                     const userId = getIdColumn(TableName.USERS);
@@ -140,7 +144,12 @@ class TableBuilders {
                         .references(triggerDeviceId)
                         .inTable(TableName.TRIGGER_DEVICES)
                         .onDelete('CASCADE');
-                    table.dateTime('triggerTime').notNullable();
+                    table.dateTime('triggerTime')
+                        .notNullable()
+                        .defaultTo(this._knex.fn.now(6));
+                    c.addColumn(table, 0 /* UINT1 */, 'triggerType')
+                        .notNullable()
+                        .defaultTo(0);
                 })],
         ]);
     }
@@ -170,10 +179,14 @@ function getChildTables(tableNames, includeOriginal = false) {
 exports.getChildTables = getChildTables;
 function getAllChildTables() {
     return new Map([
-        [TableName.USERS, [TableName.USER_STATISTICS]],
+        [TableName.USERS, [TableName.USER_TRIGGER_HISTORY]],
         [
             TableName.TRIGGER_DEVICES,
-            [TableName.TRIGGER_ACTIONS, TableName.BILLS, TableName.USER_STATISTICS],
+            [
+                TableName.TRIGGER_ACTIONS,
+                TableName.BILLS,
+                TableName.USER_TRIGGER_HISTORY,
+            ],
         ],
         [
             TableName.ACTION_DEVICES,
@@ -182,7 +195,7 @@ function getAllChildTables() {
         [TableName.TRIGGER_ACTIONS, []],
         [TableName.BILLS, [TableName.BILL_RATES]],
         [TableName.BILL_RATES, []],
-        [TableName.USER_STATISTICS, []],
+        [TableName.USER_TRIGGER_HISTORY, []],
     ]);
 }
 let tableIdColumns = null;
@@ -201,7 +214,7 @@ function getTableIdColumns() {
         [TableName.TRIGGER_ACTIONS, 'triggerActionId'],
         [TableName.BILLS, 'billId'],
         [TableName.BILL_RATES, 'billRateId'],
-        [TableName.USER_STATISTICS, 'userStatisticsId'],
+        [TableName.USER_TRIGGER_HISTORY, 'userTriggerId'],
     ]);
 }
 var SpecificDBDataTypes;

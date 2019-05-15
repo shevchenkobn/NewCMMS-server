@@ -26,6 +26,8 @@ tags:
     description: API to manage trigger actions
   - name: trigger-devices
     description: API to manage trigger devices
+  - name: user-trigger-history
+    description: API to get user trigger history
   - name: users
     description: API to manage users
 paths:
@@ -67,6 +69,8 @@ paths:
       security:
         - jwt-bearer:
             - admin
+        - jwt-bearer:
+            - employee
       parameters:
         - $ref: "#/components/parameters/SelectUser"
         - in: query
@@ -588,6 +592,95 @@ paths:
           $ref: "#/components/responses/Unauthenticated"
         "403":
           $ref: "#/components/responses/Forbidden"
+  "/users/{userId}/trigger-history/{triggerHistoryId}":
+    parameters:
+      - in: path
+        name: triggerHistoryId
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+        required: true
+    get:
+      description: Get user trigger history item
+      tags:
+        - user-trigger-history
+      security:
+        - jwt-bearer:
+            - employee
+        - jwt-bearer:
+            - admin
+      responses:
+        "200":
+          description: Return user trigger history item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserTrigger"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      description: Delete user trigger history item
+      tags:
+        - user-trigger-history
+      security:
+        - jwt-bearer:
+            - admin
+      responses:
+        "200":
+          description: Return user trigger history item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserTrigger"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  "/users/{userId}/trigger-history":
+    parameters: []
+    get:
+      description: Get user trigger history
+      tags:
+        - user-trigger-history
+      security:
+        - jwt-bearer:
+            - employee
+        - jwt-bearer:
+            - admin
+      responses:
+        "200":
+          description: Get user trigger history
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cursor:
+                    $ref: "#/components/schemas/Cursor"
+                  userTriggers:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/UserTrigger"
+                additionalProperties: false
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   "/users/{userId}":
     parameters:
       - in: path
@@ -604,6 +697,8 @@ paths:
       security:
         - jwt-bearer:
             - admin
+        - jwt-bearer:
+            - employee
       parameters:
         - $ref: "#/components/parameters/SelectUser"
       responses:
@@ -1423,6 +1518,34 @@ components:
         hourlyRate:
           type: string
           format: decimal-13-6
+      additionalProperties: false
+    UserTrigger:
+      type: object
+      required:
+        - userTriggerId
+        - userId
+        - triggerDeviceId
+        - triggerTime
+        - triggerType
+      properties:
+        userTriggerId:
+          type: integer
+          minimum: 1
+        userId:
+          type: integer
+          minimum: 1
+        triggerDeviceId:
+          type: integer
+          minimum: 1
+        triggerTime:
+          type: string
+          format: date-time
+          nullable: true
+        triggerType:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 2
       additionalProperties: false
   responses:
     OpenApiBadRequest:

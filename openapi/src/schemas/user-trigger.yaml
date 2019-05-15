@@ -1,0 +1,24 @@
+type: object
+required:
+  - userTriggerId
+  - userId
+  - triggerDeviceId
+  - triggerTime
+  - triggerType
+properties:
+  userTriggerId:
+    $ref: ./id.yaml
+  userId:
+    $ref: ./id.yaml
+  triggerDeviceId:
+    $ref: ./id.yaml
+  triggerTime:
+    type: string
+    format: date-time
+    nullable: true
+  triggerType:
+    type: integer
+    format: int32
+    minimum: 0
+    maximum: 2
+additionalProperties: false

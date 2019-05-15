@@ -59,7 +59,7 @@ export class BillsModel {
               const detailLower = err.detail.toLowerCase();
               if (detailLower.includes('triggerdeviceid')) {
                 throw new LogicError(
-                  ErrorCode.BILL_BAD_TRIGGER_DEVICE_ID,
+                  ErrorCode.BILL_TRIGGER_DEVICE_ID_BAD,
                 );
               }
             default:

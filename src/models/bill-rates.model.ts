@@ -46,7 +46,7 @@ export class BillRatesModel {
               const detailLower = err.detail.toLowerCase();
               if (detailLower.includes('actiondeviceid')) {
                 throw new LogicError(
-                  ErrorCode.BILL_RATE_BAD_ACTION_DEVICE_ID,
+                  ErrorCode.BILL_RATE_ACTION_DEVICE_ID_BAD,
                 );
               }
             default:

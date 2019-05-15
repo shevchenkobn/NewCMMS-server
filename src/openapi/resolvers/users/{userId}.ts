@@ -34,9 +34,14 @@ pathItemHandler.get = (req, res, next) => {
 pathItemHandler.get.apiDoc = {
   description: 'Get user',
   tags: ['users'],
-  security: [{
-    [jwtBearerScheme]: [JwtBearerScope.ADMIN],
-  }],
+  security: [
+    {
+      [jwtBearerScheme]: [JwtBearerScope.ADMIN],
+    },
+    {
+      [jwtBearerScheme]: [JwtBearerScope.EMPLOYEE],
+    },
+  ],
   parameters: [
     {
       $ref: '#/components/parameters/SelectUser',

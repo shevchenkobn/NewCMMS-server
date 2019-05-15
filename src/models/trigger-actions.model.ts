@@ -74,12 +74,12 @@ export class TriggerActionsModel {
               const detailLower = err.detail.toLowerCase();
               if (detailLower.includes('triggerdeviceid')) {
                 throw new LogicError(
-                  ErrorCode.TRIGGER_ACTION_BAD_TRIGGER_DEVICE_ID,
+                  ErrorCode.TRIGGER_ACTION_TRIGGER_DEVICE_ID_BAD,
                 );
               }
               if (detailLower.includes('actiondeviceid')) {
                 throw new LogicError(
-                  ErrorCode.TRIGGER_ACTION_BAD_ACTION_DEVICE_ID,
+                  ErrorCode.TRIGGER_ACTION_ACTION_DEVICE_ID_BAD,
                 );
               }
             default:

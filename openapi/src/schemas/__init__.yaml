@@ -72,3 +72,6 @@ Bill:
 
 BillRate:
   $ref: ./bill-rate.yaml
+
+UserTrigger:
+  $ref: ./user-trigger.yaml

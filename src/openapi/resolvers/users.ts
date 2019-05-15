@@ -93,9 +93,14 @@ namespace ApiDoc {
   export const apiDoc: OpenAPIV3.OperationObject = {
     description: 'Get users',
     tags: ['users'],
-    security: [{
-      [jwtBearerScheme]: [JwtBearerScope.ADMIN],
-    }],
+    security: [
+      {
+        [jwtBearerScheme]: [JwtBearerScope.ADMIN],
+      },
+      {
+        [jwtBearerScheme]: [JwtBearerScope.EMPLOYEE],
+      },
+    ],
     parameters: [
       {
         $ref: '#/components/parameters/SelectUser',
