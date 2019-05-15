@@ -32,6 +32,8 @@ var ErrorCode;
     ErrorCode["ACTION_DEVICE_MAC_DUPLICATE"] = "ACTION_DEVICE_MAC_DUPLICATE";
     ErrorCode["TRIGGER_ACTION_BAD_TRIGGER_DEVICE_ID"] = "TRIGGER_ACTION_BAD_TRIGGER_DEVICE_ID";
     ErrorCode["TRIGGER_ACTION_BAD_ACTION_DEVICE_ID"] = "TRIGGER_ACTION_BAD_ACTION_DEVICE_ID";
+    ErrorCode["BILL_BAD_TRIGGER_DEVICE_ID"] = "BILL_BAD_TRIGGER_DEVICE_ID";
+    ErrorCode["BILL_RATE_BAD_ACTION_DEVICE_ID"] = "BILL_BAD_ACTION_DEVICE_ID";
 })(ErrorCode = exports.ErrorCode || (exports.ErrorCode = {}));
 class LogicError extends TypeError {
     constructor(code, message, innerError) {

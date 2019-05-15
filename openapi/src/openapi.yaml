@@ -24,6 +24,10 @@ tags:
     description: API to manage action devices
   - name: trigger-actions
     description: API to manage trigger actions
+  - name: bills
+    description: API to get or delete bills
+  - name: bill-rates
+    description: API to get bill rates
 paths: {} # To be defined and populated from the TypeScript source code
 components:
   securitySchemes:

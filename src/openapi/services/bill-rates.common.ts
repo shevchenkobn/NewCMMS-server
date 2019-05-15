@@ -1,7 +1,13 @@
 import { inject, injectable } from 'inversify';
+import { Nullable } from '../../@types';
 import { BillRatesModel, IBillRate } from '../../models/bill-rates.model';
 import { BillsModel } from '../../models/bills.model';
 import { ErrorCode, LogicError } from '../../services/error.service';
+
+export interface IBillRatesList {
+  billRates: IBillRate[];
+  cursor: Nullable<string>;
+}
 
 @injectable()
 export class BillRatesCommon {
@@ -16,12 +22,15 @@ export class BillRatesCommon {
     this.billsModel = billsModel;
   }
 
-  async getBillRatesForBill(billId: number): Promise<IBillRate[]> {
+  async getBillRatesForBill(billId: number): Promise<IBillRatesList> {
     if (!await this.billsModel.getOne(billId)) {
       throw new LogicError(ErrorCode.NOT_FOUND);
     }
-    return this.billRatesModel.getList({
-      billIds: [billId],
-    });
+    return {
+      billRates: await this.billRatesModel.getList({
+        billIds: [billId],
+      }),
+      cursor: null,
+    };
   }
 }

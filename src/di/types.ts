@@ -13,10 +13,14 @@ export const TYPES = {
   TriggerDevicesModel: Symbol.for('TriggerDevicesModel'),
   ActionDevicesModel: Symbol.for('ActionDevicesModel'),
   TriggerActionsModel: Symbol.for('TriggerActionsModel'),
+  BillsModel: Symbol.for('BillsModel'),
+  BillRatesModel: Symbol.for('BillRates'),
 
   AuthCommon: Symbol.for('AuthCommon'),
   UsersCommon: Symbol.for('UsersCommon'),
   TriggerDevicesCommon: Symbol.for('TriggerDevicesCommon'),
   ActionDevicesCommon: Symbol.for('ActionDevicesCommon'),
   TriggerActionsCommon: Symbol.for('TriggerActionsCommon'),
+  BillsCommon: Symbol.for('BillsCommon'),
+  BillRatesCommon: Symbol.for('BillRatesCommon'),
 };

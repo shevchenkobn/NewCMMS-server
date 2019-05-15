@@ -1,8 +1,12 @@
 import { ActionDevicesModel } from '../models/action-devices.model';
+import { BillRatesModel } from '../models/bill-rates.model';
+import { BillsModel } from '../models/bills.model';
 import { TriggerActionsModel } from '../models/trigger-actions.model';
 import { TriggerDevicesModel } from '../models/trigger-devices.model';
 import { ActionDevicesCommon } from '../openapi/services/action-devices.common';
 import { AuthCommon } from '../openapi/services/auth.common';
+import { BillRatesCommon } from '../openapi/services/bill-rates.common';
+import { BillsCommon } from '../openapi/services/bills.common';
 import { TriggerActionsCommon } from '../openapi/services/trigger-actions.common';
 import { TriggerDevicesCommon } from '../openapi/services/trigger-devices.common';
 import { UsersCommon } from '../openapi/services/users.common';
@@ -32,12 +36,16 @@ export const typeMap: ReadonlyMap<ServiceIdentifier<any>, Newable<any>> =
     [TYPES.TriggerDevicesModel, TriggerDevicesModel],
     [TYPES.ActionDevicesModel, ActionDevicesModel],
     [TYPES.TriggerActionsModel, TriggerActionsModel],
+    [TYPES.BillsModel, BillsModel],
+    [TYPES.BillRatesModel, BillRatesModel],
 
     [TYPES.AuthCommon, AuthCommon],
     [TYPES.UsersCommon, UsersCommon],
     [TYPES.TriggerDevicesCommon, TriggerDevicesCommon],
     [TYPES.ActionDevicesCommon, ActionDevicesCommon],
     [TYPES.TriggerActionsCommon, TriggerActionsCommon],
+    [TYPES.BillsCommon, BillsCommon],
+    [TYPES.BillRatesCommon, BillRatesCommon],
   ]);
 
 function bindDependency<T>(

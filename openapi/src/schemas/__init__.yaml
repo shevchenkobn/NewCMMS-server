@@ -66,3 +66,9 @@ TriggerActionUpdate:
 
 TriggerActionOptional:
   $ref: ./trigger-action-optional.yaml
+
+Bill:
+  $ref: ./bill.yaml
+
+BillRate:
+  $ref: ./bill-rate.yaml

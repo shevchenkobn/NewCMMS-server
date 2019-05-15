@@ -1,10 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const action_devices_model_1 = require("../models/action-devices.model");
+const bill_rates_model_1 = require("../models/bill-rates.model");
+const bills_model_1 = require("../models/bills.model");
 const trigger_actions_model_1 = require("../models/trigger-actions.model");
 const trigger_devices_model_1 = require("../models/trigger-devices.model");
 const action_devices_common_1 = require("../openapi/services/action-devices.common");
 const auth_common_1 = require("../openapi/services/auth.common");
+const bill_rates_common_1 = require("../openapi/services/bill-rates.common");
+const bills_common_1 = require("../openapi/services/bills.common");
 const trigger_actions_common_1 = require("../openapi/services/trigger-actions.common");
 const trigger_devices_common_1 = require("../openapi/services/trigger-devices.common");
 const users_common_1 = require("../openapi/services/users.common");
@@ -22,11 +26,15 @@ exports.typeMap = new Map([
     [types_1.TYPES.TriggerDevicesModel, trigger_devices_model_1.TriggerDevicesModel],
     [types_1.TYPES.ActionDevicesModel, action_devices_model_1.ActionDevicesModel],
     [types_1.TYPES.TriggerActionsModel, trigger_actions_model_1.TriggerActionsModel],
+    [types_1.TYPES.BillsModel, bills_model_1.BillsModel],
+    [types_1.TYPES.BillRatesModel, bill_rates_model_1.BillRatesModel],
     [types_1.TYPES.AuthCommon, auth_common_1.AuthCommon],
     [types_1.TYPES.UsersCommon, users_common_1.UsersCommon],
     [types_1.TYPES.TriggerDevicesCommon, trigger_devices_common_1.TriggerDevicesCommon],
     [types_1.TYPES.ActionDevicesCommon, action_devices_common_1.ActionDevicesCommon],
     [types_1.TYPES.TriggerActionsCommon, trigger_actions_common_1.TriggerActionsCommon],
+    [types_1.TYPES.BillsCommon, bills_common_1.BillsCommon],
+    [types_1.TYPES.BillRatesCommon, bill_rates_common_1.BillRatesCommon],
 ]);
 function bindDependency(typeId, type) {
     container

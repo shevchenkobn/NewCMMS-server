@@ -74,7 +74,7 @@ function getOpenApiOptions(app, apiDoc) {
         errorTransformer: error_service_1.errorTransformer,
         exposeApiDocs: true,
         // pathSecurity: null, //FIXME: maybe needed
-        paths: path.join(__dirname, '../openapi/resolvers/'),
+        paths: getOpenApiResolversBasePath(),
         pathsIgnore: /\.(spec|test)$/,
         promiseMode: true,
         securityHandlers: security_handlers_service_1.getSecurityHandlers(),
@@ -82,6 +82,10 @@ function getOpenApiOptions(app, apiDoc) {
     };
 }
 exports.getOpenApiOptions = getOpenApiOptions;
+function getOpenApiResolversBasePath() {
+    return path.join(__dirname, '../openapi/resolvers/');
+}
+exports.getOpenApiResolversBasePath = getOpenApiResolversBasePath;
 function isOpenApiFinalError(err) {
     return typeof err === 'object' && err !== null
         && typeof err.status === 'number' && Array.isArray(err.errors);
@@ -99,11 +103,34 @@ function isOpenApiSecurityHandlerError(err) {
 }
 exports.isOpenApiSecurityHandlerError = isOpenApiSecurityHandlerError;
 function getParamNameFromScriptName(fileName) {
-    const name = path.basename(fileName, path.extname(fileName));
-    if (name[0] !== '{' || name[name.length - 1] !== '}') {
-        throw new TypeError(`"${name}" must be in curve parenthesis {}`);
-    }
-    return name.slice(1, -1);
+    const name = path.basename(path.resolve(fileName), path.extname(fileName));
+    return pathSegmentToParamName(name);
 }
 exports.getParamNameFromScriptName = getParamNameFromScriptName;
+function getParamNamesFromScriptPath(fileName) {
+    const basePath = getOpenApiResolversBasePath();
+    const fileNameAbs = path.resolve(fileName);
+    if (!fileNameAbs.startsWith(basePath)) {
+        throw new TypeError(`Path "${fileName}" is outside OpenAPI resolvers directory!`);
+    }
+    const pathSegments = fileNameAbs.split(path.sep);
+    pathSegments[pathSegments.length - 1] = path.basename(pathSegments[pathSegments.length - 1], path.extname(pathSegments[pathSegments.length - 1]));
+    const params = [];
+    for (const segment of pathSegments) {
+        if (isParamPathSegment(segment)) {
+            params.push(pathSegmentToParamName(segment, true));
+        }
+    }
+    return params;
+}
+exports.getParamNamesFromScriptPath = getParamNamesFromScriptPath;
+function pathSegmentToParamName(segment, checked = false) {
+    if (!checked && !isParamPathSegment(segment)) {
+        throw new TypeError(`"${segment}" must be in curve parenthesis {} to be a valid parameter name`);
+    }
+    return segment.slice(1, -1);
+}
+function isParamPathSegment(segment) {
+    return segment[0] === '{' || segment[segment.length - 1] === '}';
+}
 //# sourceMappingURL=openapi.js.map

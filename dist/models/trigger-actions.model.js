@@ -88,7 +88,8 @@ let TriggerActionsModel = class TriggerActionsModel {
                 return triggerActions === 0 ? null : {};
             }
             return triggerActions.length === 0 ? null : triggerActions[0];
-        });
+        })
+            .catch(this._handleError);
     }
     deleteOne(triggerActionId, returning) {
         return this.table.where({ triggerActionId }).delete(returning)

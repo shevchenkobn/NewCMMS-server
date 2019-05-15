@@ -17,6 +17,10 @@ tags:
     description: API to manage action devices
   - name: auth
     description: API to manage auth tokens
+  - name: bill-rates
+    description: API to get bill rates
+  - name: bills
+    description: API to get or delete bills
   - name: trigger-action
   - name: trigger-actions
     description: API to manage trigger actions
@@ -300,6 +304,36 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/TriggerActionOptional"
+                additionalProperties: false
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /bills:
+    parameters: []
+    get:
+      description: Get bills
+      tags:
+        - bills
+      security:
+        - jwt-bearer:
+            - admin
+      responses:
+        "200":
+          description: Get list of trigger actions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cursor:
+                    $ref: "#/components/schemas/Cursor"
+                  bills:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Bill"
                 additionalProperties: false
         "400":
           $ref: "#/components/responses/BadRequest"
@@ -818,6 +852,91 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+  "/bills/{billId}/rates":
+    parameters: []
+    get:
+      description: Get bill rates
+      tags:
+        - bill-rates
+      security:
+        - jwt-bearer:
+            - admin
+      responses:
+        "200":
+          description: Get list of trigger actions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cursor:
+                    $ref: "#/components/schemas/Cursor"
+                  billRates:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/BillRate"
+                additionalProperties: false
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  "/bills/{billId}":
+    parameters:
+      - in: path
+        name: billId
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+        required: true
+    get:
+      description: Get bill
+      tags:
+        - bills
+      security:
+        - jwt-bearer:
+            - admin
+      responses:
+        "200":
+          description: Return bill
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Bill"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      description: Delete bill
+      tags:
+        - bills
+      security:
+        - jwt-bearer:
+            - admin
+      responses:
+        "200":
+          description: Return bill
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Bill"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   "/action-devices/{actionDeviceId}":
     parameters:
       - in: path
@@ -1264,6 +1383,46 @@ components:
         actionDeviceId:
           type: integer
           minimum: 1
+      additionalProperties: false
+    Bill:
+      type: object
+      required:
+        - billId
+        - triggerDeviceId
+        - startedAt
+        - finishedAt
+        - sum
+      properties:
+        billId:
+          type: integer
+          minimum: 1
+        triggerDeviceId:
+          type: integer
+          minimum: 1
+        startedAt:
+          type: string
+          format: date-time
+        finishedAt:
+          type: string
+          format: date-time
+          nullable: true
+        sum:
+          type: string
+          format: decimal-13-6
+          nullable: true
+      additionalProperties: false
+    BillRate:
+      type: object
+      required:
+        - actionDeviceId
+        - hourlyRate
+      properties:
+        actionDeviceId:
+          type: integer
+          minimum: 1
+        hourlyRate:
+          type: string
+          format: decimal-13-6
       additionalProperties: false
   responses:
     OpenApiBadRequest:

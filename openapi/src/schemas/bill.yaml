@@ -1,0 +1,24 @@
+type: object
+required:
+  - billId
+  - triggerDeviceId
+  - startedAt
+  - finishedAt
+  - sum
+properties:
+  billId:
+    $ref: ./id.yaml
+  triggerDeviceId:
+    $ref: ./id.yaml
+  startedAt:
+    type: string
+    format: date-time
+  finishedAt:
+    type: string
+    format: date-time
+    nullable: true
+  sum:
+    type: string
+    format: decimal-13-6
+    nullable: true
+additionalProperties: false

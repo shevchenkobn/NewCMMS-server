@@ -1,4 +1,4 @@
-import { inject } from 'inversify';
+import { inject, injectable } from 'inversify';
 import * as Knex from 'knex';
 import { PostgresError } from 'pg-error-enum';
 import { DeepPartial, Nullable } from '../@types';
@@ -25,6 +25,7 @@ export interface IBillRateSelectParams {
   limit?: number;
 }
 
+@injectable()
 export class BillRatesModel {
   private _dbConnection: DbConnection;
   private _handleError: (err: any) => never;
