@@ -16,6 +16,13 @@ db:
   password: yourPass
   debug: false # will matter only if NODE_ENV is production
 
+mqtt:
+  host: 127.0.0.1
+  #port: 1337 # to override set null
+  #protocol: mqtt # to override set null
+  #username: yourUser # to override set null
+  #password: yourPass # to override set null
+
 cors:
   whitelist:
     - '*'

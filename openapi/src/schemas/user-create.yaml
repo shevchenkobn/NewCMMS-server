@@ -16,5 +16,5 @@ properties:
   fullName:
     type: string
   password:
-    $ref: ./user-password.yaml
+    $ref: ./username-password.yaml
 additionalProperties: false

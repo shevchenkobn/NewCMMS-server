@@ -12,6 +12,6 @@ properties:
   fullName:
     type: string
   password:
-    $ref: ./user-password-nullable.yaml
+    $ref: ./username-password-nullable.yaml
 minProperties: 1
 additionalProperties: false

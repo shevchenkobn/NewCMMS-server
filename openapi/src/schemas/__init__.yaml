@@ -17,25 +17,25 @@ TokenPair:
   $ref: ./token-pair.yaml
 
 UserPassword:
-  $ref: ./user-password.yaml
+  $ref: ./username-password.yaml
 
 UserPasswordNullable:
-  $ref: ./user-password-nullable.yaml
+  $ref: ./username-password-nullable.yaml
 
 UserOptional:
-  $ref: ./user-optional.yaml
+  $ref: ./username-optional.yaml
 
 UserWithPassword:
-  $ref: ./user-with-password.yaml
+  $ref: ./username-with-password.yaml
 
 UserCreate:
-  $ref: ./user-create.yaml
+  $ref: ./username-create.yaml
 
 UserUpdate:
-  $ref: ./user-update.yaml
+  $ref: ./username-update.yaml
 
 User:
-  $ref: ./user.yaml
+  $ref: ./username.yaml
 
 TriggerDeviceCreate:
   $ref: ./trigger-device-create.yaml
@@ -74,4 +74,4 @@ BillRate:
   $ref: ./bill-rate.yaml
 
 UserTrigger:
-  $ref: ./user-trigger.yaml
+  $ref: ./username-trigger.yaml

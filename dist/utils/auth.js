@@ -56,7 +56,7 @@ function handleJwtError(err, codeToThrow = error_service_1.ErrorCode.AUTH_BAD) {
 exports.handleJwtError = handleJwtError;
 function assertRequiredScopes(requiredScopes, actualScopes) {
     if (requiredScopes.some(s => !actualScopes.includes(s))) {
-        // Scope is synonymic to user's role
+        // Scope is synonymic to username's role
         throw new error_service_1.LogicError(error_service_1.ErrorCode.AUTH_ROLE);
     }
 }

@@ -141,7 +141,7 @@ export class UsersModel {
     if (!isValidUserUniqueIdentifier(emailOrUserId)) {
       throw new LogicError(
         ErrorCode.USER_EMAIL_AND_ID,
-        'Both email and user id present. Use only one of them.',
+        'Both email and username id present. Use only one of them.',
       );
     }
     const users = await this.table.where(emailOrUserId)
@@ -195,7 +195,7 @@ export class UsersModel {
     if (!isValidUserUniqueIdentifier(emailOrUserId)) {
       throw new LogicError(
         ErrorCode.USER_EMAIL_AND_ID,
-        'Both email and user id present. Use only one of them.',
+        'Both email and username id present. Use only one of them.',
       );
     }
     return this.table.where(emailOrUserId).delete(returning as string[])

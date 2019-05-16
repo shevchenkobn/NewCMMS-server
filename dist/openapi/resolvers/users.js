@@ -14,13 +14,13 @@ pathItemHandler.post = (req, res, next) => {
     }).catch(next);
 };
 pathItemHandler.post.apiDoc = {
-    description: 'Create user',
+    description: 'Create username',
     tags: ['users'],
     security: [{
             [openapi_1.jwtBearerScheme]: [openapi_1.JwtBearerScope.ADMIN],
         }],
     requestBody: {
-        description: 'A user to create. The password can be generated, omit this field then',
+        description: 'A username to create. The password can be generated, omit this field then',
         content: {
             'application/json': {
                 schema: {
@@ -37,7 +37,7 @@ pathItemHandler.post.apiDoc = {
     ],
     responses: {
         201: {
-            description: 'Optional user object if select was provided',
+            description: 'Optional username object if select was provided',
             content: {
                 'application/json': {
                     schema: {
@@ -57,7 +57,7 @@ pathItemHandler.post.apiDoc = {
         },
     },
 };
-const userIdsParameterName = 'user-ids';
+const userIdsParameterName = 'username-ids';
 pathItemHandler.get = (req, res, next) => {
     usersCommon.getUsers({
         select: req.query.select,

@@ -32,7 +32,7 @@ pathItemHandler.get = (req, res, next) => {
     .catch(next);
 };
 pathItemHandler.get.apiDoc = {
-  description: 'Get user',
+  description: 'Get username',
   tags: ['users'],
   security: [
     {
@@ -49,7 +49,7 @@ pathItemHandler.get.apiDoc = {
   ],
   responses: {
     200: {
-      description: 'Return user',
+      description: 'Return username',
       content: {
         'application/json': {
           schema: {
@@ -81,7 +81,7 @@ pathItemHandler.delete = (req, res, next) => {
     .catch(next);
 };
 pathItemHandler.delete.apiDoc = {
-  description: 'Delete user',
+  description: 'Delete username',
   tags: ['users'],
   security: [{
     [jwtBearerScheme]: [JwtBearerScope.ADMIN],
@@ -93,7 +93,7 @@ pathItemHandler.delete.apiDoc = {
   ],
   responses: {
     200: {
-      description: 'Return user',
+      description: 'Return username',
       content: {
         'application/json': {
           schema: {
@@ -127,7 +127,7 @@ pathItemHandler.patch = (req, res, next) => {
     .catch(next);
 };
 pathItemHandler.patch.apiDoc = {
-  description: 'Update user',
+  description: 'Update username',
   tags: ['users'],
   security: [{
     [jwtBearerScheme]: [JwtBearerScope.ADMIN],
@@ -138,7 +138,7 @@ pathItemHandler.patch.apiDoc = {
     },
   ],
   requestBody: {
-    description: 'A user update. The password can be generated, put "" then',
+    description: 'A username update. The password can be generated, put "" then',
     content: {
       'application/json': {
         schema: {
@@ -150,7 +150,7 @@ pathItemHandler.patch.apiDoc = {
   },
   responses: {
     200: {
-      description: 'Return user',
+      description: 'Return username',
       content: {
         'application/json': {
           schema: {

@@ -16,7 +16,7 @@ pathItemHandler.get = (req, res, next) => {
   res.json((req as IRequestWithUser).user);
 };
 pathItemHandler.get.apiDoc = {
-  description: 'Get identity of authenticated user',
+  description: 'Get identity of authenticated username',
   tags: ['auth', 'users'],
   security: [{
     [jwtBearerScheme]: [],
@@ -45,7 +45,7 @@ pathItemHandler.patch = (req, res, next) => {
     .catch(next);
 };
 pathItemHandler.patch.apiDoc = {
-  description: 'Update user',
+  description: 'Update username',
   tags: ['users', 'auth'],
   security: [{
     [jwtBearerScheme]: [],
@@ -56,7 +56,7 @@ pathItemHandler.patch.apiDoc = {
     },
   ],
   requestBody: {
-    description: 'A user update. The password can be generated, put "" then',
+    description: 'A username update. The password can be generated, put "" then',
     content: {
       'application/json': {
         schema: {
@@ -68,7 +68,7 @@ pathItemHandler.patch.apiDoc = {
   },
   responses: {
     200: {
-      description: 'Return user',
+      description: 'Return username',
       content: {
         'application/json': {
           schema: {
@@ -93,7 +93,7 @@ pathItemHandler.delete = (req, res, next) => {
     .catch(next);
 };
 pathItemHandler.delete.apiDoc = {
-  description: 'Delete current user account',
+  description: 'Delete current username account',
   tags: ['users', 'auth'],
   security: [{
     [jwtBearerScheme]: [],
@@ -105,7 +105,7 @@ pathItemHandler.delete.apiDoc = {
   ],
   responses: {
     200: {
-      description: 'Return user',
+      description: 'Return username',
       content: {
         'application/json': {
           schema: {

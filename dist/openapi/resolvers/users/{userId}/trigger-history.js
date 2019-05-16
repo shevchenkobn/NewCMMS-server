@@ -11,8 +11,8 @@ pathItemHandler.get = (req, res, next) => {
         .catch(next);
 };
 pathItemHandler.get.apiDoc = {
-    description: 'Get user trigger history',
-    tags: ['user-trigger-history'],
+    description: 'Get username trigger history',
+    tags: ['username-trigger-history'],
     security: [
         {
             [openapi_1.jwtBearerScheme]: [openapi_1.JwtBearerScope.EMPLOYEE],
@@ -23,7 +23,7 @@ pathItemHandler.get.apiDoc = {
     ],
     responses: {
         200: {
-            description: 'Get user trigger history',
+            description: 'Get username trigger history',
             content: {
                 'application/json': {
                     schema: {

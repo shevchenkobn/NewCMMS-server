@@ -38,8 +38,8 @@ pathItemHandler.get = (req, res, next) => {
     .catch(next);
 };
 pathItemHandler.get.apiDoc = {
-  description: 'Get user trigger history item',
-  tags: ['user-trigger-history'],
+  description: 'Get username trigger history item',
+  tags: ['username-trigger-history'],
   security: [
     {
       [jwtBearerScheme]: [JwtBearerScope.EMPLOYEE],
@@ -50,7 +50,7 @@ pathItemHandler.get.apiDoc = {
   ],
   responses: {
     200: {
-      description: 'Return user trigger history item',
+      description: 'Return username trigger history item',
       content: {
         'application/json': {
           schema: {
@@ -83,8 +83,8 @@ pathItemHandler.delete = (req, res, next) => {
     .catch(next);
 };
 pathItemHandler.delete.apiDoc = {
-  description: 'Delete user trigger history item',
-  tags: ['user-trigger-history'],
+  description: 'Delete username trigger history item',
+  tags: ['username-trigger-history'],
   security: [
     {
       [jwtBearerScheme]: [JwtBearerScope.ADMIN],
@@ -92,7 +92,7 @@ pathItemHandler.delete.apiDoc = {
   ],
   responses: {
     200: {
-      description: 'Return user trigger history item',
+      description: 'Return username trigger history item',
       content: {
         'application/json': {
           schema: {

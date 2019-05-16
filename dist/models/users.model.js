@@ -53,7 +53,7 @@ let UsersModel = class UsersModel {
     }
     async getOne(emailOrUserId, select = users_1.getAllSafeUserPropertyNames()) {
         if (!users_1.isValidUserUniqueIdentifier(emailOrUserId)) {
-            throw new error_service_1.LogicError(error_service_1.ErrorCode.USER_EMAIL_AND_ID, 'Both email and user id present. Use only one of them.');
+            throw new error_service_1.LogicError(error_service_1.ErrorCode.USER_EMAIL_AND_ID, 'Both email and username id present. Use only one of them.');
         }
         const users = await this.table.where(emailOrUserId)
             .select(select);
@@ -87,7 +87,7 @@ let UsersModel = class UsersModel {
     }
     deleteOne(emailOrUserId, returning) {
         if (!users_1.isValidUserUniqueIdentifier(emailOrUserId)) {
-            throw new error_service_1.LogicError(error_service_1.ErrorCode.USER_EMAIL_AND_ID, 'Both email and user id present. Use only one of them.');
+            throw new error_service_1.LogicError(error_service_1.ErrorCode.USER_EMAIL_AND_ID, 'Both email and username id present. Use only one of them.');
         }
         return this.table.where(emailOrUserId).delete(returning)
             .then(users => {
