@@ -1,17 +1,22 @@
 import { ConnectOptions } from 'mqttr';
-import { json } from 'mqttr/lib/codec';
+import { raw } from 'mqttr/lib/codec';
 import { MqqtQoS } from './util';
 
-export const codec = json();
+// export const codec = raw();
 
 export const clientId = `server_${Math.random().toString(16).substr(2, 8)}`;
 
 export const will: ConnectOptions['will'] = {
   topic: '/server',
-  payload: codec.encode({
+  payload: JSON.stringify({
     id: clientId,
     e: 'shutdown',
-  } as any),
+  }),
   retain: true,
   qos: MqqtQoS.EXACTLY_ONCE,
+};
+(will as any).properties = {
+  willDelayInterval: 0,
+  messageExpiryInterval: 0,
+  contentType: 'application/json',
 };

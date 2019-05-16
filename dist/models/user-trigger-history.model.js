@@ -68,4 +68,4 @@ UserTriggerHistoryModel = tslib_1.__decorate([
     tslib_1.__metadata("design:paramtypes", [db_connection_class_1.DbConnection])
 ], UserTriggerHistoryModel);
 exports.UserTriggerHistoryModel = UserTriggerHistoryModel;
-//# sourceMappingURL=username-trigger-history.model.js.map
+//# sourceMappingURL=user-trigger-history.model.js.map

@@ -8,6 +8,7 @@ import {
   createContainer, initDependenciesAsync, typeMap,
 } from './di/container';
 import { TYPES } from './di/types';
+import { connectMqtt } from './mqqt';
 import {
   bindOnExitHandler,
   exitGracefully,
@@ -106,11 +107,13 @@ Promise.join(
     });
   }, true);
 
-  server.listen(port, host, () => {
-    logger.info(`Listening at ${host}:${port}`);
-    argv = null;
-    if (global.gc) {
-      global.gc();
-    }
+  connectMqtt().then(() => {
+    server.listen(port, host, () => {
+      logger.info(`Listening at ${host}:${port}`);
+      argv = null;
+      if (global.gc) {
+        global.gc();
+      }
+    });
   });
 });

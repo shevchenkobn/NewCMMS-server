@@ -44,4 +44,4 @@ UserTriggerHistoryCommon = tslib_1.__decorate([
         users_model_1.UsersModel])
 ], UserTriggerHistoryCommon);
 exports.UserTriggerHistoryCommon = UserTriggerHistoryCommon;
-//# sourceMappingURL=username-trigger-history.common.js.map
+//# sourceMappingURL=user-trigger-history.common.js.map

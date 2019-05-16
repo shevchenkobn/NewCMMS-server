@@ -4,6 +4,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 require("./@types");
 const container_1 = require("./di/container");
 const types_1 = require("./di/types");
+const mqqt_1 = require("./mqqt");
 const exit_handler_service_1 = require("./services/exit-handler.service");
 const logger_service_1 = require("./services/logger.service");
 const middlewares_1 = require("./utils/middlewares");
@@ -69,12 +70,14 @@ Promise.join(openapi_1.loadOpenApiDoc(), container_1.initDependenciesAsync()).th
             }
         });
     }, true);
-    server.listen(port, host, () => {
-        logger_service_1.logger.info(`Listening at ${host}:${port}`);
-        argv = null;
-        if (global.gc) {
-            global.gc();
-        }
+    mqqt_1.connectMqtt().then(() => {
+        server.listen(port, host, () => {
+            logger_service_1.logger.info(`Listening at ${host}:${port}`);
+            argv = null;
+            if (global.gc) {
+                global.gc();
+            }
+        });
     });
 });
 //# sourceMappingURL=index.js.map

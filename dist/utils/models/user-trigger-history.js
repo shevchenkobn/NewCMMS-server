@@ -14,4 +14,4 @@ function getAllUserTriggerPropertyNames() {
     ];
 }
 exports.getAllUserTriggerPropertyNames = getAllUserTriggerPropertyNames;
-//# sourceMappingURL=username-trigger-history.js.map
+//# sourceMappingURL=user-trigger-history.js.map

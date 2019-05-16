@@ -1,27 +1,39 @@
 import { Client, connect, ConnectOptions } from 'mqttr';
+import { oc } from 'ts-optchain';
 import { Nullable } from '../@types';
 import * as config from 'config';
-import { clientId, codec, will } from './configuration';
+import { logger } from '../services/logger.service';
+import { clientId, will } from './configuration';
+import { onConnect } from './controller';
 
 let client: Nullable<Client> = null;
 
 export interface IMqqtConfig {
   host: string;
   port: Nullable<number>;
-  protocol: Nullable<'wss' | 'ws' | 'mqtt' | 'mqtts' | 'tcp' | 'ssl' | 'wx' | 'wxs'>;
   username: Nullable<string>;
   password: Nullable<string>;
 }
 
 export function isMqttConnected() {
-  return !client;
+  return client && client.connected;
 }
 
-export function connectMqtt() {
-  if (client) {
+export function connectMqtt(): Promise<void> {
+  if (isMqttConnected()) {
     throw new TypeError('Already connected');
   }
-  initialize();
+  if (client) {
+    return client._connected();
+  }
+  return initialize();
+}
+
+export function getMqttClient() {
+  if (!isMqttConnected()) {
+    throw new TypeError('Not connected to mqtt');
+  }
+  return client as Client;
 }
 
 function initialize() {
@@ -34,14 +46,21 @@ function initialize() {
   const options = {
     clientId,
     will,
-    codec,
+    // codec: codec,
     host: mqttConfig.host,
+    log: logger,
+    protocol: 'mqtt',
+    protocolVersion: 5,
+    keepalive: 60,
+    reconnectPeriod: 1000,
+    connectTimeout: 30 * 1000,
+    rejectUnauthorized: true,
   } as ConnectOptions;
+  (options as any).properties = {
+    sessionExpiryInterval: 60,
+  };
   if (typeof mqttConfig.port === 'number') {
     options.port = mqttConfig.port;
-  }
-  if (typeof mqttConfig.protocol === 'string') {
-    options.protocol = mqttConfig.protocol;
   }
   if (hasUsername) {
     options.username = mqttConfig.username!;
@@ -50,4 +69,20 @@ function initialize() {
     }
   }
   client = connect();
+  client.on('connect', onConnect);
+  return new Promise<void>((resolve, reject) => {
+    if (!client) {
+      reject(new Error('Unknown mqtt service state'));
+      return;
+    }
+    client.once('connect', (connack: any) => {
+      if (!client) {
+        reject(new Error('Unknown mqtt service state'));
+        return;
+      }
+      client.off('error', reject);
+      resolve();
+    });
+    client.once('error', reject);
+  });
 }
