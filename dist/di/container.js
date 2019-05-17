@@ -18,6 +18,7 @@ const inversify_1 = require("inversify");
 const db_connection_class_1 = require("../services/db-connection.class");
 const db_orchestrator_class_1 = require("../services/db-orchestrator.class");
 const users_model_1 = require("../models/users.model");
+const service_1 = require("../mqqt/service");
 exports.typeMap = new Map([
     [types_1.TYPES.DbConnection, db_connection_class_1.DbConnection],
     [types_1.TYPES.DbOrchestrator, db_orchestrator_class_1.DbOrchestrator],
@@ -35,6 +36,7 @@ exports.typeMap = new Map([
     [types_1.TYPES.TriggerActionsCommon, trigger_actions_common_1.TriggerActionsCommon],
     [types_1.TYPES.BillsCommon, bills_common_1.BillsCommon],
     [types_1.TYPES.BillRatesCommon, bill_rates_common_1.BillRatesCommon],
+    [types_1.TYPES.IoTService, service_1.IoTService],
 ]);
 function bindDependency(typeId, type) {
     container

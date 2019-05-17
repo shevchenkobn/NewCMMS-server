@@ -11,6 +11,7 @@ import * as yaml from 'yaml';
 import { errorTransformer } from '../services/error.service';
 import { logger } from '../services/logger.service';
 import { getSecurityHandlers } from '../services/security-handlers.service';
+import { isPhysicalAddress } from './common';
 
 export interface IOpenApiPathItemHandler {
   parameters?: OpenAPIV3.ParameterObject[];
@@ -80,12 +81,11 @@ export function loadOpenApiDoc(
 }
 
 export namespace CustomFormats {
-  const physicalAddressRegex = /^[\dA-F]{12}$/i;
   const decimalRegex = /^(\d+|\d*\.\d+)$/;
   export const formats = {
     // tslint:disable-next-line:function-name
     ['physical-address'](value: string) {
-      return physicalAddressRegex.test(value);
+      return isPhysicalAddress(value);
     },
     // tslint:disable-next-line:function-name
     ['decimal-13-6'](value: string) {

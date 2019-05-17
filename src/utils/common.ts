@@ -73,3 +73,8 @@ export function deleteProps<T extends Record<string, any>, K extends keyof T>(
   }
   return obj;
 }
+
+const physicalAddressRegex = /^[\dA-F]{12}$/i;
+export function isPhysicalAddress(address: string) {
+  return physicalAddressRegex.test(address);
+}

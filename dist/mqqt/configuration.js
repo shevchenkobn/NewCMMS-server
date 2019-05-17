@@ -5,10 +5,7 @@ const util_1 = require("./util");
 exports.clientId = `server_${Math.random().toString(16).substr(2, 8)}`;
 exports.will = {
     topic: '/server',
-    payload: JSON.stringify({
-        id: exports.clientId,
-        e: 'shutdown',
-    }),
+    payload: `${exports.clientId}:disconnected`,
     retain: true,
     qos: util_1.MqqtQoS.EXACTLY_ONCE,
 };

@@ -9,6 +9,7 @@ const yaml = require("yaml");
 const error_service_1 = require("../services/error.service");
 const logger_service_1 = require("../services/logger.service");
 const security_handlers_service_1 = require("../services/security-handlers.service");
+const common_1 = require("./common");
 exports.jwtBearerScheme = 'jwt-bearer';
 var JwtBearerScope;
 (function (JwtBearerScope) {
@@ -41,12 +42,11 @@ function loadOpenApiDoc(rootPath = appRoot.resolve('openapi/src/openapi.yaml'), 
 exports.loadOpenApiDoc = loadOpenApiDoc;
 var CustomFormats;
 (function (CustomFormats) {
-    const physicalAddressRegex = /^[\dA-F]{12}$/i;
     const decimalRegex = /^(\d+|\d*\.\d+)$/;
     CustomFormats.formats = {
         // tslint:disable-next-line:function-name
         ['physical-address'](value) {
-            return physicalAddressRegex.test(value);
+            return common_1.isPhysicalAddress(value);
         },
         // tslint:disable-next-line:function-name
         ['decimal-13-6'](value) {

@@ -64,4 +64,9 @@ function deleteProps(obj, keys) {
     return obj;
 }
 exports.deleteProps = deleteProps;
+const physicalAddressRegex = /^[\dA-F]{12}$/i;
+function isPhysicalAddress(address) {
+    return physicalAddressRegex.test(address);
+}
+exports.isPhysicalAddress = isPhysicalAddress;
 //# sourceMappingURL=common.js.map

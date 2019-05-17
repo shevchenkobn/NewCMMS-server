@@ -24,6 +24,7 @@ import { logger } from '../services/logger.service';
 import { DbOrchestrator } from '../services/db-orchestrator.class';
 import Newable = interfaces.Newable;
 import { UsersModel } from '../models/users.model';
+import { IoTService } from '../mqqt/service';
 
 export const typeMap: ReadonlyMap<ServiceIdentifier<any>, Newable<any>> =
   new Map<ServiceIdentifier<any>, Newable<any>>([
@@ -46,6 +47,8 @@ export const typeMap: ReadonlyMap<ServiceIdentifier<any>, Newable<any>> =
     [TYPES.TriggerActionsCommon, TriggerActionsCommon],
     [TYPES.BillsCommon, BillsCommon],
     [TYPES.BillRatesCommon, BillRatesCommon],
+
+    [TYPES.IoTService, IoTService],
   ]);
 
 function bindDependency<T>(

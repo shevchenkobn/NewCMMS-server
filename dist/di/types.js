@@ -20,5 +20,6 @@ exports.TYPES = {
     TriggerActionsCommon: Symbol.for('TriggerActionsCommon'),
     BillsCommon: Symbol.for('BillsCommon'),
     BillRatesCommon: Symbol.for('BillRatesCommon'),
+    IoTService: Symbol.for('IoTService'),
 };
 //# sourceMappingURL=types.js.map

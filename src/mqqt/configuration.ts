@@ -8,10 +8,7 @@ export const clientId = `server_${Math.random().toString(16).substr(2, 8)}`;
 
 export const will: ConnectOptions['will'] = {
   topic: '/server',
-  payload: JSON.stringify({
-    id: clientId,
-    e: 'shutdown',
-  }),
+  payload: `${clientId}:disconnected`,
   retain: true,
   qos: MqqtQoS.EXACTLY_ONCE,
 };

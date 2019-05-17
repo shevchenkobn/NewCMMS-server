@@ -1,5 +1,4 @@
 import { Client, connect, ConnectOptions } from 'mqttr';
-import { oc } from 'ts-optchain';
 import { Nullable } from '../@types';
 import * as config from 'config';
 import { logger } from '../services/logger.service';
@@ -19,14 +18,15 @@ export function isMqttConnected() {
   return client && client.connected;
 }
 
-export function connectMqtt(): Promise<void> {
+export function connectMqtt(): Promise<any> {
   if (isMqttConnected()) {
     throw new TypeError('Already connected');
   }
   if (client) {
-    return client._connected();
+    return getConnectPromise();
   }
-  return initialize();
+  initialize();
+  return getConnectPromise();
 }
 
 export function getMqttClient() {
@@ -70,7 +70,10 @@ function initialize() {
   }
   client = connect();
   client.on('connect', onConnect);
-  return new Promise<void>((resolve, reject) => {
+}
+
+function getConnectPromise() {
+  return new Promise<any>((resolve, reject) => {
     if (!client) {
       reject(new Error('Unknown mqtt service state'));
       return;
@@ -81,7 +84,7 @@ function initialize() {
         return;
       }
       client.off('error', reject);
-      resolve();
+      resolve(connack);
     });
     client.once('error', reject);
   });

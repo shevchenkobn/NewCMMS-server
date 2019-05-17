@@ -15,9 +15,10 @@ function connectMqtt() {
         throw new TypeError('Already connected');
     }
     if (client) {
-        return client._connected();
+        return getConnectPromise();
     }
-    return initialize();
+    initialize();
+    return getConnectPromise();
 }
 exports.connectMqtt = connectMqtt;
 function getMqttClient() {
@@ -61,6 +62,8 @@ function initialize() {
     }
     client = mqttr_1.connect();
     client.on('connect', controller_1.onConnect);
+}
+function getConnectPromise() {
     return new Promise((resolve, reject) => {
         if (!client) {
             reject(new Error('Unknown mqtt service state'));
@@ -72,7 +75,7 @@ function initialize() {
                 return;
             }
             client.off('error', reject);
-            resolve();
+            resolve(connack);
         });
         client.once('error', reject);
     });
