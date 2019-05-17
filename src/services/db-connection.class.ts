@@ -5,7 +5,6 @@ import * as Knex from 'knex';
 import { DeepReadonly } from '../@types';
 import { bindOnExitHandler } from './exit-handler.service';
 import { logger } from './logger.service';
-import * as Enumerable from 'linq';
 
 export const availableDbTypes: ReadonlyArray<IDBConfig['type']> = [
   'pg', 'mssql', 'oracle',
@@ -51,6 +50,18 @@ export class DbConnection {
     return this.knex.raw(
       `??${'.??'.repeat(args.length - 1)}`,
       args.slice(),
+    );
+  }
+
+  getDatesDiffInHours(
+    minuend: Date | string,
+    subtrahend: Date | string,
+    asClause?: string,
+  ) {
+    const raw = `extract(epoch from timestamp '${typeof minuend === 'string' ? '??' : '?'}' - timestamp '${typeof subtrahend === 'string' ? '??' : '?'}')::numeric / 3600`;
+    return this.knex.raw(
+      typeof asClause === 'string' ? `${raw} as ${asClause}` : raw,
+      [minuend, subtrahend],
     );
   }
 }

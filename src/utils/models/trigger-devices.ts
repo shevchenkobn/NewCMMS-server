@@ -1,7 +1,7 @@
 import { DeepReadonly } from '../../@types';
 import {
   ITriggerDevice,
-  ITriggerDeviceId,
+  ITriggerDeviceId, ITriggerDeviceMac,
   ITriggerDeviceName,
 } from '../../models/trigger-devices.model';
 import { getIdColumn, TableName } from '../db-orchestrator';
@@ -19,12 +19,15 @@ export function getAllTriggerDevicePropertyNames(): (keyof ITriggerDevice)[] {
 }
 
 export function isValidTriggerDeviceUniqueIdentifier(
-  nameOrTriggerDeviceId: DeepReadonly<ITriggerDeviceId | ITriggerDeviceName>,
+  nameOrTriggerDeviceId: DeepReadonly<
+    ITriggerDeviceId | ITriggerDeviceName | ITriggerDeviceMac
+  >,
 ): nameOrTriggerDeviceId is DeepReadonly<
-  ITriggerDeviceId | ITriggerDeviceName
+  ITriggerDeviceId | ITriggerDeviceName | ITriggerDeviceMac
 > {
   return Object.keys(nameOrTriggerDeviceId).length === 1 && (
-    'name' in nameOrTriggerDeviceId
-    || getIdColumn(TableName.TRIGGER_DEVICES) in nameOrTriggerDeviceId
+    getIdColumn(TableName.TRIGGER_DEVICES) in nameOrTriggerDeviceId
+    || 'name' in nameOrTriggerDeviceId
+    || 'physicalAddress' in nameOrTriggerDeviceId
   );
 }

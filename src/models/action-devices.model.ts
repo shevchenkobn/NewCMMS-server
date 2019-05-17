@@ -25,6 +25,7 @@ export interface IActionDevice extends IActionDeviceChange {
 export interface IActionDevicesSelectParams {
   select?: ReadonlyArray<keyof IActionDevice>;
   actionDeviceIds?: ReadonlyArray<number>;
+  statuses?: ReadonlyArray<ActionDeviceStatus>;
   comparatorFilters?: DeepReadonly<ComparatorFilters<IActionDevice>>;
   orderBy?: ReadonlyArray<string>;
   offset?: number;
@@ -72,6 +73,12 @@ export class ActionDevicesModel {
       query.whereIn(
         getIdColumn(TableName.ACTION_DEVICES),
         params.actionDeviceIds.slice(),
+      );
+    }
+    if (params.statuses && params.statuses.length > 0) {
+      query.whereIn(
+        'status',
+        params.statuses.slice(),
       );
     }
     if (params.comparatorFilters && params.comparatorFilters.length > 0) {

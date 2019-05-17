@@ -15,7 +15,7 @@ let TriggerDevicesModel = class TriggerDevicesModel {
             case 'pg':
                 this._handleError = err => {
                     switch (err.code) {
-                        case pg_error_enum_1.PostgresError.UNIQUE_VIOLATION:
+                        case pg_error_enum_1.PostgresError.UNIQUE_VIOLATION: {
                             const detailLower = err.detail.toLowerCase();
                             if (detailLower.includes('name')) {
                                 throw new error_service_1.LogicError(error_service_1.ErrorCode.TRIGGER_DEVICE_NAME_DUPLICATE);
@@ -23,6 +23,13 @@ let TriggerDevicesModel = class TriggerDevicesModel {
                             if (detailLower.includes('physicaladdress')) {
                                 throw new error_service_1.LogicError(error_service_1.ErrorCode.TRIGGER_DEVICE_MAC_DUPLICATE);
                             }
+                        }
+                        case pg_error_enum_1.PostgresError.INVALID_TEXT_REPRESENTATION: {
+                            const detailLower = err.detail.toLowerCase();
+                            if (detailLower.includes('"notmac"')) {
+                                throw new error_service_1.LogicError(error_service_1.ErrorCode.MAC_INVALID);
+                            }
+                        }
                         default:
                             throw err;
                     }
@@ -58,11 +65,11 @@ let TriggerDevicesModel = class TriggerDevicesModel {
             ? params.select.slice()
             : trigger_devices_1.getAllTriggerDevicePropertyNames()));
     }
-    async getOne(nameOrTriggerDeviceId, select = trigger_devices_1.getAllTriggerDevicePropertyNames()) {
-        if (!trigger_devices_1.isValidTriggerDeviceUniqueIdentifier(nameOrTriggerDeviceId)) {
-            throw new error_service_1.LogicError(error_service_1.ErrorCode.TRIGGER_DEVICE_ID_AND_NAME, 'Both id and name present. Use only one of them.');
+    async getOne(triggerDeviceUniqueInfo, select = trigger_devices_1.getAllTriggerDevicePropertyNames()) {
+        if (!trigger_devices_1.isValidTriggerDeviceUniqueIdentifier(triggerDeviceUniqueInfo)) {
+            throw new error_service_1.LogicError(error_service_1.ErrorCode.TRIGGER_DEVICE_UNIQUE_IDENTIFIER_BAD);
         }
-        const users = await this.table.where(nameOrTriggerDeviceId)
+        const users = await this.table.where(triggerDeviceUniqueInfo)
             .select(select);
         if (users.length === 0) {
             return null;

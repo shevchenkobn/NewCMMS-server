@@ -4,6 +4,7 @@ import { PostgresError } from 'pg-error-enum';
 import { DeepPartial, DeepReadonly, Nullable } from '../@types';
 import { DbConnection } from '../services/db-connection.class';
 import { ErrorCode, LogicError } from '../services/error.service';
+import { logger } from '../services/logger.service';
 import { getIdColumn, TableName } from '../utils/db-orchestrator';
 import { applySortingToQuery, ComparatorFilters } from '../utils/model';
 import { getAllBillPropertyNames } from '../utils/models/bills';
@@ -11,7 +12,7 @@ import { ActionDevicesModel } from './action-devices.model';
 import { BillRatesModel } from './bill-rates.model';
 
 export interface IBillChange {
-  triggerDeviceId: Nullable<number>;
+  triggerDeviceId: number;
   startedAt: Date;
   finishedAt: Nullable<Date>;
   sum: Nullable<string>;
@@ -107,6 +108,21 @@ export class BillsModel {
       .catch(this._handleError) as any;
   }
 
+  getLastForTriggerDevice<
+    T extends DeepPartial<IBill> = IBill
+  >(
+    triggerDeviceId: number,
+    returning = getAllBillPropertyNames(),
+  ): Promise<Nullable<IBill>> {
+    return this.table.where({
+      triggerDeviceId,
+      finishedAt: null,
+    })
+      .orderBy('startedAt', 'desc')
+      .first(returning)
+      .then(bill => bill || null) as any;
+  }
+
   createOneWithBillRates(bill: DeepReadonly<IBillChange>): Promise<{}>;
   createOneWithBillRates<T extends DeepPartial<IBill> = DeepPartial<IBill>>(
     bill: DeepReadonly<IBillChange>,
@@ -177,7 +193,7 @@ export class BillsModel {
 
   updateOne(
     billId: number,
-    update: DeepReadonly<IBillChange>,
+    update: DeepReadonly<DeepPartial<IBillChange>>,
   ): Promise<Nullable<{}>>;
   updateOne<T extends DeepPartial<IBill> = DeepPartial<IBill>>(
     billId: number,

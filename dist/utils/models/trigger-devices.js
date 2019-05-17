@@ -14,8 +14,9 @@ function getAllTriggerDevicePropertyNames() {
 }
 exports.getAllTriggerDevicePropertyNames = getAllTriggerDevicePropertyNames;
 function isValidTriggerDeviceUniqueIdentifier(nameOrTriggerDeviceId) {
-    return Object.keys(nameOrTriggerDeviceId).length === 1 && ('name' in nameOrTriggerDeviceId
-        || db_orchestrator_1.getIdColumn(db_orchestrator_1.TableName.TRIGGER_DEVICES) in nameOrTriggerDeviceId);
+    return Object.keys(nameOrTriggerDeviceId).length === 1 && (db_orchestrator_1.getIdColumn(db_orchestrator_1.TableName.TRIGGER_DEVICES) in nameOrTriggerDeviceId
+        || 'name' in nameOrTriggerDeviceId
+        || 'physicalAddress' in nameOrTriggerDeviceId);
 }
 exports.isValidTriggerDeviceUniqueIdentifier = isValidTriggerDeviceUniqueIdentifier;
 //# sourceMappingURL=trigger-devices.js.map

@@ -65,6 +65,15 @@ let BillsModel = class BillsModel {
             .then(bills => bills.length === 0 ? null : bills[0])
             .catch(this._handleError);
     }
+    getLastForTriggerDevice(triggerDeviceId, returning = bills_1.getAllBillPropertyNames()) {
+        return this.table.where({
+            triggerDeviceId,
+            finishedAt: null,
+        })
+            .orderBy('startedAt', 'desc')
+            .first(returning)
+            .then(bill => bill || null);
+    }
     async createOneWithBillRates(bill) {
         let newBill;
         const trx = this._dbConnection.knex.transaction(trx => {

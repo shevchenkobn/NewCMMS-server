@@ -40,6 +40,9 @@ let ActionDevicesModel = class ActionDevicesModel {
         if (params.actionDeviceIds && params.actionDeviceIds.length > 0) {
             query.whereIn(db_orchestrator_1.getIdColumn(db_orchestrator_1.TableName.ACTION_DEVICES), params.actionDeviceIds.slice());
         }
+        if (params.statuses && params.statuses.length > 0) {
+            query.whereIn('status', params.statuses.slice());
+        }
         if (params.comparatorFilters && params.comparatorFilters.length > 0) {
             for (const filter of params.comparatorFilters) {
                 query.where(...filter);

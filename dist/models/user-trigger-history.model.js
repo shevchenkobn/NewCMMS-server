@@ -34,6 +34,15 @@ let UserTriggerHistoryModel = class UserTriggerHistoryModel {
     get table() {
         return this._dbConnection.knex(db_orchestrator_1.TableName.USER_TRIGGER_HISTORY);
     }
+    createOne(userTrigger, transaction, returning) {
+        const query = this.table.insert(userTrigger, returning);
+        if (transaction) {
+            query.transacting(transaction);
+        }
+        return query.catch(this._handleError).then(userTriggers => !returning || returning.length === 0
+            ? {}
+            : userTriggers[0]);
+    }
     getList(params) {
         const args = Object.assign({}, params);
         const query = this.table;
@@ -41,6 +50,15 @@ let UserTriggerHistoryModel = class UserTriggerHistoryModel {
             query.whereIn(db_orchestrator_1.getIdColumn(db_orchestrator_1.TableName.USERS), args.userIds.slice());
         }
         return query;
+    }
+    getListForLastBill(triggerDeviceId, select = user_trigger_history_1.getAllUserTriggerPropertyNames()) {
+        const triggerDeviceIdColumn = db_orchestrator_1.getIdColumn(db_orchestrator_1.TableName.TRIGGER_DEVICES);
+        const startedAt = 'startedAt';
+        return this.table.where(triggerDeviceIdColumn, triggerDeviceId).where('triggerTime', '>=', this._dbConnection.knex(db_orchestrator_1.TableName.BILLS)
+            .where(triggerDeviceIdColumn, triggerDeviceId)
+            .where('finishedAt', null)
+            .orderBy(startedAt, 'desc')
+            .first(startedAt)).select(select);
     }
     getOne(userTriggerId, userId) {
         const whereClause = { userTriggerId };

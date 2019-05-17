@@ -15,11 +15,18 @@ let BillRatesModel = class BillRatesModel {
             case 'pg':
                 this._handleError = err => {
                     switch (err.code) {
-                        case pg_error_enum_1.PostgresError.FOREIGN_KEY_VIOLATION:
+                        case pg_error_enum_1.PostgresError.FOREIGN_KEY_VIOLATION: {
                             const detailLower = err.detail.toLowerCase();
                             if (detailLower.includes('actiondeviceid')) {
                                 throw new error_service_1.LogicError(error_service_1.ErrorCode.BILL_RATE_ACTION_DEVICE_ID_BAD);
                             }
+                        }
+                        case pg_error_enum_1.PostgresError.INVALID_TEXT_REPRESENTATION: {
+                            const detailLower = err.detail.toLowerCase();
+                            if (detailLower.includes('"notmac"')) {
+                                throw new error_service_1.LogicError(error_service_1.ErrorCode.MAC_INVALID);
+                            }
+                        }
                         default:
                             throw err;
                     }
@@ -50,6 +57,18 @@ let BillRatesModel = class BillRatesModel {
             ? params.select.slice()
             : bill_rate_1.getAllBillRateFromDbPropertyNames()));
     }
+    getListForTriggerDevice(triggerDeviceMac) {
+        return this.getSelectQueryForTriggerDevice(triggerDeviceMac)
+            .catch(this._handleError);
+    }
+    getBillSumForTriggerDevice(triggerDeviceMac, startDate, endDate) {
+        const hoursDiffClause = this._dbConnection.getDatesDiffInHours(endDate, startDate);
+        return this._dbConnection.knex()
+            .select(hoursDiffClause.wrap('sum(hourlyRate) * ', ' as sum'))
+            .from(this.getSelectQueryForTriggerDevice(triggerDeviceMac))
+            .catch(this._handleError)
+            .then(sum => sum.sum);
+    }
     createMany(billRates, transaction, returning) {
         return this.table.transacting(transaction)
             .insert(billRates, returning)
@@ -74,6 +93,12 @@ let BillRatesModel = class BillRatesModel {
             return billRates;
         })
             .catch(this._handleError);
+    }
+    getSelectQueryForTriggerDevice(triggerDeviceMac) {
+        const actionDeviceId = db_orchestrator_1.getIdColumn(db_orchestrator_1.TableName.ACTION_DEVICES);
+        const billRateActionDeviceId = `${db_orchestrator_1.TableName.BILL_RATES}.${actionDeviceId}`;
+        const triggerDeviceId = db_orchestrator_1.getIdColumn(db_orchestrator_1.TableName.TRIGGER_DEVICES);
+        return this.table.innerJoin(db_orchestrator_1.TableName.TRIGGER_ACTIONS, billRateActionDeviceId, `${db_orchestrator_1.TableName.TRIGGER_ACTIONS}.${actionDeviceId}`).innerJoin(db_orchestrator_1.TableName.TRIGGER_DEVICES, `${db_orchestrator_1.TableName.TRIGGER_ACTIONS}.${triggerDeviceId}`, `${db_orchestrator_1.TableName.TRIGGER_DEVICES}.${triggerDeviceId}`).where(`${db_orchestrator_1.TableName.TRIGGER_DEVICES}.physicalAddress`, triggerDeviceMac).select(`${billRateActionDeviceId} as ${actionDeviceId}`, `${db_orchestrator_1.TableName.BILL_RATES}.hourlyRate as hourlyRate`);
     }
 };
 BillRatesModel = tslib_1.__decorate([

@@ -1,4 +1,5 @@
 import { inject, injectable } from 'inversify';
+import { QueryBuilder } from 'knex';
 import * as Knex from 'knex';
 import { PostgresError } from 'pg-error-enum';
 import { DeepPartial, Nullable } from '../@types';
@@ -42,13 +43,20 @@ export class BillRatesModel {
       case 'pg':
         this._handleError = err => {
           switch (err.code) {
-            case PostgresError.FOREIGN_KEY_VIOLATION:
+            case PostgresError.FOREIGN_KEY_VIOLATION: {
               const detailLower = err.detail.toLowerCase();
               if (detailLower.includes('actiondeviceid')) {
                 throw new LogicError(
                   ErrorCode.BILL_RATE_ACTION_DEVICE_ID_BAD,
                 );
               }
+            }
+            case PostgresError.INVALID_TEXT_REPRESENTATION: {
+              const detailLower = err.detail.toLowerCase();
+              if (detailLower.includes('"notmac"')) {
+                throw new LogicError(ErrorCode.MAC_INVALID);
+              }
+            }
             default:
               throw err;
           }
@@ -81,6 +89,27 @@ export class BillRatesModel {
     return query.select((params.select && params.select.length > 0
       ? params.select.slice()
       : getAllBillRateFromDbPropertyNames()) as any[]) as any;
+  }
+
+  getListForTriggerDevice(triggerDeviceMac: string): Promise<IBillRate[]> {
+    return this.getSelectQueryForTriggerDevice(triggerDeviceMac)
+      .catch(this._handleError) as any;
+  }
+
+  getBillSumForTriggerDevice(
+    triggerDeviceMac: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<string> {
+    const hoursDiffClause = this._dbConnection.getDatesDiffInHours(
+      endDate,
+      startDate,
+    );
+    return this._dbConnection.knex()
+      .select(hoursDiffClause.wrap('sum(hourlyRate) * ', ' as sum'))
+      .from(this.getSelectQueryForTriggerDevice(triggerDeviceMac))
+      .catch(this._handleError)
+      .then(sum => sum.sum) as any;
   }
 
   createMany(
@@ -126,4 +155,26 @@ export class BillRatesModel {
       })
       .catch(this._handleError) as any;
   }
+
+  private getSelectQueryForTriggerDevice(triggerDeviceMac: string) {
+    const actionDeviceId = getIdColumn(TableName.ACTION_DEVICES);
+    const billRateActionDeviceId = `${TableName.BILL_RATES}.${actionDeviceId}`;
+    const triggerDeviceId = getIdColumn(TableName.TRIGGER_DEVICES);
+    return this.table.innerJoin(
+      TableName.TRIGGER_ACTIONS,
+      billRateActionDeviceId,
+      `${TableName.TRIGGER_ACTIONS}.${actionDeviceId}`,
+    ).innerJoin(
+      TableName.TRIGGER_DEVICES,
+      `${TableName.TRIGGER_ACTIONS}.${triggerDeviceId}`,
+      `${TableName.TRIGGER_DEVICES}.${triggerDeviceId}`,
+    ).where(
+      `${TableName.TRIGGER_DEVICES}.physicalAddress`,
+      triggerDeviceMac,
+    ).select(
+      `${billRateActionDeviceId} as ${actionDeviceId}`,
+      `${TableName.BILL_RATES}.hourlyRate as hourlyRate`,
+    );
+  }
+
 }

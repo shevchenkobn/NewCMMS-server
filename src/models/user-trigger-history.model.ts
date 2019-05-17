@@ -1,6 +1,7 @@
 import { inject, injectable } from 'inversify';
+import * as Knex from 'knex';
 import { PostgresError } from 'pg-error-enum';
-import { Nullable } from '../@types';
+import { DeepPartial, Nullable } from '../@types';
 import { DbConnection } from '../services/db-connection.class';
 import { ErrorCode, LogicError } from '../services/error.service';
 import { getIdColumn, TableName } from '../utils/db-orchestrator';
@@ -61,6 +62,22 @@ export class UserTriggerHistoryModel {
     }
   }
 
+  createOne<T extends DeepPartial<IUserTrigger> = DeepPartial<IUserTrigger>>(
+    userTrigger: IUserTriggerChange,
+    transaction?: Knex.Transaction,
+    returning?: ReadonlyArray<keyof IUserTrigger>,
+  ) {
+    const query = this.table.insert(userTrigger, returning as string[]);
+    if (transaction) {
+      query.transacting(transaction);
+    }
+    return query.catch(this._handleError).then(
+      userTriggers => !returning || returning.length === 0
+        ? {}
+        : userTriggers[0],
+    ) as any;
+  }
+
   getList(params?: IUserTriggersSelectParams): Promise<IUserTrigger[]> {
     const args = Object.assign({}, params);
     const query = this.table;
@@ -68,6 +85,26 @@ export class UserTriggerHistoryModel {
       query.whereIn(getIdColumn(TableName.USERS), args.userIds.slice());
     }
     return query as any;
+  }
+
+  getListForLastBill<T extends DeepPartial<IUserTrigger> = DeepPartial<IUserTrigger>>(
+    triggerDeviceId: number,
+    select = getAllUserTriggerPropertyNames(),
+  ): Promise<T[]> {
+    const triggerDeviceIdColumn = getIdColumn(TableName.TRIGGER_DEVICES);
+    const startedAt = 'startedAt';
+    return this.table.where(
+      triggerDeviceIdColumn,
+      triggerDeviceId,
+    ).where(
+      'triggerTime',
+      '>=',
+      this._dbConnection.knex(TableName.BILLS)
+        .where(triggerDeviceIdColumn, triggerDeviceId)
+        .where('finishedAt', null)
+        .orderBy(startedAt, 'desc')
+        .first(startedAt),
+    ).select(select) as any;
   }
 
   getOne(
