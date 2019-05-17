@@ -24,12 +24,30 @@ export interface IDBConfig {
 export class DbConnection {
   readonly config: DeepReadonly<Knex.Config>;
   readonly knex: Knex;
+  readonly getDatesDiffInHours: (
+    minuend: Date | string,
+    subtrahend: Date | string,
+    asClause?: string,
+  ) => Knex.Raw;
 
   constructor(dbConfig = config.get<IDBConfig>('db')) {
     if (!availableDbTypes.includes(dbConfig.type)) {
       throw new TypeError(`The database type "${dbConfig.type}" is not supported! Available DB types: ${JSON.stringify(availableDbTypes)}. Check your configs to correct the issue.`);
     }
     const { type: client, debug, ...connectionConfig } = dbConfig;
+    switch (client) {
+      case 'pg':
+        this.getDatesDiffInHours = (minuend, subtrahend, asClause) => {
+          const raw = `extract(epoch from timestamp '${typeof minuend === 'string' ? '??' : '?'}' - timestamp '${typeof subtrahend === 'string' ? '??' : '?'}')::numeric / 3600`;
+          return this.knex.raw(
+            typeof asClause === 'string' ? `${raw} as ${asClause}` : raw,
+            [minuend, subtrahend],
+          );
+        };
+        break;
+      default:
+        throw new TypeError(`For client type "${client}" the date diff is not supported`);
+    }
 
     this.config = {
       client,
@@ -50,18 +68,6 @@ export class DbConnection {
     return this.knex.raw(
       `??${'.??'.repeat(args.length - 1)}`,
       args.slice(),
-    );
-  }
-
-  getDatesDiffInHours(
-    minuend: Date | string,
-    subtrahend: Date | string,
-    asClause?: string,
-  ) {
-    const raw = `extract(epoch from timestamp '${typeof minuend === 'string' ? '??' : '?'}' - timestamp '${typeof subtrahend === 'string' ? '??' : '?'}')::numeric / 3600`;
-    return this.knex.raw(
-      typeof asClause === 'string' ? `${raw} as ${asClause}` : raw,
-      [minuend, subtrahend],
     );
   }
 }
