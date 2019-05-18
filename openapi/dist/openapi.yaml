@@ -26,8 +26,9 @@ tags:
     description: API to manage trigger actions
   - name: trigger-devices
     description: API to manage trigger devices
+  - name: user-trigger-history
+    description: API to get user trigger history
   - name: username-trigger-history
-    description: API to get username trigger history
   - name: users
     description: API to manage users
 paths:
@@ -41,7 +42,8 @@ paths:
         - jwt-bearer:
             - admin
       requestBody:
-        description: A username to create. The password can be generated, omit this field then
+        description: A username to create. The password can be generated, omit this field
+          then
         content:
           application/json:
             schema:
@@ -1589,7 +1591,7 @@ components:
                 type: string
             additionalProperties: true
     Forbidden:
-      description: The scopes provided with token or username's role doesn't allow the
+      description: The scopes provided with token or user's role doesn't allow the
         operation.
       content:
         application/json:

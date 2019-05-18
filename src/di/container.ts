@@ -1,8 +1,12 @@
+import { BindingScopeEnum, Container, interfaces } from 'inversify';
+import { Nullable } from '../@types';
+import { IoTService } from '../iot-hub/service';
 import { ActionDevicesModel } from '../models/action-devices.model';
 import { BillRatesModel } from '../models/bill-rates.model';
 import { BillsModel } from '../models/bills.model';
 import { TriggerActionsModel } from '../models/trigger-actions.model';
 import { TriggerDevicesModel } from '../models/trigger-devices.model';
+import { UsersModel } from '../models/users.model';
 import { ActionDevicesCommon } from '../openapi/services/action-devices.common';
 import { AuthCommon } from '../openapi/services/auth.common';
 import { BillRatesCommon } from '../openapi/services/bill-rates.common';
@@ -11,20 +15,11 @@ import { TriggerActionsCommon } from '../openapi/services/trigger-actions.common
 import { TriggerDevicesCommon } from '../openapi/services/trigger-devices.common';
 import { UsersCommon } from '../openapi/services/users.common';
 import { AuthService } from '../services/auth.service';
-import { ASYNC_INIT, TYPES } from './types';
-import {
-  BindingScopeEnum,
-  Container,
-  interfaces,
-} from 'inversify';
-import { Maybe, Nullable, Optional } from '../@types';
 import { DbConnection } from '../services/db-connection.class';
-import ServiceIdentifier = interfaces.ServiceIdentifier;
-import { logger } from '../services/logger.service';
 import { DbOrchestrator } from '../services/db-orchestrator.class';
+import { ASYNC_INIT, TYPES } from './types';
 import Newable = interfaces.Newable;
-import { UsersModel } from '../models/users.model';
-import { IoTService } from '../mqqt/service';
+import ServiceIdentifier = interfaces.ServiceIdentifier;
 
 export const typeMap: ReadonlyMap<ServiceIdentifier<any>, Newable<any>> =
   new Map<ServiceIdentifier<any>, Newable<any>>([

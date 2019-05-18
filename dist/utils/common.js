@@ -69,4 +69,8 @@ function isPhysicalAddress(address) {
     return physicalAddressRegex.test(address);
 }
 exports.isPhysicalAddress = isPhysicalAddress;
+function normalizePhysicalAddress(address) {
+    return address.split(/[-:.]/).join('').toLowerCase();
+}
+exports.normalizePhysicalAddress = normalizePhysicalAddress;
 //# sourceMappingURL=common.js.map

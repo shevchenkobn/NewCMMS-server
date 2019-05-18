@@ -78,3 +78,7 @@ const physicalAddressRegex = /^[\dA-F]{12}$/i;
 export function isPhysicalAddress(address: string) {
   return physicalAddressRegex.test(address);
 }
+
+export function normalizePhysicalAddress(address: string) {
+  return address.split(/[-:.]/).join('').toLowerCase();
+}

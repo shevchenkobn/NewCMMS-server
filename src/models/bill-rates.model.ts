@@ -1,5 +1,4 @@
 import { inject, injectable } from 'inversify';
-import { QueryBuilder } from 'knex';
 import * as Knex from 'knex';
 import { PostgresError } from 'pg-error-enum';
 import { DeepPartial, Nullable } from '../@types';
@@ -158,11 +157,11 @@ export class BillRatesModel {
 
   private getSelectQueryForTriggerDevice(triggerDeviceMac: string) {
     const actionDeviceId = getIdColumn(TableName.ACTION_DEVICES);
-    const billRateActionDeviceId = `${TableName.BILL_RATES}.${actionDeviceId}`;
+    const billRatesActionDeviceId = `${TableName.BILL_RATES}.${actionDeviceId}`;
     const triggerDeviceId = getIdColumn(TableName.TRIGGER_DEVICES);
     return this.table.innerJoin(
       TableName.TRIGGER_ACTIONS,
-      billRateActionDeviceId,
+      billRatesActionDeviceId,
       `${TableName.TRIGGER_ACTIONS}.${actionDeviceId}`,
     ).innerJoin(
       TableName.TRIGGER_DEVICES,
@@ -172,7 +171,7 @@ export class BillRatesModel {
       `${TableName.TRIGGER_DEVICES}.physicalAddress`,
       triggerDeviceMac,
     ).select(
-      `${billRateActionDeviceId} as ${actionDeviceId}`,
+      `${billRatesActionDeviceId} as ${actionDeviceId}`,
       `${TableName.BILL_RATES}.hourlyRate as hourlyRate`,
     );
   }

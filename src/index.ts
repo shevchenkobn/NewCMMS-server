@@ -8,7 +8,7 @@ import {
   createContainer, initDependenciesAsync, typeMap,
 } from './di/container';
 import { TYPES } from './di/types';
-import { connectMqtt } from './mqqt';
+import { connectMqtt } from './iot-hub';
 import {
   bindOnExitHandler,
   exitGracefully,
@@ -96,17 +96,6 @@ Promise.join(
   app.use(errorHandlingPipeline);
   app.use(notFoundHandler);
 
-  bindOnExitHandler(() => {
-    server.close((err) => {
-      if (err) {
-        logger.error('TCP socket for HTTP server was closed due to');
-        logger.error(err);
-      } else {
-        logger.info('TCP socket for HTTP server is gracefully closed.');
-      }
-    });
-  }, true);
-
   connectMqtt().then(() => {
     server.listen(port, host, () => {
       logger.info(`Listening at ${host}:${port}`);
@@ -115,5 +104,16 @@ Promise.join(
         global.gc();
       }
     });
+
+    bindOnExitHandler(() => {
+      server.close((err) => {
+        if (err) {
+          logger.error('TCP socket for HTTP server was closed due to');
+          logger.error(err);
+        } else {
+          logger.info('TCP socket for HTTP server is gracefully closed.');
+        }
+      });
+    }, true);
   });
 });

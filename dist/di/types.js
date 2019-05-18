@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 // NOTE: Make sure to import it in every entry point you have
+const inversify_1 = require("inversify");
 require("reflect-metadata");
 exports.ASYNC_INIT = Symbol.for('@asyncInit');
 exports.TYPES = {
@@ -22,4 +23,13 @@ exports.TYPES = {
     BillRatesCommon: Symbol.for('BillRatesCommon'),
     IoTService: Symbol.for('IoTService'),
 };
+const injectables = new Set();
+function ensureInjectable(type) {
+    if (injectables.has(type)) {
+        return;
+    }
+    inversify_1.decorate(inversify_1.injectable(), type);
+    injectables.add(type);
+}
+exports.ensureInjectable = ensureInjectable;
 //# sourceMappingURL=types.js.map

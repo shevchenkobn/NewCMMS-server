@@ -11,10 +11,10 @@ CursorNotGenerate:
   $ref: ./cursor-not-generate.yaml
 
 SelectUserChange:
-  $ref: ./select-username-change.yaml
+  $ref: ./select-user-change.yaml
 
 SelectUser:
-  $ref: ./select-username.yaml
+  $ref: ./select-user.yaml
 
 SelectTriggerDevice:
   $ref: ./select-trigger-device.yaml

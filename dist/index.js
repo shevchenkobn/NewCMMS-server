@@ -4,7 +4,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 require("./@types");
 const container_1 = require("./di/container");
 const types_1 = require("./di/types");
-const mqqt_1 = require("./mqqt");
+const iot_hub_1 = require("./iot-hub");
 const exit_handler_service_1 = require("./services/exit-handler.service");
 const logger_service_1 = require("./services/logger.service");
 const middlewares_1 = require("./utils/middlewares");
@@ -59,18 +59,7 @@ Promise.join(openapi_1.loadOpenApiDoc(), container_1.initDependenciesAsync()).th
     }
     app.use(middlewares_1.errorHandlingPipeline);
     app.use(middlewares_1.notFoundHandler);
-    exit_handler_service_1.bindOnExitHandler(() => {
-        server.close((err) => {
-            if (err) {
-                logger_service_1.logger.error('TCP socket for HTTP server was closed due to');
-                logger_service_1.logger.error(err);
-            }
-            else {
-                logger_service_1.logger.info('TCP socket for HTTP server is gracefully closed.');
-            }
-        });
-    }, true);
-    mqqt_1.connectMqtt().then(() => {
+    iot_hub_1.connectMqtt().then(() => {
         server.listen(port, host, () => {
             logger_service_1.logger.info(`Listening at ${host}:${port}`);
             argv = null;
@@ -78,6 +67,17 @@ Promise.join(openapi_1.loadOpenApiDoc(), container_1.initDependenciesAsync()).th
                 global.gc();
             }
         });
+        exit_handler_service_1.bindOnExitHandler(() => {
+            server.close((err) => {
+                if (err) {
+                    logger_service_1.logger.error('TCP socket for HTTP server was closed due to');
+                    logger_service_1.logger.error(err);
+                }
+                else {
+                    logger_service_1.logger.info('TCP socket for HTTP server is gracefully closed.');
+                }
+            });
+        }, true);
     });
 });
 //# sourceMappingURL=index.js.map

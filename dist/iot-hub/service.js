@@ -5,6 +5,7 @@ const events_1 = require("events");
 const inversify_1 = require("inversify");
 const iterare_1 = require("iterare");
 const ts_optchain_1 = require("ts-optchain");
+const types_1 = require("../di/types");
 const action_devices_model_1 = require("../models/action-devices.model");
 const bill_rates_model_1 = require("../models/bill-rates.model");
 const bills_model_1 = require("../models/bills.model");
@@ -14,6 +15,7 @@ const user_trigger_history_model_1 = require("../models/user-trigger-history.mod
 const auth_service_1 = require("../services/auth.service");
 const db_connection_class_1 = require("../services/db-connection.class");
 const error_service_1 = require("../services/error.service");
+const common_1 = require("../utils/common");
 const action_devices_1 = require("../utils/models/action-devices");
 const trigger_devices_1 = require("../utils/models/trigger-devices");
 const user_trigger_history_1 = require("../utils/models/user-trigger-history");
@@ -33,6 +35,7 @@ var ProcessTriggerResults;
     ProcessTriggerResults[ProcessTriggerResults["ENTER_ADDED"] = 5] = "ENTER_ADDED";
     ProcessTriggerResults[ProcessTriggerResults["LEAVE_ADDED"] = 6] = "LEAVE_ADDED";
 })(ProcessTriggerResults = exports.ProcessTriggerResults || (exports.ProcessTriggerResults = {}));
+types_1.ensureInjectable(events_1.EventEmitter);
 let IoTService = class IoTService extends events_1.EventEmitter {
     constructor(authService, dbConnection, triggerDevicesModel, actionDevicesModel, triggerActionsModel, billsModel, billRatesModel, userTriggerHistoryModel) {
         super();
@@ -46,7 +49,10 @@ let IoTService = class IoTService extends events_1.EventEmitter {
         this.userTriggerHistoryModel = userTriggerHistoryModel;
     }
     async processTrigger(triggerDeviceMac, userToken, userTriggerType = user_trigger_history_1.UserTriggerType.UNSPECIFIED) {
-        const user = await this.authService.getUserFromAccessToken(userToken, [openapi_1.JwtBearerScope.EMPLOYEE]);
+        // Validate MAC and get the device
+        if (!common_1.isPhysicalAddress(triggerDeviceMac)) {
+            throw new error_service_1.LogicError(error_service_1.ErrorCode.MAC_INVALID);
+        }
         const triggerDevice = await this.triggerDevicesModel.getOne({ physicalAddress: triggerDeviceMac });
         if (!triggerDevice) {
             throw new error_service_1.LogicError(error_service_1.ErrorCode.NOT_FOUND);
@@ -54,12 +60,13 @@ let IoTService = class IoTService extends events_1.EventEmitter {
         if (triggerDevice.status === trigger_devices_1.TriggerDeviceStatus.DISCONNECTED) {
             return ProcessTriggerResults.TRIGGER_DEVICE_DISCONNECTED;
         }
+        const user = await this.authService.getUserFromAccessToken(userToken, [openapi_1.JwtBearerScope.EMPLOYEE]);
         const dateTriggered = new Date();
         const userTriggers = await this.userTriggerHistoryModel
             .getListForLastBill(triggerDevice.triggerDeviceId);
         let billRates;
         let triggerType;
-        if (userTriggers.length === 0) {
+        if (userTriggers.length === 0) { // no opened bills
             triggerType = userTriggerType !== user_trigger_history_1.UserTriggerType.UNSPECIFIED
                 ? userTriggerType
                 : user_trigger_history_1.UserTriggerType.ENTER;
@@ -75,7 +82,7 @@ let IoTService = class IoTService extends events_1.EventEmitter {
                     startedAt: dateTriggered,
                     finishedAt: null,
                     sum: '0',
-                })).then(trx.commit).catch(trx.rollback);
+                }, trx)).then(trx.commit).catch(trx.rollback);
             });
         }
         else {
@@ -105,11 +112,13 @@ let IoTService = class IoTService extends events_1.EventEmitter {
                                 this.billRatesModel.getListForTriggerDevice(triggerDeviceMac),
                                 this.billsModel.getLastForTriggerDevice(triggerDevice.triggerDeviceId),
                             ]);
+                            billRates = results[0];
                             const bill = results[1];
                             if (!bill) {
                                 throw new TypeError('Unexpected absent bill');
                             }
-                            await this.billRatesModel.getBillSumForTriggerDevice(triggerDeviceMac, bill.startedAt, dateTriggered).then(sum => this.dbConnection.knex.transaction(trx => {
+                            const sum = await this.billRatesModel.getBillSumForTriggerDevice(triggerDeviceMac, bill.startedAt, dateTriggered);
+                            await this.dbConnection.knex.transaction(trx => {
                                 Promise.join(this.billsModel.updateOne(bill.billId, {
                                     sum,
                                     finishedAt: dateTriggered,
@@ -119,7 +128,7 @@ let IoTService = class IoTService extends events_1.EventEmitter {
                                     triggerTime: dateTriggered,
                                     triggerDeviceId: triggerDevice.triggerDeviceId,
                                 }, trx)).then(trx.commit).then(trx.rollback);
-                            }));
+                            });
                         }
                         else {
                             await this.userTriggerHistoryModel.createOne({
@@ -150,7 +159,7 @@ let IoTService = class IoTService extends events_1.EventEmitter {
         });
         for (const device of actionDevices) {
             // FIXME: choose action according to status
-            this.emit('action-device/toggle', device.actionDeviceId, ActionDeviceAction.TOGGLE);
+            this.emit('action-device/toggle', device, ActionDeviceAction.TOGGLE);
         }
         return triggerType === user_trigger_history_1.UserTriggerType.ENTER
             ? ProcessTriggerResults.ENTER_ADDED
@@ -184,17 +193,12 @@ function hasLastExited(map) {
                 map.get(user_trigger_history_1.UserTriggerType.LEAVE).length)));
 }
 function isEnterTrigger(map, userId) {
-    return !map.has(userId) || hasUserEntered(map.get(userId));
+    return !map.has(userId) || hasUserLeft(map.get(userId));
 }
 function groupUserTriggersByUserIdAndType(userTriggers) {
     const map = new Map();
     for (const trigger of userTriggers) {
-        if (!map.has(trigger.userId)) {
-            map.set(trigger.userId, new Map([
-                [trigger.triggerType, [trigger]],
-            ]));
-        }
-        else {
+        if (map.has(trigger.userId)) {
             const nestedMap = map.get(trigger.userId);
             if (nestedMap.has(trigger.triggerType)) {
                 nestedMap.get(trigger.triggerType).push(trigger);
@@ -203,16 +207,21 @@ function groupUserTriggersByUserIdAndType(userTriggers) {
                 nestedMap.set(trigger.triggerType, [trigger]);
             }
         }
+        else {
+            map.set(trigger.userId, new Map([
+                [trigger.triggerType, [trigger]],
+            ]));
+        }
     }
     return map;
 }
-function hasUserEntered(map) {
+function hasUserLeft(map) {
     const enteredCount = (map.get(user_trigger_history_1.UserTriggerType.ENTER) != null && map.get(user_trigger_history_1.UserTriggerType.ENTER).length != null ? map.get(user_trigger_history_1.UserTriggerType.ENTER).length : undefined) || 0;
     const leftCount = (map.get(user_trigger_history_1.UserTriggerType.LEAVE) != null && map.get(user_trigger_history_1.UserTriggerType.LEAVE).length != null ? map.get(user_trigger_history_1.UserTriggerType.LEAVE).length : undefined) || 0;
-    if (enteredCount === leftCount + 1) {
+    if (enteredCount === leftCount) {
         return true;
     }
-    if (enteredCount === leftCount) {
+    if (enteredCount === leftCount + 1) {
         return false;
     }
     throw new TypeError(`Unexpected count: enteredCount = ${enteredCount}; leftCount = ${leftCount}`);

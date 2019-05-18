@@ -1,10 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const inversify_1 = require("inversify");
+const service_1 = require("../iot-hub/service");
 const action_devices_model_1 = require("../models/action-devices.model");
 const bill_rates_model_1 = require("../models/bill-rates.model");
 const bills_model_1 = require("../models/bills.model");
 const trigger_actions_model_1 = require("../models/trigger-actions.model");
 const trigger_devices_model_1 = require("../models/trigger-devices.model");
+const users_model_1 = require("../models/users.model");
 const action_devices_common_1 = require("../openapi/services/action-devices.common");
 const auth_common_1 = require("../openapi/services/auth.common");
 const bill_rates_common_1 = require("../openapi/services/bill-rates.common");
@@ -13,12 +16,9 @@ const trigger_actions_common_1 = require("../openapi/services/trigger-actions.co
 const trigger_devices_common_1 = require("../openapi/services/trigger-devices.common");
 const users_common_1 = require("../openapi/services/users.common");
 const auth_service_1 = require("../services/auth.service");
-const types_1 = require("./types");
-const inversify_1 = require("inversify");
 const db_connection_class_1 = require("../services/db-connection.class");
 const db_orchestrator_class_1 = require("../services/db-orchestrator.class");
-const users_model_1 = require("../models/users.model");
-const service_1 = require("../mqqt/service");
+const types_1 = require("./types");
 exports.typeMap = new Map([
     [types_1.TYPES.DbConnection, db_connection_class_1.DbConnection],
     [types_1.TYPES.DbOrchestrator, db_orchestrator_class_1.DbOrchestrator],

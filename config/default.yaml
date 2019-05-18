@@ -17,10 +17,13 @@ db:
   debug: false # will matter only if NODE_ENV is production
 
 mqtt:
-  host: 127.0.0.1
-  #port: 1337 # to override set null
-  #username: yourUser # to override set null
-  #password: yourPass # to override set null
+  broker:
+    protocol: mqtt
+    host: 127.0.0.1
+    port: 1883 # to override set null
+    #username: yourUser # to override set null
+    #password: yourPass # to override set null
+  clusterMode: true # use Shared Subscriptions by server clusters
 
 cors:
   whitelist:

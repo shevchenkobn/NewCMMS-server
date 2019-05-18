@@ -1,13 +1,15 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const config = require("config");
 const util_1 = require("./util");
-// export const codec = raw();
-exports.clientId = `server_${Math.random().toString(16).substr(2, 8)}`;
+exports.mqttConfig = config.get('mqtt');
+exports.shareName = 'server';
+exports.clientId = `${exports.shareName}_${Math.random().toString(16).substr(2, 8)}`;
 exports.will = {
-    topic: '/server',
+    topic: '/servers',
     payload: `${exports.clientId}:disconnected`,
     retain: true,
-    qos: util_1.MqqtQoS.EXACTLY_ONCE,
+    qos: util_1.MqttQoS.EXACTLY_ONCE,
 };
 exports.will.properties = {
     willDelayInterval: 0,

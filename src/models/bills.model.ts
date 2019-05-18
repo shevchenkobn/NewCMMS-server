@@ -4,7 +4,6 @@ import { PostgresError } from 'pg-error-enum';
 import { DeepPartial, DeepReadonly, Nullable } from '../@types';
 import { DbConnection } from '../services/db-connection.class';
 import { ErrorCode, LogicError } from '../services/error.service';
-import { logger } from '../services/logger.service';
 import { getIdColumn, TableName } from '../utils/db-orchestrator';
 import { applySortingToQuery, ComparatorFilters } from '../utils/model';
 import { getAllBillPropertyNames } from '../utils/models/bills';
@@ -37,7 +36,6 @@ export class BillsModel {
   private _billRatesModel: BillRatesModel;
   private _actionDevicesModel: ActionDevicesModel;
   private _handleError: (err: any) => never;
-  private _transaction: Nullable<Knex.Transaction>;
 
   get table() {
     return this._dbConnection.knex(TableName.BILLS);
@@ -51,7 +49,6 @@ export class BillsModel {
     this._dbConnection = dbConnection;
     this._billRatesModel = billRatesModel;
     this._actionDevicesModel = actionDevicesModel;
-    this._transaction = null;
     switch (this._dbConnection.config.client) {
       case 'pg':
         this._handleError = err => {
@@ -123,63 +120,35 @@ export class BillsModel {
       .then(bill => bill || null) as any;
   }
 
-  createOneWithBillRates(bill: DeepReadonly<IBillChange>): Promise<{}>;
-  createOneWithBillRates<T extends DeepPartial<IBill> = DeepPartial<IBill>>(
+  createOneWithBillRates(
     bill: DeepReadonly<IBillChange>,
-    returning: ReadonlyArray<keyof IBill>,
-  ): Promise<T>;
-  async createOneWithBillRates(
-    bill: DeepReadonly<IBillChange>,
+    transaction?: Nullable<Knex.Transaction>,
   ): Promise<IBill> {
-    let newBill: IBill;
-    const trx = this._dbConnection.knex.transaction(trx => {
-      this._transaction = trx;
-      this.createOne<IBill>(bill, getAllBillPropertyNames()).then(
-        bill => {
-          newBill = bill;
-          const actionDeviceIdName = getIdColumn(TableName.ACTION_DEVICES);
-          const actionDeviceIdColumn = `${TableName.ACTION_DEVICES}.${actionDeviceIdName}`;
-          this._actionDevicesModel.table
-            .innerJoin(
-              TableName.TRIGGER_ACTIONS,
-              actionDeviceIdColumn,
-              `${TableName.TRIGGER_ACTIONS}.${actionDeviceIdName}`,
-            )
-            .innerJoin(
-              TableName.TRIGGER_DEVICES,
-              `${TableName.TRIGGER_ACTIONS}.${getIdColumn(TableName.TRIGGER_DEVICES)}`,
-              `${TableName.TRIGGER_DEVICES}.${getIdColumn(TableName.TRIGGER_DEVICES)}`,
-            )
-            .select(
-              `${actionDeviceIdColumn} as ${actionDeviceIdName}`,
-              `${TableName.ACTION_DEVICES}.hourlyRate as hourlyRate`,
-            )
-            .then(actionDevices => {
-              this._billRatesModel.createMany(actionDevices, this._transaction!)
-                .then(billRates => {
-                  this._transaction = null;
-                  trx.commit(newBill);
-                });
-            });
-        },
-      );
-    });
-    await trx;
-    return newBill!;
+    let newBillPromise: Promise<IBill>;
+    if (transaction) {
+      newBillPromise = this.createOne<IBill>(bill, transaction).then(
+        bill => this.createBillRates(transaction, bill.triggerDeviceId)
+          .then(() => bill),
+      ).catch(transaction.rollback);
+    } else {
+      newBillPromise = this._dbConnection.knex.transaction(trx => {
+        newBillPromise = this.createOne<IBill>(bill, transaction).then(
+          bill => this.createBillRates(trx, bill.triggerDeviceId)
+              .then(() => trx.commit(bill)),
+          ).catch(trx.rollback);
+      }) as any as Promise<IBill>;
+    }
+    return newBillPromise;
   }
 
-  createOne(bill: DeepReadonly<IBillChange>): Promise<{}>;
   createOne<T extends DeepPartial<IBill> = DeepPartial<IBill>>(
     bill: DeepReadonly<IBillChange>,
-    returning: ReadonlyArray<keyof IBill>,
-  ): Promise<T>;
-  createOne(
-    bill: DeepReadonly<IBillChange>,
+    transaction?: Nullable<Knex.Transaction>,
     returning?: ReadonlyArray<keyof IBill>,
-  ): Promise<DeepPartial<IBill>> {
+  ): Promise<T> {
     const query = this.table.insert(bill, returning as string[]);
-    if (this._transaction) {
-      query.transacting(this._transaction);
+    if (transaction) {
+      query.transacting(transaction);
     }
     return query
       .then(bills => {
@@ -233,5 +202,30 @@ export class BillsModel {
         return bills.length === 0 ? null : bills[0];
       })
       .catch(this._handleError) as any;
+  }
+
+  private createBillRates(trx: Knex.Transaction, triggerDeviceId: number) {
+    const actionDeviceIdName = getIdColumn(TableName.ACTION_DEVICES);
+    const actionDeviceIdColumn = `${TableName.ACTION_DEVICES}.${actionDeviceIdName}`;
+    return this._actionDevicesModel.table
+      .innerJoin(
+        TableName.TRIGGER_ACTIONS,
+        actionDeviceIdColumn,
+        `${TableName.TRIGGER_ACTIONS}.${actionDeviceIdName}`,
+      )
+      .innerJoin(
+        TableName.TRIGGER_DEVICES,
+        `${TableName.TRIGGER_ACTIONS}.${getIdColumn(TableName.TRIGGER_DEVICES)}`,
+        `${TableName.TRIGGER_DEVICES}.${getIdColumn(TableName.TRIGGER_DEVICES)}`,
+      )
+      .where(getIdColumn(TableName.TRIGGER_DEVICES), triggerDeviceId)
+      .select(
+        `${actionDeviceIdColumn} as ${actionDeviceIdName}`,
+        `${TableName.ACTION_DEVICES}.hourlyRate as hourlyRate`,
+      )
+      .then(
+        actionDevices => this._billRatesModel.createMany(actionDevices, trx)
+          .catch(trx.rollback),
+      );
   }
 }

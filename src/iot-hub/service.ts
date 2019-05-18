@@ -2,6 +2,7 @@ import { EventEmitter } from 'events';
 import { inject, injectable } from 'inversify';
 import { iterate } from 'iterare';
 import { oc } from 'ts-optchain';
+import { ensureInjectable } from '../di/types';
 import { ActionDevicesModel } from '../models/action-devices.model';
 import { BillRatesModel } from '../models/bill-rates.model';
 import { BillsModel, IBill } from '../models/bills.model';
@@ -14,6 +15,7 @@ import {
 import { AuthService } from '../services/auth.service';
 import { DbConnection } from '../services/db-connection.class';
 import { ErrorCode, LogicError } from '../services/error.service';
+import { isPhysicalAddress } from '../utils/common';
 import { ActionDeviceStatus } from '../utils/models/action-devices';
 import { TriggerDeviceStatus } from '../utils/models/trigger-devices';
 import { UserTriggerType } from '../utils/models/user-trigger-history';
@@ -36,6 +38,7 @@ export enum ProcessTriggerResults {
     | ProcessTriggerResults.ACTIONS_TOGGLED,
 }
 
+ensureInjectable(EventEmitter);
 @injectable()
 export class IoTService extends EventEmitter {
   readonly authService: AuthService;
@@ -75,10 +78,10 @@ export class IoTService extends EventEmitter {
     userToken: string,
     userTriggerType = UserTriggerType.UNSPECIFIED,
   ): Promise<ProcessTriggerResults> {
-    const user = await this.authService.getUserFromAccessToken(
-      userToken,
-      [JwtBearerScope.EMPLOYEE],
-    );
+    // Validate MAC and get the device
+    if (!isPhysicalAddress(triggerDeviceMac)) {
+      throw new LogicError(ErrorCode.MAC_INVALID);
+    }
     const triggerDevice = await this.triggerDevicesModel.getOne(
       { physicalAddress: triggerDeviceMac },
     );
@@ -88,14 +91,20 @@ export class IoTService extends EventEmitter {
     if (triggerDevice.status === TriggerDeviceStatus.DISCONNECTED) {
       return ProcessTriggerResults.TRIGGER_DEVICE_DISCONNECTED;
     }
+
+    const user = await this.authService.getUserFromAccessToken(
+      userToken,
+      [JwtBearerScope.EMPLOYEE],
+    );
     const dateTriggered = new Date();
+
     const userTriggers = await this.userTriggerHistoryModel
       .getListForLastBill<IUserTrigger>(
         triggerDevice.triggerDeviceId,
       );
     let billRates;
     let triggerType: UserTriggerType;
-    if (userTriggers.length === 0) {
+    if (userTriggers.length === 0) { // no opened bills
       triggerType = userTriggerType !== UserTriggerType.UNSPECIFIED
         ? userTriggerType
         : UserTriggerType.ENTER;
@@ -113,7 +122,7 @@ export class IoTService extends EventEmitter {
             startedAt: dateTriggered,
             finishedAt: null,
             sum: '0',
-          }),
+          }, trx),
         ).then(trx.commit).catch(trx.rollback);
       });
     } else {
@@ -147,30 +156,30 @@ export class IoTService extends EventEmitter {
                 triggerDevice.triggerDeviceId,
               ),
             ]);
+            billRates = results[0];
             const bill = results[1];
             if (!bill) {
               throw new TypeError('Unexpected absent bill');
             }
-            await this.billRatesModel.getBillSumForTriggerDevice(
+            const sum = await this.billRatesModel.getBillSumForTriggerDevice(
               triggerDeviceMac,
               bill.startedAt,
               dateTriggered,
-            ).then(sum =>
-              this.dbConnection.knex.transaction(trx => {
-                Promise.join(
-                  this.billsModel.updateOne(bill.billId, {
-                    sum,
-                    finishedAt: dateTriggered,
-                  }),
-                  this.userTriggerHistoryModel.createOne({
-                    triggerType,
-                    userId: user.userId,
-                    triggerTime: dateTriggered,
-                    triggerDeviceId: triggerDevice.triggerDeviceId,
-                  }, trx),
-                ).then(trx.commit).then(trx.rollback);
-              }),
             );
+            await this.dbConnection.knex.transaction(trx => {
+              Promise.join(
+                this.billsModel.updateOne(bill.billId, {
+                  sum,
+                  finishedAt: dateTriggered,
+                }),
+                this.userTriggerHistoryModel.createOne({
+                  triggerType,
+                  userId: user.userId,
+                  triggerTime: dateTriggered,
+                  triggerDeviceId: triggerDevice.triggerDeviceId,
+                }, trx),
+              ).then(trx.commit).then(trx.rollback);
+            });
           } else {
             await this.userTriggerHistoryModel.createOne({
               triggerType,
@@ -204,7 +213,7 @@ export class IoTService extends EventEmitter {
       // FIXME: choose action according to status
       this.emit(
         'action-device/toggle',
-        device.actionDeviceId,
+        device,
         ActionDeviceAction.TOGGLE,
       );
     }
@@ -231,7 +240,7 @@ function isEnterTrigger(
   map: ReadonlyMap<number, ReadonlyMap<UserTriggerType, IUserTrigger[]>>,
   userId: number,
 ) {
-  return !map.has(userId) || hasUserEntered(map.get(userId)!);
+  return !map.has(userId) || hasUserLeft(map.get(userId)!);
 }
 
 function groupUserTriggersByUserIdAndType(
@@ -239,29 +248,29 @@ function groupUserTriggersByUserIdAndType(
 ): Map<number, Map<UserTriggerType, IUserTrigger[]>> {
   const map = new Map<number, Map<UserTriggerType, IUserTrigger[]>>();
   for (const trigger of userTriggers) {
-    if (!map.has(trigger.userId)) {
-      map.set(trigger.userId, new Map([
-        [trigger.triggerType, [trigger]],
-      ]));
-    } else {
+    if (map.has(trigger.userId)) {
       const nestedMap = map.get(trigger.userId)!;
       if (nestedMap.has(trigger.triggerType)) {
         nestedMap.get(trigger.triggerType)!.push(trigger);
       } else {
         nestedMap.set(trigger.triggerType, [trigger]);
       }
+    } else {
+      map.set(trigger.userId, new Map([
+        [trigger.triggerType, [trigger]],
+      ]));
     }
   }
   return map;
 }
 
-function hasUserEntered(map: ReadonlyMap<UserTriggerType, IUserTrigger[]>) {
+function hasUserLeft(map: ReadonlyMap<UserTriggerType, IUserTrigger[]>) {
   const enteredCount = oc(map.get(UserTriggerType.ENTER)).length || 0;
   const leftCount = oc(map.get(UserTriggerType.LEAVE)).length || 0;
-  if (enteredCount === leftCount + 1) {
+  if (enteredCount === leftCount) {
     return true;
   }
-  if (enteredCount === leftCount) {
+  if (enteredCount === leftCount + 1) {
     return false;
   }
   throw new TypeError(`Unexpected count: enteredCount = ${enteredCount}; leftCount = ${leftCount}`);

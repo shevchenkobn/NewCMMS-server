@@ -96,9 +96,9 @@ let BillRatesModel = class BillRatesModel {
     }
     getSelectQueryForTriggerDevice(triggerDeviceMac) {
         const actionDeviceId = db_orchestrator_1.getIdColumn(db_orchestrator_1.TableName.ACTION_DEVICES);
-        const billRateActionDeviceId = `${db_orchestrator_1.TableName.BILL_RATES}.${actionDeviceId}`;
+        const billRatesActionDeviceId = `${db_orchestrator_1.TableName.BILL_RATES}.${actionDeviceId}`;
         const triggerDeviceId = db_orchestrator_1.getIdColumn(db_orchestrator_1.TableName.TRIGGER_DEVICES);
-        return this.table.innerJoin(db_orchestrator_1.TableName.TRIGGER_ACTIONS, billRateActionDeviceId, `${db_orchestrator_1.TableName.TRIGGER_ACTIONS}.${actionDeviceId}`).innerJoin(db_orchestrator_1.TableName.TRIGGER_DEVICES, `${db_orchestrator_1.TableName.TRIGGER_ACTIONS}.${triggerDeviceId}`, `${db_orchestrator_1.TableName.TRIGGER_DEVICES}.${triggerDeviceId}`).where(`${db_orchestrator_1.TableName.TRIGGER_DEVICES}.physicalAddress`, triggerDeviceMac).select(`${billRateActionDeviceId} as ${actionDeviceId}`, `${db_orchestrator_1.TableName.BILL_RATES}.hourlyRate as hourlyRate`);
+        return this.table.innerJoin(db_orchestrator_1.TableName.TRIGGER_ACTIONS, billRatesActionDeviceId, `${db_orchestrator_1.TableName.TRIGGER_ACTIONS}.${actionDeviceId}`).innerJoin(db_orchestrator_1.TableName.TRIGGER_DEVICES, `${db_orchestrator_1.TableName.TRIGGER_ACTIONS}.${triggerDeviceId}`, `${db_orchestrator_1.TableName.TRIGGER_DEVICES}.${triggerDeviceId}`).where(`${db_orchestrator_1.TableName.TRIGGER_DEVICES}.physicalAddress`, triggerDeviceMac).select(`${billRatesActionDeviceId} as ${actionDeviceId}`, `${db_orchestrator_1.TableName.BILL_RATES}.hourlyRate as hourlyRate`);
     }
 };
 BillRatesModel = tslib_1.__decorate([
