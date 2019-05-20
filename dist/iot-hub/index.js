@@ -48,9 +48,6 @@ function initialize() {
     options.properties = {
         sessionExpiryInterval: 60,
     };
-    if (typeof configuration_1.mqttConfig.broker.port === 'number') {
-        options.port = configuration_1.mqttConfig.broker.port;
-    }
     if (hasUsername) {
         options.username = configuration_1.mqttConfig.broker.username;
         if (hasPassword) {

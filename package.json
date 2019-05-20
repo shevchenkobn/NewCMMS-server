@@ -86,6 +86,7 @@
     "@types/reflect-metadata": "^0.1.0",
     "@types/yaml": "^1.0.2",
     "@types/yargs": "^13.0.0",
+    "mqtt-packet": "^6.1.2",
     "shuffle-array": "^1.0.1",
     "ttypescript": "^1.5.6",
     "typescript": "^3.4.5"
