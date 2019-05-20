@@ -8,7 +8,7 @@ import { getIdColumn, TableName } from '../utils/db-orchestrator';
 import { applySortingToQuery, ComparatorFilters } from '../utils/model';
 import { getAllBillPropertyNames } from '../utils/models/bills';
 import { ActionDevicesModel } from './action-devices.model';
-import { BillRatesModel } from './bill-rates.model';
+import { BillRatesModel, IBillRate } from './bill-rates.model';
 
 export interface IBillChange {
   triggerDeviceId: number;
@@ -126,14 +126,22 @@ export class BillsModel {
   ): Promise<IBill> {
     let newBillPromise: Promise<IBill>;
     if (transaction) {
-      newBillPromise = this.createOne<IBill>(bill, transaction).then(
-        bill => this.createBillRates(transaction, bill.triggerDeviceId)
+      newBillPromise =
+        this.createOne<IBill>(bill, transaction, getAllBillPropertyNames())
+          .then(
+            bill => this.createBillRates(
+              transaction,
+              bill.triggerDeviceId,
+              bill.billId,
+            )
           .then(() => bill),
       ).catch(transaction.rollback);
     } else {
       newBillPromise = this._dbConnection.knex.transaction(trx => {
-        newBillPromise = this.createOne<IBill>(bill, transaction).then(
-          bill => this.createBillRates(trx, bill.triggerDeviceId)
+        newBillPromise =
+          this.createOne<IBill>(bill, transaction, getAllBillPropertyNames())
+            .then(
+          bill => this.createBillRates(trx, bill.triggerDeviceId, bill.billId)
               .then(() => trx.commit(bill)),
           ).catch(trx.rollback);
       }) as any as Promise<IBill>;
@@ -204,9 +212,15 @@ export class BillsModel {
       .catch(this._handleError) as any;
   }
 
-  private createBillRates(trx: Knex.Transaction, triggerDeviceId: number) {
+  private createBillRates(
+    trx: Knex.Transaction,
+    triggerDeviceId: number,
+    billId: number,
+  ) {
     const actionDeviceIdName = getIdColumn(TableName.ACTION_DEVICES);
     const actionDeviceIdColumn = `${TableName.ACTION_DEVICES}.${actionDeviceIdName}`;
+    const triggerDevicesIdName = getIdColumn(TableName.TRIGGER_DEVICES);
+    const triggerDevicesIdColumn = `${TableName.TRIGGER_DEVICES}.${triggerDevicesIdName}`;
     return this._actionDevicesModel.table
       .innerJoin(
         TableName.TRIGGER_ACTIONS,
@@ -216,16 +230,21 @@ export class BillsModel {
       .innerJoin(
         TableName.TRIGGER_DEVICES,
         `${TableName.TRIGGER_ACTIONS}.${getIdColumn(TableName.TRIGGER_DEVICES)}`,
-        `${TableName.TRIGGER_DEVICES}.${getIdColumn(TableName.TRIGGER_DEVICES)}`,
+        triggerDevicesIdColumn,
       )
-      .where(getIdColumn(TableName.TRIGGER_DEVICES), triggerDeviceId)
+      .where(triggerDevicesIdColumn, triggerDeviceId)
       .select(
         `${actionDeviceIdColumn} as ${actionDeviceIdName}`,
         `${TableName.ACTION_DEVICES}.hourlyRate as hourlyRate`,
       )
       .then(
-        actionDevices => this._billRatesModel.createMany(actionDevices, trx)
-          .catch(trx.rollback),
+        (billRates: IBillRate[]) => {
+          for (const rate of billRates) {
+            rate.billId = billId;
+          }
+          return this._billRatesModel.createMany(billRates, trx)
+            .catch(trx.rollback);
+        },
       );
   }
 }

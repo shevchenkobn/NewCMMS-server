@@ -14,7 +14,7 @@ export const shareName = 'server';
 export const clientId = `${shareName}_${Math.random().toString(16).substr(2, 8)}`;
 
 export const will: IClientOptions['will'] = {
-  topic: '/servers',
+  topic: 'servers',
   payload: `${clientId}:disconnected`,
   retain: true,
   qos: MqttQoS.EXACTLY_ONCE,

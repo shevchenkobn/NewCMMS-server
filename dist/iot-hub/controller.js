@@ -38,7 +38,7 @@ async function onConnect(connack) {
         qos: util_1.MqttQoS.EXACTLY_ONCE,
         nl: true,
         rap: true,
-        rh: true,
+        rh: false,
     });
     // tslint:enable:ter-indent
     client.on('message', (topic, payload, packet) => {

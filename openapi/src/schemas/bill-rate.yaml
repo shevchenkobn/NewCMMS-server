@@ -7,4 +7,6 @@ properties:
     $ref: ./id.yaml
   hourlyRate:
     $ref: ./decimal-13-6.yaml
+  billId:
+    $ref: ./id.yaml
 additionalProperties: false

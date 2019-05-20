@@ -6,7 +6,7 @@ exports.mqttConfig = config.get('mqtt');
 exports.shareName = 'server';
 exports.clientId = `${exports.shareName}_${Math.random().toString(16).substr(2, 8)}`;
 exports.will = {
-    topic: '/servers',
+    topic: 'servers',
     payload: `${exports.clientId}:disconnected`,
     retain: true,
     qos: util_1.MqttQoS.EXACTLY_ONCE,

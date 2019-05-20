@@ -1520,6 +1520,9 @@ components:
         hourlyRate:
           type: string
           format: decimal-13-6
+        billId:
+          type: integer
+          minimum: 1
       additionalProperties: false
     UserTrigger:
       type: object

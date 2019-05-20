@@ -11,10 +11,10 @@ import { getAllBillRateFromDbPropertyNames } from '../utils/models/bill-rate';
 export interface IBillRate {
   actionDeviceId: Nullable<number>;
   hourlyRate: string;
+  billId: number;
 }
 
 export interface IBillRateFromDB extends IBillRate {
-  billId: number;
 }
 
 export interface IBillRateSelectParams {

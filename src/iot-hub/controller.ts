@@ -54,7 +54,7 @@ export async function onConnect(connack: any) {
       qos: MqttQoS.EXACTLY_ONCE,
       nl: true,
       rap: true,
-      rh: true,
+      rh: false,
     } as any,
   );
   // tslint:enable:ter-indent

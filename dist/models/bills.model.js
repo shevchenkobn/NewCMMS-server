@@ -76,13 +76,17 @@ let BillsModel = class BillsModel {
     createOneWithBillRates(bill, transaction) {
         let newBillPromise;
         if (transaction) {
-            newBillPromise = this.createOne(bill, transaction).then(bill => this.createBillRates(transaction, bill.triggerDeviceId)
-                .then(() => bill)).catch(transaction.rollback);
+            newBillPromise =
+                this.createOne(bill, transaction, bills_1.getAllBillPropertyNames())
+                    .then(bill => this.createBillRates(transaction, bill.triggerDeviceId, bill.billId)
+                    .then(() => bill)).catch(transaction.rollback);
         }
         else {
             newBillPromise = this._dbConnection.knex.transaction(trx => {
-                newBillPromise = this.createOne(bill, transaction).then(bill => this.createBillRates(trx, bill.triggerDeviceId)
-                    .then(() => trx.commit(bill))).catch(trx.rollback);
+                newBillPromise =
+                    this.createOne(bill, transaction, bills_1.getAllBillPropertyNames())
+                        .then(bill => this.createBillRates(trx, bill.triggerDeviceId, bill.billId)
+                        .then(() => trx.commit(bill))).catch(trx.rollback);
             });
         }
         return newBillPromise;
@@ -122,16 +126,23 @@ let BillsModel = class BillsModel {
         })
             .catch(this._handleError);
     }
-    createBillRates(trx, triggerDeviceId) {
+    createBillRates(trx, triggerDeviceId, billId) {
         const actionDeviceIdName = db_orchestrator_1.getIdColumn(db_orchestrator_1.TableName.ACTION_DEVICES);
         const actionDeviceIdColumn = `${db_orchestrator_1.TableName.ACTION_DEVICES}.${actionDeviceIdName}`;
+        const triggerDevicesIdName = db_orchestrator_1.getIdColumn(db_orchestrator_1.TableName.TRIGGER_DEVICES);
+        const triggerDevicesIdColumn = `${db_orchestrator_1.TableName.TRIGGER_DEVICES}.${triggerDevicesIdName}`;
         return this._actionDevicesModel.table
             .innerJoin(db_orchestrator_1.TableName.TRIGGER_ACTIONS, actionDeviceIdColumn, `${db_orchestrator_1.TableName.TRIGGER_ACTIONS}.${actionDeviceIdName}`)
-            .innerJoin(db_orchestrator_1.TableName.TRIGGER_DEVICES, `${db_orchestrator_1.TableName.TRIGGER_ACTIONS}.${db_orchestrator_1.getIdColumn(db_orchestrator_1.TableName.TRIGGER_DEVICES)}`, `${db_orchestrator_1.TableName.TRIGGER_DEVICES}.${db_orchestrator_1.getIdColumn(db_orchestrator_1.TableName.TRIGGER_DEVICES)}`)
-            .where(db_orchestrator_1.getIdColumn(db_orchestrator_1.TableName.TRIGGER_DEVICES), triggerDeviceId)
+            .innerJoin(db_orchestrator_1.TableName.TRIGGER_DEVICES, `${db_orchestrator_1.TableName.TRIGGER_ACTIONS}.${db_orchestrator_1.getIdColumn(db_orchestrator_1.TableName.TRIGGER_DEVICES)}`, triggerDevicesIdColumn)
+            .where(triggerDevicesIdColumn, triggerDeviceId)
             .select(`${actionDeviceIdColumn} as ${actionDeviceIdName}`, `${db_orchestrator_1.TableName.ACTION_DEVICES}.hourlyRate as hourlyRate`)
-            .then(actionDevices => this._billRatesModel.createMany(actionDevices, trx)
-            .catch(trx.rollback));
+            .then((billRates) => {
+            for (const rate of billRates) {
+                rate.billId = billId;
+            }
+            return this._billRatesModel.createMany(billRates, trx)
+                .catch(trx.rollback);
+        });
     }
 };
 BillsModel = tslib_1.__decorate([
