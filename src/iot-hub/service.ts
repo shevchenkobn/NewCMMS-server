@@ -147,7 +147,7 @@ export class IoTService extends EventEmitter {
           break;
         case UserTriggerType.LEAVE: {
           // Check if everyone has exited. If true update the bill
-          if (hasLastExited(groupedTriggers)) {
+          if (haveAllExceptOneExited(groupedTriggers)) {
             const results = await Promise.all([
               this.billRatesModel.getListForTriggerDevice(
                 triggerDeviceMac,
@@ -223,17 +223,30 @@ export class IoTService extends EventEmitter {
   }
 }
 
-function hasLastExited(
+function haveAllExceptOneExited(
   map: ReadonlyMap<number, ReadonlyMap<UserTriggerType, IUserTrigger[]>>,
 ) {
-  return iterate(map.values()).every(map => (
-    (!map.has(UserTriggerType.ENTER) && !map.has(UserTriggerType.LEAVE))
-    || (
-      map.has(UserTriggerType.ENTER) && map.has(UserTriggerType.LEAVE)
-      && map.get(UserTriggerType.ENTER)!.length ===
-        map.get(UserTriggerType.LEAVE)!.length
-    )
-  ));
+  let foundOnePresent = false;
+  for (const triggers of map.values()) {
+    if (!(
+      (
+        !triggers.has(UserTriggerType.ENTER)
+        && !triggers.has(UserTriggerType.LEAVE)
+      )
+      || (
+        triggers.has(UserTriggerType.ENTER)
+        && triggers.has(UserTriggerType.LEAVE)
+        && triggers.get(UserTriggerType.ENTER)!.length ===
+          triggers.get(UserTriggerType.LEAVE)!.length
+      )
+    )) {
+      if (foundOnePresent) {
+        return false;
+      }
+      foundOnePresent = true;
+    }
+  }
+  return true;
 }
 
 function isEnterTrigger(

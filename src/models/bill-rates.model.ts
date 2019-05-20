@@ -4,6 +4,7 @@ import { PostgresError } from 'pg-error-enum';
 import { DeepPartial, Nullable } from '../@types';
 import { DbConnection } from '../services/db-connection.class';
 import { ErrorCode, LogicError } from '../services/error.service';
+import { logger } from '../services/logger.service';
 import { getIdColumn, TableName } from '../utils/db-orchestrator';
 import { applySortingToQuery } from '../utils/model';
 import { getAllBillRateFromDbPropertyNames } from '../utils/models/bill-rate';
@@ -104,11 +105,20 @@ export class BillRatesModel {
       endDate,
       startDate,
     );
-    return this._dbConnection.knex()
-      .select(hoursDiffClause.wrap('sum(hourlyRate) * ', ' as sum'))
-      .from(this.getSelectQueryForTriggerDevice(triggerDeviceMac))
+    const tmpName = 'tmp';
+    const query = this._dbConnection.knex.queryBuilder()
+      .select(this._dbConnection.knex.raw(
+          `sum(${this._dbConnection.getIdentifier(
+          tmpName,
+          'hourlyRate',
+        ).toQuery()}) * ${hoursDiffClause.toQuery()} as ${this._dbConnection.getIdentifier('sum')}`,
+      ))
+      .from(this.getSelectQueryForTriggerDevice(triggerDeviceMac).as('tmp'));
+    return query
       .catch(this._handleError)
-      .then(sum => sum.sum) as any;
+      .then(
+        rows => rows[0].sum,
+      ) as any;
   }
 
   createMany(

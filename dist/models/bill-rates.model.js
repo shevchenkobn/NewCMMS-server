@@ -63,11 +63,13 @@ let BillRatesModel = class BillRatesModel {
     }
     getBillSumForTriggerDevice(triggerDeviceMac, startDate, endDate) {
         const hoursDiffClause = this._dbConnection.getDatesDiffInHours(endDate, startDate);
-        return this._dbConnection.knex()
-            .select(hoursDiffClause.wrap('sum(hourlyRate) * ', ' as sum'))
-            .from(this.getSelectQueryForTriggerDevice(triggerDeviceMac))
+        const tmpName = 'tmp';
+        const query = this._dbConnection.knex.queryBuilder()
+            .select(this._dbConnection.knex.raw(`sum(${this._dbConnection.getIdentifier(tmpName, 'hourlyRate').toQuery()}) * ${hoursDiffClause.toQuery()} as ${this._dbConnection.getIdentifier('sum')}`))
+            .from(this.getSelectQueryForTriggerDevice(triggerDeviceMac).as('tmp'));
+        return query
             .catch(this._handleError)
-            .then(sum => sum.sum);
+            .then(rows => rows[0].sum);
     }
     createMany(billRates, transaction, returning) {
         return this.table.transacting(transaction)

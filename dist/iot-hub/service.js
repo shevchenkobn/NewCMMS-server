@@ -107,7 +107,7 @@ let IoTService = class IoTService extends events_1.EventEmitter {
                 case user_trigger_history_1.UserTriggerType.LEAVE:
                     {
                         // Check if everyone has exited. If true update the bill
-                        if (hasLastExited(groupedTriggers)) {
+                        if (haveAllExceptOneExited(groupedTriggers)) {
                             const results = await Promise.all([
                                 this.billRatesModel.getListForTriggerDevice(triggerDeviceMac),
                                 this.billsModel.getLastForTriggerDevice(triggerDevice.triggerDeviceId),
@@ -186,11 +186,22 @@ IoTService = tslib_1.__decorate([
         user_trigger_history_model_1.UserTriggerHistoryModel])
 ], IoTService);
 exports.IoTService = IoTService;
-function hasLastExited(map) {
-    return iterare_1.iterate(map.values()).every(map => ((!map.has(user_trigger_history_1.UserTriggerType.ENTER) && !map.has(user_trigger_history_1.UserTriggerType.LEAVE))
-        || (map.has(user_trigger_history_1.UserTriggerType.ENTER) && map.has(user_trigger_history_1.UserTriggerType.LEAVE)
-            && map.get(user_trigger_history_1.UserTriggerType.ENTER).length ===
-                map.get(user_trigger_history_1.UserTriggerType.LEAVE).length)));
+function haveAllExceptOneExited(map) {
+    let foundOnePresent = false;
+    for (const triggers of map.values()) {
+        if (!((!triggers.has(user_trigger_history_1.UserTriggerType.ENTER)
+            && !triggers.has(user_trigger_history_1.UserTriggerType.LEAVE))
+            || (triggers.has(user_trigger_history_1.UserTriggerType.ENTER)
+                && triggers.has(user_trigger_history_1.UserTriggerType.LEAVE)
+                && triggers.get(user_trigger_history_1.UserTriggerType.ENTER).length ===
+                    triggers.get(user_trigger_history_1.UserTriggerType.LEAVE).length))) {
+            if (foundOnePresent) {
+                return false;
+            }
+            foundOnePresent = true;
+        }
+    }
+    return true;
 }
 function isEnterTrigger(map, userId) {
     return !map.has(userId) || hasUserLeft(map.get(userId));

@@ -20,8 +20,13 @@ let DbConnection = class DbConnection {
         switch (client) {
             case 'pg':
                 this.getDatesDiffInHours = (minuend, subtrahend, asClause) => {
-                    const raw = `extract(epoch from timestamp '${typeof minuend === 'string' ? '??' : '?'}' - timestamp '${typeof subtrahend === 'string' ? '??' : '?'}')::numeric / 3600`;
-                    return this.knex.raw(typeof asClause === 'string' ? `${raw} as ${asClause}` : raw, [minuend, subtrahend]);
+                    const raw = `extract(epoch from timestamp ${typeof minuend === 'string' ? '??' : '?'} - timestamp ${typeof subtrahend === 'string' ? '??' : '?'})::numeric / 3600`;
+                    return this.knex.raw(typeof asClause === 'string' ? `${raw} as ${asClause}` : raw, [
+                        typeof minuend === 'string' ? minuend : minuend.toISOString(),
+                        typeof subtrahend === 'string'
+                            ? subtrahend
+                            : subtrahend.toISOString(),
+                    ]);
                 };
                 break;
             default:
