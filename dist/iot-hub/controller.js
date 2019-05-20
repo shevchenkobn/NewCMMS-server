@@ -20,15 +20,27 @@ async function onConnect(connack) {
     const client = index_1.getMqttClient();
     const iotService = container_1.getContainer().get(service_1.IoTService);
     if (subscriber) {
-        iotService.off('', subscriber);
+        iotService.off('action-device/toggle', subscriber);
+        subscriber = null;
     }
     subscriber = (device, action) => {
         client.publish(getTopic(TopicType.ACTION_PUB, device.physicalAddress), service_1.ActionDeviceAction[action], {
             qos: util_1.MqttQoS.EXACTLY_ONCE,
             retain: true,
             dup: false,
+        }).then(() => {
+            logger_service_1.logger.info(`Action device "${device.physicalAddress}" is notified about "${service_1.ActionDeviceAction[action]}"`);
+        }).catch(err => {
+            if (subscriber) {
+                logger_service_1.logger.error(`Failed to publish action to "${device.physicalAddress}". Retrying...`);
+                subscriber(device, action);
+            }
+            else {
+                logger_service_1.logger.error(`Failed to publish action to "${device.physicalAddress}". Cannot retry.`);
+            }
         });
     };
+    iotService.on('action-device/toggle', subscriber);
     const triggerDeviceTopic = getTopic(TopicType.TRIGGER_SUB);
     client.subscribe(configuration_1.mqttConfig.clusterMode
         ? `$share/${configuration_1.shareName}/${triggerDeviceTopic}`

@@ -30,7 +30,8 @@ export async function onConnect(connack: any) {
   const client = getMqttClient();
   const iotService = getContainer().get<IoTService>(IoTService);
   if (subscriber) {
-    iotService.off('', subscriber);
+    iotService.off('action-device/toggle', subscriber);
+    subscriber = null;
   }
   subscriber = (device, action) => {
     client.publish(
@@ -41,8 +42,18 @@ export async function onConnect(connack: any) {
         retain: true,
         dup: false,
       },
-    );
+    ).then(() => {
+      logger.info(`Action device "${device.physicalAddress}" is notified about "${ActionDeviceAction[action]}"`);
+    }).catch(err => {
+      if (subscriber) {
+        logger.error(`Failed to publish action to "${device.physicalAddress}". Retrying...`);
+        subscriber(device, action);
+      } else {
+        logger.error(`Failed to publish action to "${device.physicalAddress}". Cannot retry.`);
+      }
+    });
   };
+  iotService.on('action-device/toggle', subscriber);
 
   const triggerDeviceTopic = getTopic(TopicType.TRIGGER_SUB);
   client.subscribe(
