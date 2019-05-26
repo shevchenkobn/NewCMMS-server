@@ -82,7 +82,7 @@ pathItemHandler.delete = (req, res, next) => {
 };
 pathItemHandler.delete.apiDoc = {
   description: 'Delete trigger action',
-  tags: ['trigger-action'],
+  tags: ['trigger-actions'],
   security: [{
     [jwtBearerScheme]: [JwtBearerScope.ADMIN],
   }],
@@ -128,7 +128,7 @@ pathItemHandler.patch = (req, res, next) => {
 };
 pathItemHandler.patch.apiDoc = {
   description: 'Update trigger action',
-  tags: ['trigger-action'],
+  tags: ['trigger-actions'],
   security: [{
     [jwtBearerScheme]: [JwtBearerScope.ADMIN],
   }],

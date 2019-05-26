@@ -5,6 +5,7 @@ import {
   jwtBearerScheme, JwtBearerScope,
 } from '../../../../utils/openapi';
 import { UserTriggerHistoryCommon } from '../../../services/user-trigger-history.common';
+import { IRequestWithUser } from '../../../../services/security-handlers.service';
 
 const pathItemHandler: IOpenApiPathItemHandler = {};
 export = pathItemHandler;
@@ -13,20 +14,18 @@ const userTriggerHistoryCommon = getContainer().get<UserTriggerHistoryCommon>(
   UserTriggerHistoryCommon,
 );
 
-const [userIdParamName] = getParamNamesFromScriptPath(__filename);
-
 pathItemHandler.get = (req, res, next) => {
   userTriggerHistoryCommon.getUserTriggers(
-    req.params[userIdParamName],
+    (req as IRequestWithUser).user.userId,
   )
     .then(userTrigger => res.json(userTrigger))
     .catch(next);
 };
 pathItemHandler.get.apiDoc = {
-  description: 'Get user trigger history',
-  tags: ['user-trigger-history'],
+  description: 'Get trigger history for an authenticated identity',
+  tags: ['user-trigger-history', 'auth'],
   security: [{
-    [jwtBearerScheme]: [JwtBearerScope.ADMIN],
+    [jwtBearerScheme]: [JwtBearerScope.EMPLOYEE],
   }],
   responses: {
     200: {

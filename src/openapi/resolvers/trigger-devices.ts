@@ -84,9 +84,14 @@ namespace ApiDoc {
   export const apiDoc: OpenAPIV3.OperationObject = {
     description: 'Get trigger devices',
     tags: ['trigger-devices'],
-    security: [{
-      [jwtBearerScheme]: [JwtBearerScope.ADMIN],
-    }],
+    security: [
+      {
+        [jwtBearerScheme]: [JwtBearerScope.ADMIN],
+      },
+      {
+        [jwtBearerScheme]: [JwtBearerScope.EMPLOYEE],
+      },
+    ],
     parameters: [
       {
         $ref: '#/components/parameters/SelectTriggerDevice',

@@ -1,9 +1,10 @@
 import { getContainer } from '../../../../../di/container';
 import {
-  getParamNamesFromScriptPath,
+  getParamNameFromScriptName,
   IOpenApiPathItemHandler, jwtBearerScheme, JwtBearerScope,
 } from '../../../../../utils/openapi';
 import { UserTriggerHistoryCommon } from '../../../../services/user-trigger-history.common';
+import { IRequestWithUser } from '../../../../../services/security-handlers.service';
 
 const pathItemHandler: IOpenApiPathItemHandler = {};
 export = pathItemHandler;
@@ -12,21 +13,9 @@ const userTriggerHistoryCommon = getContainer().get<UserTriggerHistoryCommon>(
   UserTriggerHistoryCommon,
 );
 
-const [userIdParamName, userTriggerIdParamName] = getParamNamesFromScriptPath(
-  __filename,
-);
+const userTriggerIdParamName = getParamNameFromScriptName(__filename);
 
 pathItemHandler.parameters = [
-  {
-    in: 'path',
-    name: userIdParamName,
-    schema: {
-      type: 'integer',
-      format: 'int32',
-      minimum: 1,
-    },
-    required: true,
-  },
   {
     in: 'path',
     name: userTriggerIdParamName,
@@ -41,7 +30,7 @@ pathItemHandler.parameters = [
 
 pathItemHandler.get = (req, res, next) => {
   userTriggerHistoryCommon.getUserTrigger(
-    req.params[userIdParamName],
+    (req as IRequestWithUser).user.userId,
     req.params[userTriggerIdParamName],
   )
     .then(userTrigger => res.json(userTrigger))
@@ -53,48 +42,6 @@ pathItemHandler.get.apiDoc = {
   security: [{
     [jwtBearerScheme]: [JwtBearerScope.ADMIN],
   }],
-  responses: {
-    200: {
-      description: 'Return user trigger history item',
-      content: {
-        'application/json': {
-          schema: {
-            $ref: '#/components/schemas/UserTrigger',
-          },
-        },
-      },
-    },
-    400: {
-      $ref: '#/components/responses/BadRequest',
-    },
-    401: {
-      $ref: '#/components/responses/Unauthenticated',
-    },
-    403: {
-      $ref: '#/components/responses/Forbidden',
-    },
-    404: {
-      $ref: '#/components/responses/NotFound',
-    },
-  },
-};
-
-pathItemHandler.delete = (req, res, next) => {
-  userTriggerHistoryCommon.deleteUserTrigger(
-    req.params[userIdParamName],
-    req.params[userTriggerIdParamName],
-  )
-    .then(userTrigger => res.json(userTrigger))
-    .catch(next);
-};
-pathItemHandler.delete.apiDoc = {
-  description: 'Delete user trigger history item',
-  tags: ['user-trigger-history'],
-  security: [
-    {
-      [jwtBearerScheme]: [JwtBearerScope.ADMIN],
-    },
-  ],
   responses: {
     200: {
       description: 'Return user trigger history item',

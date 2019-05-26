@@ -89,7 +89,7 @@ export function assertRequiredScopes(
   actualScopes: ReadonlyArray<JwtBearerScope>,
 ) {
   if (requiredScopes.some(s => !actualScopes.includes(s))) {
-    // Scope is synonymic to username's role
+    // Scope is synonymic to user's role
     throw new LogicError(ErrorCode.AUTH_ROLE);
   }
 }

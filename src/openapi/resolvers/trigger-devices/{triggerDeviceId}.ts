@@ -38,9 +38,14 @@ pathItemHandler.get = (req, res, next) => {
 pathItemHandler.get.apiDoc = {
   description: 'Get trigger device',
   tags: ['trigger-devices'],
-  security: [{
-    [jwtBearerScheme]: [JwtBearerScope.ADMIN],
-  }],
+  security: [
+    {
+      [jwtBearerScheme]: [JwtBearerScope.ADMIN],
+    },
+    {
+      [jwtBearerScheme]: [JwtBearerScope.EMPLOYEE],
+    },
+  ],
   parameters: [
     {
       $ref: '#/components/parameters/SelectTriggerDevice',
