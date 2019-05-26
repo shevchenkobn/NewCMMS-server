@@ -21,29 +21,26 @@ tags:
     description: API to get bill rates
   - name: bills
     description: API to get or delete bills
-  - name: trigger-action
   - name: trigger-actions
     description: API to manage trigger actions
   - name: trigger-devices
     description: API to manage trigger devices
   - name: user-trigger-history
     description: API to get user trigger history
-  - name: username-trigger-history
   - name: users
     description: API to manage users
 paths:
   /users:
     parameters: []
     post:
-      description: Create username
+      description: Create user
       tags:
         - users
       security:
         - jwt-bearer:
             - admin
       requestBody:
-        description: A username to create. The password can be generated, omit this field
-          then
+        description: A user to create. The password can be generated, omit this field then
         content:
           application/json:
             schema:
@@ -53,7 +50,7 @@ paths:
         - $ref: "#/components/parameters/SelectUserChange"
       responses:
         "201":
-          description: Optional username object if select was provided
+          description: Optional user object if select was provided
           content:
             application/json:
               schema:
@@ -76,7 +73,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/SelectUser"
         - in: query
-          name: username-ids
+          name: user-ids
           description: User IDs to include in result
           schema:
             type: array
@@ -167,6 +164,8 @@ paths:
       security:
         - jwt-bearer:
             - admin
+        - jwt-bearer:
+            - employee
       parameters:
         - $ref: "#/components/parameters/SelectTriggerDevice"
         - in: query
@@ -391,10 +390,43 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /auth/identity/trigger-history:
+    parameters: []
+    get:
+      description: Get trigger history for an authenticated identity
+      tags:
+        - auth
+        - user-trigger-history
+      security:
+        - jwt-bearer:
+            - employee
+      responses:
+        "200":
+          description: Get user trigger history
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cursor:
+                    $ref: "#/components/schemas/Cursor"
+                  userTriggers:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/UserTrigger"
+                additionalProperties: false
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /auth/identity:
     parameters: []
     get:
-      description: Get identity of authenticated username
+      description: Get identity of authenticated user
       tags:
         - auth
         - users
@@ -410,7 +442,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthenticated"
     patch:
-      description: Update username
+      description: Update user
       tags:
         - auth
         - users
@@ -419,7 +451,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/SelectUserChange"
       requestBody:
-        description: A username update. The password can be generated, put "" then
+        description: A user update. The password can be generated, put "" then
         content:
           application/json:
             schema:
@@ -427,7 +459,7 @@ paths:
         required: true
       responses:
         "200":
-          description: Return username
+          description: Return user
           content:
             application/json:
               schema:
@@ -437,7 +469,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthenticated"
     delete:
-      description: Delete current username account
+      description: Delete current user account
       tags:
         - auth
         - users
@@ -447,7 +479,7 @@ paths:
         - $ref: "#/components/parameters/SelectUser"
       responses:
         "200":
-          description: Return username
+          description: Return user
           content:
             application/json:
               schema:
@@ -597,6 +629,13 @@ paths:
   "/users/{userId}/trigger-history/{triggerHistoryId}":
     parameters:
       - in: path
+        name: userId
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+        required: true
+      - in: path
         name: triggerHistoryId
         schema:
           type: integer
@@ -604,17 +643,15 @@ paths:
           minimum: 1
         required: true
     get:
-      description: Get username trigger history item
+      description: Get user trigger history item
       tags:
-        - username-trigger-history
+        - user-trigger-history
       security:
-        - jwt-bearer:
-            - employee
         - jwt-bearer:
             - admin
       responses:
         "200":
-          description: Return username trigger history item
+          description: Return user trigger history item
           content:
             application/json:
               schema:
@@ -628,15 +665,15 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
     delete:
-      description: Delete username trigger history item
+      description: Delete user trigger history item
       tags:
-        - username-trigger-history
+        - user-trigger-history
       security:
         - jwt-bearer:
             - admin
       responses:
         "200":
-          description: Return username trigger history item
+          description: Return user trigger history item
           content:
             application/json:
               schema:
@@ -652,17 +689,15 @@ paths:
   "/users/{userId}/trigger-history":
     parameters: []
     get:
-      description: Get username trigger history
+      description: Get user trigger history
       tags:
-        - username-trigger-history
+        - user-trigger-history
       security:
-        - jwt-bearer:
-            - employee
         - jwt-bearer:
             - admin
       responses:
         "200":
-          description: Get username trigger history
+          description: Get user trigger history
           content:
             application/json:
               schema:
@@ -693,7 +728,7 @@ paths:
           minimum: 1
         required: true
     get:
-      description: Get username
+      description: Get user
       tags:
         - users
       security:
@@ -705,7 +740,7 @@ paths:
         - $ref: "#/components/parameters/SelectUser"
       responses:
         "200":
-          description: Return username
+          description: Return user
           content:
             application/json:
               schema:
@@ -719,7 +754,7 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
     delete:
-      description: Delete username
+      description: Delete user
       tags:
         - users
       security:
@@ -729,7 +764,7 @@ paths:
         - $ref: "#/components/parameters/SelectUser"
       responses:
         "200":
-          description: Return username
+          description: Return user
           content:
             application/json:
               schema:
@@ -743,7 +778,7 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
     patch:
-      description: Update username
+      description: Update user
       tags:
         - users
       security:
@@ -752,7 +787,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/SelectUserChange"
       requestBody:
-        description: A username update. The password can be generated, put "" then
+        description: A user update. The password can be generated, put "" then
         content:
           application/json:
             schema:
@@ -760,7 +795,7 @@ paths:
         required: true
       responses:
         "200":
-          description: Return username
+          description: Return user
           content:
             application/json:
               schema:
@@ -789,6 +824,8 @@ paths:
       security:
         - jwt-bearer:
             - admin
+        - jwt-bearer:
+            - employee
       parameters:
         - $ref: "#/components/parameters/SelectTriggerDevice"
       responses:
@@ -897,7 +934,7 @@ paths:
     delete:
       description: Delete trigger action
       tags:
-        - trigger-action
+        - trigger-actions
       security:
         - jwt-bearer:
             - admin
@@ -921,7 +958,7 @@ paths:
     patch:
       description: Update trigger action
       tags:
-        - trigger-action
+        - trigger-actions
       security:
         - jwt-bearer:
             - admin
@@ -1026,6 +1063,37 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Bill"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  "/auth/identity/trigger-history/{triggerHistoryId}":
+    parameters:
+      - in: path
+        name: triggerHistoryId
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+        required: true
+    get:
+      description: Get user trigger history item
+      tags:
+        - user-trigger-history
+      security:
+        - jwt-bearer:
+            - admin
+      responses:
+        "200":
+          description: Return user trigger history item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserTrigger"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
