@@ -14,6 +14,7 @@ const http_1 = require("http");
 const config = require("config");
 const express_openapi_1 = require("express-openapi");
 const yargs = require("yargs");
+const cors = require("cors");
 let argv = yargs
     .usage('Run the script to start the server. All options are in configs and defined by the NODE_ENV variable. You can also build a OpenApi YAML document.')
     .version().alias('v', 'version')
@@ -33,8 +34,13 @@ var Di;
 })(Di || (Di = {}));
 Promise.join(openapi_1.loadOpenApiDoc(), container_1.initDependenciesAsync()).then(([apiDoc]) => {
     const notProduction = process.env.NODE_ENV !== 'production';
-    const { host, port } = config.get('server');
+    const { host, port, cors: corsConfig } = config.get('server');
+    logger_service_1.logger.debug(config.get('server'));
     const app = express();
+    if (corsConfig) {
+        app.use(cors(corsConfig));
+        logger_service_1.logger.info(`CORS enabled for ${corsConfig}`);
+    }
     const server = http_1.createServer(app);
     //  apiDoc['x-express-openapi-disable-coercion-middleware'] = false; // FIXME: delete if requests are coerced without it
     apiDoc['x-express-openapi-disable-defaults-middleware'] = true;

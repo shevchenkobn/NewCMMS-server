@@ -185,12 +185,19 @@ export class UsersCommon {
     const currentUser = (hasSelect
       ? currentUserParam
       : selectOrCurrentUser) as IUser;
-    if (
-      !(currentUser.role & UserRole.ADMIN)
-      && typeof update.role === 'number'
-      && update.role & UserRole.ADMIN
-    ) {
-      throw new LogicError(ErrorCode.AUTH_ROLE);
+    if (typeof update.role === 'number') {
+      if (
+        !(currentUser.role & UserRole.ADMIN)
+        && update.role & UserRole.ADMIN
+      ) {
+        throw new LogicError(ErrorCode.AUTH_ROLE);
+      }
+      if (
+        userId === superAdminId
+        && !(update.role & UserRole.ADMIN)
+      ) {
+        throw new LogicError(ErrorCode.AUTH_ROLE);
+      }
     }
     const user = await (select
       ? this.usersModel.updateOne(

@@ -7,6 +7,13 @@ server:
     name: Master Admin
     password: Admin!123
     email: master.admin@local.host
+  cors: # see docs at https://www.npmjs.com/package/cors#configuration-options
+    origin: true
+    methods:
+      - GET
+      - POST
+      - DELETE
+      - PATCH
 
 db:
   type: pg
@@ -24,16 +31,6 @@ mqtt:
     #username: yourUser # to override set null
     #password: yourPass # to override set null
   clusterMode: true # use Shared Subscriptions by server clusters
-
-cors:
-  whitelist:
-    - '*'
-  methods:
-    - GET
-    - POST
-    - DELETE
-    - PUT
-    - PATCH
 
 auth:
   jwt:

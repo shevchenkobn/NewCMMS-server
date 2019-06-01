@@ -29,12 +29,14 @@ import { createServer } from 'http';
 import * as config from 'config';
 import { initialize } from 'express-openapi';
 import * as yargs from 'yargs';
+import * as cors from 'cors';
 import ServiceIdentifier = interfaces.ServiceIdentifier;
 
 export interface IServerConfig {
   host: string;
   port: number;
   openapiDocsPrefix: string;
+  cors: Nullable<cors.CorsOptions>;
 }
 
 let argv: Nullable<yargs.Arguments> = yargs
@@ -63,9 +65,14 @@ Promise.join(
   initDependenciesAsync(),
 ).then(([apiDoc]) => {
   const notProduction = process.env.NODE_ENV !== 'production';
-  const { host, port } = config.get<IServerConfig>('server');
+  const { host, port, cors: corsConfig } = config.get<IServerConfig>('server');
 
+  logger.debug(config.get<IServerConfig>('server'))
   const app = express();
+  if (corsConfig) {
+    app.use(cors(corsConfig));
+    logger.info(`CORS enabled for ${corsConfig}`);
+  }
   const server = createServer(app);
 
 //  apiDoc['x-express-openapi-disable-coercion-middleware'] = false; // FIXME: delete if requests are coerced without it

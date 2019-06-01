@@ -77,6 +77,9 @@ pathItemHandler.post.apiDoc = {
                 },
             },
         },
+        403: {
+            $ref: '#/components/responses/Forbidden',
+        },
     },
 };
 module.exports = pathItemHandler;

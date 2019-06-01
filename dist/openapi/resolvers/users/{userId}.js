@@ -108,7 +108,7 @@ pathItemHandler.delete.apiDoc = {
     },
 };
 pathItemHandler.patch = (req, res, next) => {
-    usersCommon.updateUser(req.params[userIdParamName], req.body, req.query.select)
+    usersCommon.updateUser(req.params[userIdParamName], req.body, req.query.select, req.user)
         .then(user => res.json(user))
         .catch(next);
 };

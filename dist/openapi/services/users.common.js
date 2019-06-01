@@ -90,10 +90,15 @@ let UsersCommon = class UsersCommon {
         const currentUser = (hasSelect
             ? currentUserParam
             : selectOrCurrentUser);
-        if (!(currentUser.role & users_1.UserRole.ADMIN)
-            && typeof update.role === 'number'
-            && update.role & users_1.UserRole.ADMIN) {
-            throw new error_service_1.LogicError(error_service_1.ErrorCode.AUTH_ROLE);
+        if (typeof update.role === 'number') {
+            if (!(currentUser.role & users_1.UserRole.ADMIN)
+                && update.role & users_1.UserRole.ADMIN) {
+                throw new error_service_1.LogicError(error_service_1.ErrorCode.AUTH_ROLE);
+            }
+            if (userId === db_orchestrator_class_1.superAdminId
+                && !(update.role & users_1.UserRole.ADMIN)) {
+                throw new error_service_1.LogicError(error_service_1.ErrorCode.AUTH_ROLE);
+            }
         }
         const user = await (select
             ? this.usersModel.updateOne(userId, update, select)

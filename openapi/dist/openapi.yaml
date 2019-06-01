@@ -390,6 +390,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "403":
+          $ref: "#/components/responses/Forbidden"
   /auth/identity/trigger-history:
     parameters: []
     get:
