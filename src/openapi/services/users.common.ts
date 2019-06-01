@@ -17,6 +17,7 @@ import {
   mergeArrays,
 } from '../../utils/common';
 import { PaginationCursor } from '../../utils/model';
+import { UserRole } from '../../utils/models/users';
 
 export interface IUserList {
   users: IUser[];
@@ -155,22 +156,42 @@ export class UsersCommon {
   updateUser(
     userId: number,
     update: DeepPartial<IUserChangeNoPassword>,
+    currentUser: IUser,
   ): Promise<{}>;
   updateUser<T extends DeepPartial<IUser> = DeepPartial<IUser>>(
     userId: number,
     update: DeepPartial<IUserChangeNoPassword>,
     select: ReadonlyArray<keyof IUser>,
+    currentUser: IUser,
   ): Promise<T>;
   updateUser<T extends DeepPartial<IUserWithPassword> = DeepPartial<IUserWithPassword>>(
     userId: number,
     update: DeepPartial<IUserCreate>,
     select: ReadonlyArray<keyof IUser>,
+    currentUser: IUser,
   ): Promise<T>;
   async updateUser(
     userId: number,
     update: DeepPartial<IUserChangeNoPassword>,
-    select?: ReadonlyArray<keyof IUserWithPassword>,
+    selectOrCurrentUser: Optional<
+      ReadonlyArray<keyof IUserWithPassword>
+    > | IUser,
+    currentUserParam?: IUser,
   ): Promise<DeepPartial<IUserWithPassword> | DeepPartial<IUser> | {}> {
+    const hasSelect = Array.isArray(selectOrCurrentUser);
+    const select = hasSelect
+      ? selectOrCurrentUser
+      : null;
+    const currentUser = (hasSelect
+      ? currentUserParam
+      : selectOrCurrentUser) as IUser;
+    if (
+      !(currentUser.role & UserRole.ADMIN)
+      && typeof update.role === 'number'
+      && update.role & UserRole.ADMIN
+    ) {
+      throw new LogicError(ErrorCode.AUTH_ROLE);
+    }
     const user = await (select
       ? this.usersModel.updateOne(
         userId,

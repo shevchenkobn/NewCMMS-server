@@ -7,6 +7,7 @@ const db_orchestrator_class_1 = require("../../services/db-orchestrator.class");
 const error_service_1 = require("../../services/error.service");
 const common_1 = require("../../utils/common");
 const model_1 = require("../../utils/model");
+const users_1 = require("../../utils/models/users");
 let UsersCommon = class UsersCommon {
     constructor(usersModel) {
         this.usersModel = usersModel;
@@ -81,7 +82,19 @@ let UsersCommon = class UsersCommon {
         }
         return user;
     }
-    async updateUser(userId, update, select) {
+    async updateUser(userId, update, selectOrCurrentUser, currentUserParam) {
+        const hasSelect = Array.isArray(selectOrCurrentUser);
+        const select = hasSelect
+            ? selectOrCurrentUser
+            : null;
+        const currentUser = (hasSelect
+            ? currentUserParam
+            : selectOrCurrentUser);
+        if (!(currentUser.role & users_1.UserRole.ADMIN)
+            && typeof update.role === 'number'
+            && update.role & users_1.UserRole.ADMIN) {
+            throw new error_service_1.LogicError(error_service_1.ErrorCode.AUTH_ROLE);
+        }
         const user = await (select
             ? this.usersModel.updateOne(userId, update, select)
             : this.usersModel.updateOne(userId, update));
