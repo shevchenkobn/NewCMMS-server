@@ -40,7 +40,12 @@ pathItemHandler.get.apiDoc = {
 
 pathItemHandler.patch = (req, res, next) => {
   const request = req as IRequestWithUser;
-  usersCommon.updateUser(request.user.userId, req.body, req.query.select)
+  usersCommon.updateUser(
+    request.user.userId,
+    req.body,
+    req.query.select,
+    request.user,
+  )
     .then(user => res.json(user))
     .catch(next);
 };

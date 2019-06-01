@@ -4,6 +4,7 @@ import {
 } from '../../../utils/openapi';
 import { getContainer } from '../../../di/container';
 import { UsersCommon } from '../../services/users.common';
+import { IRequestWithUser } from '../../../services/security-handlers.service';
 
 const pathItemHandler: IOpenApiPathItemHandler = {};
 export = pathItemHandler;
@@ -122,6 +123,7 @@ pathItemHandler.patch = (req, res, next) => {
     req.params[userIdParamName],
     req.body,
     req.query.select,
+    (req as IRequestWithUser).user,
   )
     .then(user => res.json(user))
     .catch(next);
