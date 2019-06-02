@@ -81,7 +81,7 @@ export function loadOpenApiDoc(
 }
 
 export namespace CustomFormats {
-  const decimalRegex = /^(\d+|\d*\.\d+)$/;
+  const decimalRegex = /^(\d{1,7}|\d{0,7}\.\d{1,7})$/;
   export const formats = {
     // tslint:disable-next-line:function-name
     ['physical-address'](value: string) {
@@ -89,12 +89,7 @@ export namespace CustomFormats {
     },
     // tslint:disable-next-line:function-name
     ['decimal-13-6'](value: string) {
-      const isDecimal = decimalRegex.test(value);
-      if (!isDecimal) {
-        return false;
-      }
-      const partLengths = value.split('.').map(p => p.length);
-      return partLengths[1] <= 6 && partLengths[0] <= 7;
+      return decimalRegex.test(value);
     },
   };
 }

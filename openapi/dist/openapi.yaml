@@ -1183,7 +1183,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ActionDeviceUpdate"
+                $ref: "#/components/schemas/ActionDeviceOptional"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":

@@ -154,7 +154,7 @@ pathItemHandler.patch.apiDoc = {
       content: {
         'application/json': {
           schema: {
-            $ref: '#/components/schemas/ActionDeviceUpdate',
+            $ref: '#/components/schemas/ActionDeviceOptional',
           },
         },
       },

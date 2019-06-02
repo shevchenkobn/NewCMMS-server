@@ -42,7 +42,7 @@ function loadOpenApiDoc(rootPath = appRoot.resolve('openapi/src/openapi.yaml'), 
 exports.loadOpenApiDoc = loadOpenApiDoc;
 var CustomFormats;
 (function (CustomFormats) {
-    const decimalRegex = /^(\d+|\d*\.\d+)$/;
+    const decimalRegex = /^(\d{1,7}|\d{0,7}\.\d{1,7})$/;
     CustomFormats.formats = {
         // tslint:disable-next-line:function-name
         ['physical-address'](value) {
@@ -50,12 +50,7 @@ var CustomFormats;
         },
         // tslint:disable-next-line:function-name
         ['decimal-13-6'](value) {
-            const isDecimal = decimalRegex.test(value);
-            if (!isDecimal) {
-                return false;
-            }
-            const partLengths = value.split('.').map(p => p.length);
-            return partLengths[1] <= 6 && partLengths[0] <= 7;
+            return decimalRegex.test(value);
         },
     };
 })(CustomFormats = exports.CustomFormats || (exports.CustomFormats = {}));
