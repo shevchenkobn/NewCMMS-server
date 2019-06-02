@@ -182,7 +182,7 @@ export class UsersCommon {
     const select = hasSelect
       ? selectOrCurrentUser
       : null;
-    const currentUser = (hasSelect
+    const currentUser = (currentUserParam || hasSelect
       ? currentUserParam
       : selectOrCurrentUser) as IUser;
     if (typeof update.role === 'number') {

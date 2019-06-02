@@ -87,7 +87,7 @@ let UsersCommon = class UsersCommon {
         const select = hasSelect
             ? selectOrCurrentUser
             : null;
-        const currentUser = (hasSelect
+        const currentUser = (currentUserParam || hasSelect
             ? currentUserParam
             : selectOrCurrentUser);
         if (typeof update.role === 'number') {
