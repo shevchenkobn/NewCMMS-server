@@ -64,6 +64,7 @@ exports.errorHandlingPipeline = [
                 case error_service_1.ErrorCode.AUTH_NO:
                 case error_service_1.ErrorCode.AUTH_BAD:
                 case error_service_1.ErrorCode.AUTH_BAD_SCHEME:
+                case error_service_1.ErrorCode.USER_CREDENTIALS_BAD:
                     res.status(401);
                     break;
                 case error_service_1.ErrorCode.SERVER:

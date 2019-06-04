@@ -89,6 +89,7 @@ export const errorHandlingPipeline: ErrorRequestHandler[] = [
         case ErrorCode.AUTH_NO:
         case ErrorCode.AUTH_BAD:
         case ErrorCode.AUTH_BAD_SCHEME:
+        case ErrorCode.USER_CREDENTIALS_BAD:
           res.status(401);
           break;
 
