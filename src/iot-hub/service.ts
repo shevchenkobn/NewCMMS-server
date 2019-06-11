@@ -1,25 +1,22 @@
-import { EventEmitter } from 'events';
-import { inject, injectable } from 'inversify';
-import { iterate } from 'iterare';
-import { oc } from 'ts-optchain';
-import { ensureInjectable } from '../di/types';
-import { ActionDevicesModel } from '../models/action-devices.model';
-import { BillRatesModel } from '../models/bill-rates.model';
-import { BillsModel, IBill } from '../models/bills.model';
-import { TriggerActionsModel } from '../models/trigger-actions.model';
-import { TriggerDevicesModel } from '../models/trigger-devices.model';
-import {
-  IUserTrigger,
-  UserTriggerHistoryModel,
-} from '../models/user-trigger-history.model';
-import { AuthService } from '../services/auth.service';
-import { DbConnection } from '../services/db-connection.class';
-import { ErrorCode, LogicError } from '../services/error.service';
-import { isPhysicalAddress } from '../utils/common';
-import { ActionDeviceStatus } from '../utils/models/action-devices';
-import { TriggerDeviceStatus } from '../utils/models/trigger-devices';
-import { UserTriggerType } from '../utils/models/user-trigger-history';
-import { JwtBearerScope } from '../utils/openapi';
+import {EventEmitter} from 'events';
+import {inject, injectable} from 'inversify';
+import {iterate} from 'iterare';
+import {oc} from 'ts-optchain';
+import {ensureInjectable} from '../di/types';
+import {ActionDevicesModel} from '../models/action-devices.model';
+import {BillRatesModel} from '../models/bill-rates.model';
+import {BillsModel, IBill} from '../models/bills.model';
+import {TriggerActionsModel} from '../models/trigger-actions.model';
+import {TriggerDevicesModel} from '../models/trigger-devices.model';
+import {IUserTrigger, UserTriggerHistoryModel,} from '../models/user-trigger-history.model';
+import {AuthService} from '../services/auth.service';
+import {DbConnection} from '../services/db-connection.class';
+import {ErrorCode, LogicError} from '../services/error.service';
+import {isPhysicalAddress} from '../utils/common';
+import {ActionDeviceStatus} from '../utils/models/action-devices';
+import {TriggerDeviceStatus} from '../utils/models/trigger-devices';
+import {UserTriggerType} from '../utils/models/user-trigger-history';
+import {JwtBearerScope} from '../utils/openapi';
 
 export enum ActionDeviceAction {
   TOGGLE = 0,
@@ -209,8 +206,17 @@ export class IoTService extends EventEmitter {
         .map(rate => rate.actionDeviceId as number).toArray(),
       statuses: [ActionDeviceStatus.CONNECTED, ActionDeviceStatus.ONLINE],
     });
+    const promises = [];
     for (const device of actionDevices) {
       // FIXME: choose action according to status
+      promises.push(this.actionDevicesModel.updateOne(
+        device.actionDeviceId,
+        {
+          status: device.status === ActionDeviceStatus.CONNECTED
+            ? ActionDeviceStatus.ONLINE
+            : ActionDeviceStatus.CONNECTED,
+        },
+      ));
       this.emit(
         'action-device/toggle',
         device,

@@ -157,8 +157,14 @@ let IoTService = class IoTService extends events_1.EventEmitter {
                 .map(rate => rate.actionDeviceId).toArray(),
             statuses: [action_devices_1.ActionDeviceStatus.CONNECTED, action_devices_1.ActionDeviceStatus.ONLINE],
         });
+        const promises = [];
         for (const device of actionDevices) {
             // FIXME: choose action according to status
+            promises.push(this.actionDevicesModel.updateOne(device.actionDeviceId, {
+                status: device.status === action_devices_1.ActionDeviceStatus.CONNECTED
+                    ? action_devices_1.ActionDeviceStatus.ONLINE
+                    : action_devices_1.ActionDeviceStatus.CONNECTED,
+            }));
             this.emit('action-device/toggle', device, ActionDeviceAction.TOGGLE);
         }
         return triggerType === user_trigger_history_1.UserTriggerType.ENTER

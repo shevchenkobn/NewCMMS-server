@@ -138,16 +138,16 @@ export class ActionDevicesModel {
 
   updateOne(
     actionDeviceId: number,
-    update: DeepReadonly<IActionDeviceChange>,
+    update: DeepPartial<DeepReadonly<IActionDeviceChange>>,
   ): Promise<Nullable<{}>>;
   updateOne<T extends DeepPartial<IActionDevice> = DeepPartial<IActionDevice>>(
     actionDeviceId: number,
-    update: DeepReadonly<IActionDeviceChange>,
+    update: DeepPartial<DeepReadonly<IActionDeviceChange>>,
     returning: ReadonlyArray<keyof IActionDevice>,
   ): Promise<Nullable<T>>;
   updateOne(
     actionDeviceId: number,
-    update: DeepReadonly<IActionDeviceChange>,
+    update: DeepPartial<DeepReadonly<IActionDeviceChange>>,
     returning?: ReadonlyArray<keyof IActionDevice>,
   ): Promise<Nullable<DeepPartial<IActionDevice>>> {
     return this.table.where({ actionDeviceId })
