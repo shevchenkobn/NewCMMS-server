@@ -167,6 +167,7 @@ let IoTService = class IoTService extends events_1.EventEmitter {
             }));
             this.emit('action-device/toggle', device, ActionDeviceAction.TOGGLE);
         }
+        await Promise.all(promises);
         return triggerType === user_trigger_history_1.UserTriggerType.ENTER
             ? ProcessTriggerResults.ENTER_ADDED
             : ProcessTriggerResults.LEAVE_ADDED;

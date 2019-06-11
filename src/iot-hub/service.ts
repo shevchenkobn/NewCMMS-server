@@ -223,6 +223,7 @@ export class IoTService extends EventEmitter {
         ActionDeviceAction.TOGGLE,
       );
     }
+    await Promise.all(promises);
     return triggerType === UserTriggerType.ENTER
       ? ProcessTriggerResults.ENTER_ADDED
       : ProcessTriggerResults.LEAVE_ADDED;
