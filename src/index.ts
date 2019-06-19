@@ -104,8 +104,10 @@ Promise.join(
   app.use(notFoundHandler);
 
   connectMqtt().then(() => {
-    server.listen(port, host, () => {
-      logger.info(`Listening at ${host}:${port}`);
+    const envPort = Number.parseInt(process.env.PORT!);
+    const actualPort = !Number.isNaN(envPort) ? envPort : port;
+    server.listen(actualPort, host, () => {
+      logger.info(`Listening at ${host}:${actualPort}`);
       argv = null;
       if (global.gc) {
         global.gc();

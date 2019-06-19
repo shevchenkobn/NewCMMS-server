@@ -66,8 +66,10 @@ Promise.join(openapi_1.loadOpenApiDoc(), container_1.initDependenciesAsync()).th
     app.use(middlewares_1.errorHandlingPipeline);
     app.use(middlewares_1.notFoundHandler);
     iot_hub_1.connectMqtt().then(() => {
-        server.listen(port, host, () => {
-            logger_service_1.logger.info(`Listening at ${host}:${port}`);
+        const envPort = Number.parseInt(process.env.PORT);
+        const actualPort = !Number.isNaN(envPort) ? envPort : port;
+        server.listen(actualPort, host, () => {
+            logger_service_1.logger.info(`Listening at ${host}:${actualPort}`);
             argv = null;
             if (global.gc) {
                 global.gc();

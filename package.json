@@ -24,7 +24,7 @@
     "keys:g": "node dist/tools/key-pairs g"
   },
   "engines": {
-    "node": "^10.12"
+    "node": ">=10.0"
   },
   "repository": {
     "type": "git",
