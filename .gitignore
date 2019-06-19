@@ -175,4 +175,6 @@ fabric.properties
 config/local*
 keys/*
 !keys/.gitkeep
+public/*
+!public/.gitkeep
 dummy/*
