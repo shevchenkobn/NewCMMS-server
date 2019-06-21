@@ -20,6 +20,7 @@ const action_devices_1 = require("../utils/models/action-devices");
 const trigger_devices_1 = require("../utils/models/trigger-devices");
 const user_trigger_history_1 = require("../utils/models/user-trigger-history");
 const openapi_1 = require("../utils/openapi");
+const db_orchestrator_1 = require("../utils/db-orchestrator");
 var ActionDeviceAction;
 (function (ActionDeviceAction) {
     ActionDeviceAction[ActionDeviceAction["TOGGLE"] = 0] = "TOGGLE";
@@ -117,7 +118,7 @@ let IoTService = class IoTService extends events_1.EventEmitter {
                             if (!bill) {
                                 throw new TypeError('Unexpected absent bill');
                             }
-                            const sum = await this.billRatesModel.getBillSumForTriggerDevice(triggerDeviceMac, bill.startedAt, dateTriggered);
+                            const sum = db_orchestrator_1.getSaturatedBillSum(await this.billRatesModel.getBillSumForTriggerDevice(triggerDeviceMac, bill.startedAt, dateTriggered));
                             await this.dbConnection.knex.transaction(trx => {
                                 Promise.join(this.billsModel.updateOne(bill.billId, {
                                     sum,

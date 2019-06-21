@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const logger_service_1 = require("../services/logger.service");
+const decimal_js_1 = require("decimal.js");
 // NOTE: The order is very important!
 var TableName;
 (function (TableName) {
@@ -108,7 +109,7 @@ class TableBuilders {
                         .onDelete('CASCADE');
                     table.dateTime('startedAt').notNullable();
                     table.dateTime('finishedAt').nullable();
-                    table.decimal('sum', 10, 6).nullable();
+                    table.decimal('sum', 13, 6).nullable();
                 })],
             [TableName.BILL_RATES, () => this._knex.schema.createTable(TableName.BILL_RATES, table => {
                     //          table.increments(getIdColumn(TableName.BILL_RATES))
@@ -270,4 +271,9 @@ class TableColumnTypeBuilder {
     }
 }
 TableColumnTypeBuilder._cache = null;
+function getSaturatedBillSum(sum) {
+    return maxBillSum.gt(sum) ? sum : maxBillSum.toString();
+}
+exports.getSaturatedBillSum = getSaturatedBillSum;
+const maxBillSum = new decimal_js_1.Decimal('9999999.999999');
 //# sourceMappingURL=db-orchestrator.js.map

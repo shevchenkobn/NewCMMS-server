@@ -2,6 +2,7 @@ import * as Knex from 'knex';
 import { Nullable } from '../@types';
 import { DbConnection } from '../services/db-connection.class';
 import { logger } from '../services/logger.service';
+import { Decimal } from 'decimal.js';
 
 // NOTE: The order is very important!
 export enum TableName {
@@ -132,7 +133,7 @@ export class TableBuilders {
             .onDelete('CASCADE');
           table.dateTime('startedAt').notNullable();
           table.dateTime('finishedAt').nullable();
-          table.decimal('sum', 10, 6).nullable();
+          table.decimal('sum', 13, 6).nullable();
         },
       )],
       [TableName.BILL_RATES, () => this._knex.schema.createTable(
@@ -325,3 +326,8 @@ class TableColumnTypeBuilder {
     }
   }
 }
+
+export function getSaturatedBillSum<T extends number | string | Decimal>(sum: T) {
+  return maxBillSum.gt(sum) ? sum : maxBillSum.toString();
+}
+const maxBillSum = new Decimal('9999999.999999');

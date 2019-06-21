@@ -17,6 +17,7 @@ import {ActionDeviceStatus} from '../utils/models/action-devices';
 import {TriggerDeviceStatus} from '../utils/models/trigger-devices';
 import {UserTriggerType} from '../utils/models/user-trigger-history';
 import {JwtBearerScope} from '../utils/openapi';
+import {getSaturatedBillSum} from "../utils/db-orchestrator";
 
 export enum ActionDeviceAction {
   TOGGLE = 0,
@@ -158,11 +159,11 @@ export class IoTService extends EventEmitter {
             if (!bill) {
               throw new TypeError('Unexpected absent bill');
             }
-            const sum = await this.billRatesModel.getBillSumForTriggerDevice(
+            const sum = getSaturatedBillSum(await this.billRatesModel.getBillSumForTriggerDevice(
               triggerDeviceMac,
               bill.startedAt,
               dateTriggered,
-            );
+            ));
             await this.dbConnection.knex.transaction(trx => {
               Promise.join(
                 this.billsModel.updateOne(bill.billId, {
